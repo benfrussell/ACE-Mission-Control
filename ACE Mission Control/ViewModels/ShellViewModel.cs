@@ -91,6 +91,9 @@ namespace ACE_Mission_Control.ViewModels
 
         private async void OnLoaded()
         {
+            //UGCSClient.StartTryingConnections();
+
+            // Generated code
             // Keyboard accelerators are added here to avoid showing 'Alt + left' tooltip on the page.
             // More info on tracking issue https://github.com/Microsoft/microsoft-ui-xaml/issues/8
             _keyboardAccelerators.Add(_altLeftKeyboardAccelerator);

@@ -18,7 +18,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             PrivateKeyClosed,
             NotConfigured,
-            WaitingPreMission,
+            SearchingPreMission,
             TryingPreMission,
             ConnectedPreMission
         }
@@ -157,7 +157,7 @@ namespace ACE_Mission_Control.Core.Models
             else if (!IsConfigured)
                 Status = StatusEnum.NotConfigured;
             else if (client == null)
-                Status = StatusEnum.WaitingPreMission;
+                Status = StatusEnum.SearchingPreMission;
             else if (client.IsConnected)
                 Status = StatusEnum.ConnectedPreMission;
             else

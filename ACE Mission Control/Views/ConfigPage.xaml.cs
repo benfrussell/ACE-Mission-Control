@@ -25,22 +25,39 @@ namespace ACE_Mission_Control.Views
     public sealed partial class ConfigPage : Page
     {
         private int droneID;
+        private bool isInit;
+        private ConfigViewModel viewModel;
         private ConfigViewModel ViewModel
         {
-            get { return (ConfigViewModel)ViewModelLocator.Current.GetViewModel<ConfigViewModel>(droneID); }
+            get { return viewModel; }
+            set
+            {
+                if (viewModel == value)
+                    return;
+                viewModel = value;
+            }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+
             if (e.Parameter.GetType() == typeof(int))
                 droneID = (int)e.Parameter;
             else
                 droneID = 0;
+
+            ViewModel = (ConfigViewModel)ViewModelLocator.Current.GetViewModel<ConfigViewModel>(droneID);
+
+            if (e.NavigationMode == NavigationMode.Back || isInit)
+                return;
+
+            isInit = true;
         }
         public ConfigPage()
         {
             this.InitializeComponent();
+            NavigationCacheMode = NavigationCacheMode.Enabled;
         }
     }
 }

@@ -40,6 +40,7 @@ namespace ACE_Mission_Control.ViewModels
         }
         public ViewModelBase GetViewModel<T>(int id) where T : ViewModelBase
         {
+            System.Diagnostics.Debug.WriteLine("Getting model " + id);
             var vm = SimpleIoc.Default.GetInstance<T>(id.ToString());
             if (vm.GetType().IsSubclassOf(typeof(DroneViewModelBase)))
             {

@@ -20,6 +20,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 
 using WinUI = Microsoft.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Animation;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -111,6 +112,7 @@ namespace ACE_Mission_Control.ViewModels
 
             if (args.InvokedItem.GetType() == typeof(Drone))
             {
+                System.Diagnostics.Debug.WriteLine("Shell page navigating to " + (args.InvokedItem as Drone).ID);
                 NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (args.InvokedItem as Drone).ID);
             }
             else

@@ -30,6 +30,7 @@ namespace ACE_Mission_Control.Views
         private static List<int> dronesRegistered = new List<int>();
         private int droneID;
         private bool diagCanClose = false;
+        private bool isInit = false;
 
         private MissionViewModel ViewModel
         {
@@ -39,6 +40,10 @@ namespace ACE_Mission_Control.Views
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+
+            if (e.NavigationMode == NavigationMode.Back || isInit)
+                return;
+
             if (e.Parameter.GetType() == typeof(int))
                 droneID = (int)e.Parameter;
             else
@@ -46,22 +51,21 @@ namespace ACE_Mission_Control.Views
 
             curDroneID = droneID;
 
-            if (!dronesRegistered.Contains(droneID))
+            Messenger.Default.Register<ShowPassphraseDialogMessage>(this, droneID, showDiag);
+
+            Messenger.Default.Register<HidePassphraseDialogMessage>(this, droneID, (msg) =>
             {
-                Messenger.Default.Register<ShowPassphraseDialogMessage>(this, droneID, showDiag);
+                if (curDroneID != droneID)
+                    return;
+                diagCanClose = true;
+                PassphraseDialog.Hide();
+            });
 
-                Messenger.Default.Register<HidePassphraseDialogMessage>(this, droneID, (msg) =>
-                {
-                    if (curDroneID != droneID)
-                        return;
-                    diagCanClose = true;
-                    PassphraseDialog.Hide();
-                });
+            System.Diagnostics.Debug.WriteLine("Registered");
 
-                System.Diagnostics.Debug.WriteLine("Registered");
+            dronesRegistered.Add(droneID);
 
-                dronesRegistered.Add(droneID);
-            }
+            isInit = true;
         }
 
         private async void showDiag(object msg)
@@ -82,34 +86,35 @@ namespace ACE_Mission_Control.Views
         public MissionPage()
         {
             this.InitializeComponent();
+            NavigationCacheMode = NavigationCacheMode.Enabled;
             System.Diagnostics.Debug.WriteLine("Initialized");
         }
 
         // TODO: Re-enable this when the button works
-        //private void PassphraseDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
-        //{
-        //    // If we're closing because of the primary button, check if it's been allowed first
-        //    if (args.Result == ContentDialogResult.Primary)
-        //    {
-        //        if (diagCanClose)
-        //            PassphraseDialogInput.Password = "";
-
-        //        args.Cancel = !diagCanClose;
-        //        diagCanClose = false;
-        //    }
-        //    else
-        //    {
-        //        PassphraseDialogInput.Password = "";
-        //    }
-        //}
-
         private void PassphraseDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
         {
-            if (diagCanClose)
-                PassphraseDialogInput.Password = "";
+            // If we're closing because of the primary button, check if it's been allowed first
+            if (args.Result == ContentDialogResult.Primary)
+            {
+                if (diagCanClose)
+                    PassphraseDialogInput.Password = "";
 
-            args.Cancel = !diagCanClose;
-            diagCanClose = false;
+                args.Cancel = !diagCanClose;
+                diagCanClose = false;
+            }
+            else
+            {
+                PassphraseDialogInput.Password = "";
+            }
         }
+
+        //private void PassphraseDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
+        //{
+        //    if (diagCanClose)
+        //        PassphraseDialogInput.Password = "";
+
+        //    args.Cancel = !diagCanClose;
+        //    diagCanClose = false;
+        //}
     }
 }

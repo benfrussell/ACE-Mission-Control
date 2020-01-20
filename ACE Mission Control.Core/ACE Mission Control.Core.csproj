@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>ACE_Mission_Control.Core</RootNamespace>
+    <AssemblyName>Ace Mission Control.Core</AssemblyName>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+    <Platforms>AnyCPU;x64;x86</Platforms>
+  </PropertyGroup>
+
+   <ItemGroup>
+     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+   </ItemGroup>
+
+   <ItemGroup>
+     <ProjectReference Include="..\..\SSH.NET-develop\src\Renci.SshNet.NETCore\Renci.SshNet.NETCore.csproj" />
+   </ItemGroup>
+
+   <ItemGroup>
+     <None Update="Scripts\key_gen.py">
+       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+     </None>
+   </ItemGroup>
+</Project>

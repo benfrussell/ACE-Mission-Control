@@ -1,0 +1,98 @@
+﻿<Page
+    x:Class="ACE_Mission_Control.Views.MissionPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ACE_Mission_Control.Views"
+    xmlns:helper="using:ACE_Mission_Control.Helpers"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid
+        x:Name="ContentArea"
+        Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1.5*"/>
+            <RowDefinition Height="10*"/>
+        </Grid.RowDefinitions>
+        <Grid
+            x:Name="OBCStatusArea"
+            Margin="8,8,8,0"
+            Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="6*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.ColumnSpan="2" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"/>
+            <SymbolIcon x:Name="OBCStatusSymbolIcon"
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Symbol="{x:Bind ViewModel.OBCStatusSymbol}"/>
+            <TextBlock x:Name="OBCStatusTextBlock"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       Text="{x:Bind ViewModel.OBCStatusText, Mode=OneWay}"/>
+        </Grid>
+        <Grid
+            x:Name="UGCSStatusArea"
+            Margin="8,8,8,0"
+            Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.ColumnSpan="2" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"/>
+            <SymbolIcon Grid.Column="0" VerticalAlignment="Center" Symbol="Clock" Height="20"/>
+            <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       Text="{x:Bind ViewModel.UGCSMissionRetrieveText}"
+                       Height="20"/>
+        </Grid>
+        <StackPanel
+            Margin="{StaticResource XSmallTopMargin}"
+            Orientation="Horizontal"
+            VerticalAlignment="Top"
+            Grid.Row="2">
+            <Button x:Name="LockButton"
+                    x:Uid="Mission_LockButton"
+                    Margin="8,0,0,0"
+                    Style="{ThemeResource ACEIconButton}"
+                    Command="{x:Bind ViewModel.LockButtonCommand}"
+                    IsEnabled="{x:Bind ViewModel.LockButtonEnabled, Mode=OneWay}">
+                <SymbolIcon x:Name="LockButtonSymbol"
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Symbol="{x:Bind ViewModel.LockButtonSymbol, Mode=OneWay}"/>
+            </Button>
+            <Button x:Name="RetrieveButton"
+                    x:Uid="Mission_RetrieveButton"
+                    Margin="8,0,0,0"
+                    Style="{ThemeResource ACEButton}"/>
+            <Button x:Name="UploadButton"
+                    x:Uid="Mission_UploadButton"
+                    Margin="8,0,0,0"
+                    Style="{ThemeResource ACEButton}"/>
+        </StackPanel>
+        <ContentDialog x:Name="PassphraseDialog"
+                       x:Uid="Mission_PassDialog"
+                       PrimaryButtonText="Enter"
+                       SecondaryButtonText="Cancel"
+                       PrimaryButtonCommand="{x:Bind ViewModel.PassDialogEnterCommand}"
+                       Closing="PassphraseDialog_Closing">
+            <StackPanel>
+                <TextBlock x:Uid="Mission_PassDialogText" />
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <PasswordBox x:Name="PassphraseDialogInput"
+                                 Password="{x:Bind ViewModel.PassDialogInputText, Mode=TwoWay}"
+                                 helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.PassDialogEnterCommand}" />
+                    <ProgressRing Margin="8,0,0,12"
+                                  IsActive="{x:Bind ViewModel.PassDialogLoading, Mode=OneWay}" />
+                </StackPanel>
+                <TextBlock Text="{x:Bind ViewModel.PassDialogErrorText, Mode=OneWay}"
+                           Foreground="{ThemeResource SystemErrorTextColor}"/>
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</Page>

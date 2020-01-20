@@ -1,0 +1,835 @@
+('C:\\Users\\Benjamin Russell\\OneDrive - KERSIA\\Documents\\Projects\\ACE '
+ 'Mission Control\\ACE Mission '
+ 'Control.Core\\Scripts\\build\\key_gen\\PYZ-00.pyz',
+ [('copy',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\copy.py',
+   'PYMODULE'),
+  ('typing',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\typing.py',
+   'PYMODULE'),
+  ('contextlib',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\contextlib.py',
+   'PYMODULE'),
+  ('_strptime',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\_strptime.py',
+   'PYMODULE'),
+  ('datetime',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\datetime.py',
+   'PYMODULE'),
+  ('calendar',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\calendar.py',
+   'PYMODULE'),
+  ('argparse',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\argparse.py',
+   'PYMODULE'),
+  ('textwrap',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\textwrap.py',
+   'PYMODULE'),
+  ('gettext',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\gettext.py',
+   'PYMODULE'),
+  ('struct',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\struct.py',
+   'PYMODULE'),
+  ('_py_abc',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\_py_abc.py',
+   'PYMODULE'),
+  ('tokenize',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\tokenize.py',
+   'PYMODULE'),
+  ('token',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\token.py',
+   'PYMODULE'),
+  ('doctest',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\doctest.py',
+   'PYMODULE'),
+  ('unittest',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\__init__.py',
+   'PYMODULE'),
+  ('ntpath',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\ntpath.py',
+   'PYMODULE'),
+  ('string',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\string.py',
+   'PYMODULE'),
+  ('genericpath',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\genericpath.py',
+   'PYMODULE'),
+  ('stat',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\stat.py',
+   'PYMODULE'),
+  ('unittest.signals',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\signals.py',
+   'PYMODULE'),
+  ('signal',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\signal.py',
+   'PYMODULE'),
+  ('unittest.main',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\main.py',
+   'PYMODULE'),
+  ('unittest.runner',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\runner.py',
+   'PYMODULE'),
+  ('unittest.loader',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\loader.py',
+   'PYMODULE'),
+  ('fnmatch',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\fnmatch.py',
+   'PYMODULE'),
+  ('posixpath',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\posixpath.py',
+   'PYMODULE'),
+  ('unittest.suite',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\suite.py',
+   'PYMODULE'),
+  ('unittest.case',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\case.py',
+   'PYMODULE'),
+  ('pprint',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\pprint.py',
+   'PYMODULE'),
+  ('logging',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\logging\\__init__.py',
+   'PYMODULE'),
+  ('pickle',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\pickle.py',
+   'PYMODULE'),
+  ('_compat_pickle',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\_compat_pickle.py',
+   'PYMODULE'),
+  ('threading',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\threading.py',
+   'PYMODULE'),
+  ('_threading_local',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\_threading_local.py',
+   'PYMODULE'),
+  ('unittest.result',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\result.py',
+   'PYMODULE'),
+  ('unittest.util',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\unittest\\util.py',
+   'PYMODULE'),
+  ('pdb',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\pdb.py',
+   'PYMODULE'),
+  ('getopt',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\getopt.py',
+   'PYMODULE'),
+  ('pydoc',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\pydoc.py',
+   'PYMODULE'),
+  ('webbrowser',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\webbrowser.py',
+   'PYMODULE'),
+  ('socket',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\socket.py',
+   'PYMODULE'),
+  ('selectors',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\selectors.py',
+   'PYMODULE'),
+  ('shutil',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\shutil.py',
+   'PYMODULE'),
+  ('zipfile',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\zipfile.py',
+   'PYMODULE'),
+  ('py_compile',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\py_compile.py',
+   'PYMODULE'),
+  ('tarfile',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\tarfile.py',
+   'PYMODULE'),
+  ('gzip',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\gzip.py',
+   'PYMODULE'),
+  ('_compression',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\_compression.py',
+   'PYMODULE'),
+  ('lzma',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\lzma.py',
+   'PYMODULE'),
+  ('bz2',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\bz2.py',
+   'PYMODULE'),
+  ('email.message',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\message.py',
+   'PYMODULE'),
+  ('email.policy',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\policy.py',
+   'PYMODULE'),
+  ('email.contentmanager',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\contentmanager.py',
+   'PYMODULE'),
+  ('email.quoprimime',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\quoprimime.py',
+   'PYMODULE'),
+  ('email.headerregistry',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\headerregistry.py',
+   'PYMODULE'),
+  ('email._header_value_parser',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\_header_value_parser.py',
+   'PYMODULE'),
+  ('urllib',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\urllib\\__init__.py',
+   'PYMODULE'),
+  ('email.iterators',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\iterators.py',
+   'PYMODULE'),
+  ('email.generator',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\generator.py',
+   'PYMODULE'),
+  ('random',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\random.py',
+   'PYMODULE'),
+  ('bisect',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\bisect.py',
+   'PYMODULE'),
+  ('hashlib',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\hashlib.py',
+   'PYMODULE'),
+  ('email._encoded_words',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\_encoded_words.py',
+   'PYMODULE'),
+  ('base64',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\base64.py',
+   'PYMODULE'),
+  ('email.charset',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\charset.py',
+   'PYMODULE'),
+  ('email.encoders',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\encoders.py',
+   'PYMODULE'),
+  ('email.base64mime',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\base64mime.py',
+   'PYMODULE'),
+  ('email._policybase',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\_policybase.py',
+   'PYMODULE'),
+  ('email.header',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\header.py',
+   'PYMODULE'),
+  ('email.errors',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\errors.py',
+   'PYMODULE'),
+  ('email.utils',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\utils.py',
+   'PYMODULE'),
+  ('email._parseaddr',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\_parseaddr.py',
+   'PYMODULE'),
+  ('email',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\__init__.py',
+   'PYMODULE'),
+  ('email.parser',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\parser.py',
+   'PYMODULE'),
+  ('email.feedparser',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\email\\feedparser.py',
+   'PYMODULE'),
+  ('quopri',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\quopri.py',
+   'PYMODULE'),
+  ('uu',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\uu.py',
+   'PYMODULE'),
+  ('optparse',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\optparse.py',
+   'PYMODULE'),
+  ('http.server',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\http\\server.py',
+   'PYMODULE'),
+  ('http',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\http\\__init__.py',
+   'PYMODULE'),
+  ('socketserver',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\socketserver.py',
+   'PYMODULE'),
+  ('mimetypes',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\mimetypes.py',
+   'PYMODULE'),
+  ('http.client',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\http\\client.py',
+   'PYMODULE'),
+  ('ssl',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\ssl.py',
+   'PYMODULE'),
+  ('html',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\html\\__init__.py',
+   'PYMODULE'),
+  ('html.entities',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\html\\entities.py',
+   'PYMODULE'),
+  ('pydoc_data.topics',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\pydoc_data\\topics.py',
+   'PYMODULE'),
+  ('pydoc_data',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\pydoc_data\\__init__.py',
+   'PYMODULE'),
+  ('tty',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\tty.py',
+   'PYMODULE'),
+  ('tempfile',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\tempfile.py',
+   'PYMODULE'),
+  ('urllib.parse',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\urllib\\parse.py',
+   'PYMODULE'),
+  ('platform',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\platform.py',
+   'PYMODULE'),
+  ('plistlib',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\plistlib.py',
+   'PYMODULE'),
+  ('xml.parsers.expat',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\parsers\\expat.py',
+   'PYMODULE'),
+  ('xml.parsers',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\parsers\\__init__.py',
+   'PYMODULE'),
+  ('xml',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\__init__.py',
+   'PYMODULE'),
+  ('xml.sax.expatreader',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\sax\\expatreader.py',
+   'PYMODULE'),
+  ('xml.sax.saxutils',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\sax\\saxutils.py',
+   'PYMODULE'),
+  ('urllib.request',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\urllib\\request.py',
+   'PYMODULE'),
+  ('getpass',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\getpass.py',
+   'PYMODULE'),
+  ('nturl2path',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\nturl2path.py',
+   'PYMODULE'),
+  ('ftplib',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\ftplib.py',
+   'PYMODULE'),
+  ('netrc',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\netrc.py',
+   'PYMODULE'),
+  ('http.cookiejar',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\http\\cookiejar.py',
+   'PYMODULE'),
+  ('urllib.response',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\urllib\\response.py',
+   'PYMODULE'),
+  ('urllib.error',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\urllib\\error.py',
+   'PYMODULE'),
+  ('xml.sax',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\sax\\__init__.py',
+   'PYMODULE'),
+  ('xml.sax.handler',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\sax\\handler.py',
+   'PYMODULE'),
+  ('xml.sax._exceptions',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\sax\\_exceptions.py',
+   'PYMODULE'),
+  ('xml.sax.xmlreader',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\xml\\sax\\xmlreader.py',
+   'PYMODULE'),
+  ('pkgutil',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\pkgutil.py',
+   'PYMODULE'),
+  ('importlib',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\importlib\\__init__.py',
+   'PYMODULE'),
+  ('importlib.abc',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\importlib\\abc.py',
+   'PYMODULE'),
+  ('importlib.util',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\importlib\\util.py',
+   'PYMODULE'),
+  ('importlib.machinery',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\importlib\\machinery.py',
+   'PYMODULE'),
+  ('importlib._bootstrap_external',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\importlib\\_bootstrap_external.py',
+   'PYMODULE'),
+  ('importlib._bootstrap',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\importlib\\_bootstrap.py',
+   'PYMODULE'),
+  ('runpy',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\runpy.py',
+   'PYMODULE'),
+  ('shlex',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\shlex.py',
+   'PYMODULE'),
+  ('glob',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\glob.py',
+   'PYMODULE'),
+  ('code',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\code.py',
+   'PYMODULE'),
+  ('codeop',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\codeop.py',
+   'PYMODULE'),
+  ('dis',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\dis.py',
+   'PYMODULE'),
+  ('opcode',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\opcode.py',
+   'PYMODULE'),
+  ('bdb',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\bdb.py',
+   'PYMODULE'),
+  ('cmd',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\cmd.py',
+   'PYMODULE'),
+  ('inspect',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\inspect.py',
+   'PYMODULE'),
+  ('ast',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\ast.py',
+   'PYMODULE'),
+  ('difflib',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\difflib.py',
+   'PYMODULE'),
+  ('__future__',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\__future__.py',
+   'PYMODULE'),
+  ('stringprep',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\stringprep.py',
+   'PYMODULE'),
+  ('tracemalloc',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\tracemalloc.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.backend',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\backend.py',
+   'PYMODULE'),
+  ('cryptography.x509.ocsp',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\ocsp.py',
+   'PYMODULE'),
+  ('cryptography.x509.base',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\base.py',
+   'PYMODULE'),
+  ('cryptography.x509.name',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\name.py',
+   'PYMODULE'),
+  ('cryptography.x509.oid',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\oid.py',
+   'PYMODULE'),
+  ('cryptography.hazmat._oid',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\_oid.py',
+   'PYMODULE'),
+  ('cryptography.x509.extensions',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\extensions.py',
+   'PYMODULE'),
+  ('cryptography.x509.general_name',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\general_name.py',
+   'PYMODULE'),
+  ('cryptography.x509.certificate_transparency',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\certificate_transparency.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.constant_time',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\constant_time.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.bindings',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\bindings\\__init__.py',
+   'PYMODULE'),
+  ('hmac',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\hmac.py',
+   'PYMODULE'),
+  ('ipaddress',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\ipaddress.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.serialization.ssh',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\serialization\\ssh.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.kdf.scrypt',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\kdf\\scrypt.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.kdf',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\kdf\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.ciphers.modes',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\modes.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.ciphers',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.ciphers.base',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\base.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.ciphers.algorithms',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\algorithms.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.padding',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\padding.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.ed448',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\ed448.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.ed25519',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\ed25519.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.ec',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\ec.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.dsa',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\dsa.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.hashes',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\hashes.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.bindings.openssl.binding',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\bindings\\openssl\\binding.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.bindings.openssl._conditional',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\bindings\\openssl\\_conditional.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.bindings.openssl',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\bindings\\openssl\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.x509',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\x509.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.x448',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\x448.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.x448',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\x448.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.utils',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\utils.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.utils',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\utils.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.x25519',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\x25519.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.x25519',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\x25519.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.rsa',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\rsa.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.poly1305',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\poly1305.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.ocsp',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\ocsp.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.hmac',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\hmac.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.hashes',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\hashes.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.encode_asn1',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\encode_asn1.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.ed448',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\ed448.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.ed25519',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\ed25519.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.ec',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\ec.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.dsa',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\dsa.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.dh',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\dh.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.dh',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\dh.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.decode_asn1',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\decode_asn1.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.cmac',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\cmac.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.ciphers',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\ciphers.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl.aead',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\aead.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.ciphers.aead',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\aead.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.openssl',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.backends.interfaces',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\backends\\interfaces.py',
+   'PYMODULE'),
+  ('cryptography.hazmat._der',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\_der.py',
+   'PYMODULE'),
+  ('cryptography.exceptions',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\exceptions.py',
+   'PYMODULE'),
+  ('cryptography.x509',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\x509\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.utils',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\utils.py',
+   'PYMODULE'),
+  ('cryptography',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.__about__',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\__about__.py',
+   'PYMODULE'),
+  ('six',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\six.py',
+   'PYMODULE'),
+  ('cryptography.hazmat',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric.rsa',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\rsa.py',
+   'PYMODULE'),
+  ('fractions',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\fractions.py',
+   'PYMODULE'),
+  ('numbers',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\numbers.py',
+   'PYMODULE'),
+  ('decimal',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\decimal.py',
+   'PYMODULE'),
+  ('_pydecimal',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\_pydecimal.py',
+   'PYMODULE'),
+  ('contextvars',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\contextvars.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.asymmetric',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.serialization',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\serialization\\__init__.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.serialization.base',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\serialization\\base.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\cryptography\\hazmat\\primitives\\__init__.py',
+   'PYMODULE'),
+  ('subprocess',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\subprocess.py',
+   'PYMODULE'),
+  ('os',
+   'c:\\users\\benjamin '
+   'russell\\appdata\\local\\programs\\python\\python37\\lib\\os.py',
+   'PYMODULE')])

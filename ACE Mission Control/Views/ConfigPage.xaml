@@ -1,0 +1,47 @@
+﻿<Page
+    x:Class="ACE_Mission_Control.Views.ConfigPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ACE_Mission_Control.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
+        <StackPanel Margin="8,8,8,8">
+            <TextBlock x:Uid="Config_OBCConfigLabel" Margin="0,0,0,8" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <StackPanel>
+                <TextBlock x:Uid="Config_OBCHostnameLabel" />
+                <TextBox
+                    Text="{x:Bind ViewModel.Hostname_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    x:Name="OBCHostnameBox"
+                    IsSpellCheckEnabled="False" />
+
+                <TextBlock x:Uid="Config_OBCUsernameLabel"/>
+                <TextBox
+                    Text="{x:Bind ViewModel.Username_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    x:Name="OBCUsernameBox"
+                    IsSpellCheckEnabled="False" />
+                
+                <StackPanel
+                    Margin="{StaticResource XSmallTopMargin}"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    Grid.Row="2">
+                    <Button x:Name="ApplyButton"
+                            x:Uid="Config_ApplyButton"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
+                            Command="{x:Bind ViewModel.ApplyChangesCommand}"/>
+                    <Button x:Name="ResetButton"
+                            x:Uid="Config_ResetButton"
+                            Margin="8,0,0,0"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
+                            Command="{x:Bind ViewModel.ResetChangesCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>

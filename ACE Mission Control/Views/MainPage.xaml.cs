@@ -14,16 +14,9 @@ namespace ACE_Mission_Control.Views
         private int droneID;
         private bool isInit = false;
 
-        private MainViewModel viewModel;
         private MainViewModel ViewModel
         {
-            get { return viewModel; }
-            set
-            {
-                if (viewModel == value)
-                    return;
-                viewModel = value;
-            }
+            get { return ViewModelLocator.Current.MainViewModel; }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -31,24 +24,17 @@ namespace ACE_Mission_Control.Views
             base.OnNavigatedTo(e);
 
             if (e.Parameter.GetType() == typeof(int))
-            {
                 droneID = (int)e.Parameter;
-            }
             else
-            {
                 droneID = 0;
-            }
 
-            ViewModel = (MainViewModel)ViewModelLocator.Current.GetViewModel<MainViewModel>(droneID);
+            ViewModel.SetDroneID(droneID);
 
             MissionFrame.Navigate(typeof(MissionPage), droneID);
             ConfigFrame.Navigate(typeof(ConfigPage), droneID);
 
             if (e.NavigationMode == NavigationMode.Back || isInit)
-            {
-                FadeInAnimation.Begin();
                 return;
-            }
 
             isInit = true;
         }

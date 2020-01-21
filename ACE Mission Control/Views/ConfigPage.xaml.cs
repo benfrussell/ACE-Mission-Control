@@ -26,16 +26,9 @@ namespace ACE_Mission_Control.Views
     {
         private int droneID;
         private bool isInit;
-        private ConfigViewModel viewModel;
         private ConfigViewModel ViewModel
         {
-            get { return viewModel; }
-            set
-            {
-                if (viewModel == value)
-                    return;
-                viewModel = value;
-            }
+            get { return ViewModelLocator.Current.ConfigViewModel; }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -47,13 +40,14 @@ namespace ACE_Mission_Control.Views
             else
                 droneID = 0;
 
-            ViewModel = (ConfigViewModel)ViewModelLocator.Current.GetViewModel<ConfigViewModel>(droneID);
+            ViewModel.SetDroneID(droneID);
 
             if (e.NavigationMode == NavigationMode.Back || isInit)
                 return;
 
             isInit = true;
         }
+
         public ConfigPage()
         {
             this.InitializeComponent();

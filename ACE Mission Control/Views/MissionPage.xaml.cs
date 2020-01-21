@@ -26,53 +26,45 @@ namespace ACE_Mission_Control.Views
     /// </summary>
     public sealed partial class MissionPage : Page
     { 
-        private static int curDroneID = 0;
-        private static List<int> dronesRegistered = new List<int>();
         private int droneID;
         private bool diagCanClose = false;
         private bool isInit = false;
 
         private MissionViewModel ViewModel
         {
-            get { return (MissionViewModel)ViewModelLocator.Current.GetViewModel<MissionViewModel>(droneID); }
+            get { return ViewModelLocator.Current.MissionViewModel; }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
 
-            if (e.NavigationMode == NavigationMode.Back || isInit)
-                return;
-
             if (e.Parameter.GetType() == typeof(int))
                 droneID = (int)e.Parameter;
             else
                 droneID = 0;
 
-            curDroneID = droneID;
+            ViewModel.SetDroneID(droneID);
+
+            if (e.NavigationMode == NavigationMode.Back || isInit)
+                return;
+
+            // Things after here are only done once
 
             Messenger.Default.Register<ShowPassphraseDialogMessage>(this, droneID, showDiag);
 
             Messenger.Default.Register<HidePassphraseDialogMessage>(this, droneID, (msg) =>
             {
-                if (curDroneID != droneID)
-                    return;
                 diagCanClose = true;
                 PassphraseDialog.Hide();
             });
-
-            System.Diagnostics.Debug.WriteLine("Registered");
-
-            dronesRegistered.Add(droneID);
 
             isInit = true;
         }
 
         private async void showDiag(object msg)
         {
-            System.Diagnostics.Debug.WriteLine("I am called.");
-            if (curDroneID != droneID)
-                return;
+            System.Diagnostics.Debug.WriteLine("showDiag called");
             await PassphraseDialog.ShowAsync();
         }
 
@@ -87,7 +79,7 @@ namespace ACE_Mission_Control.Views
         {
             this.InitializeComponent();
             NavigationCacheMode = NavigationCacheMode.Enabled;
-            System.Diagnostics.Debug.WriteLine("Initialized");
+            System.Diagnostics.Debug.WriteLine("View Initialized");
         }
 
         // TODO: Re-enable this when the button works

@@ -48,6 +48,7 @@ namespace ACE_Mission_Control.ViewModels
                     DroneID = id;
                     AttachedDrone = d;
                     IsDroneAttached = true;
+                    RaisePropertyChanged();
                     DroneAttached(!previouslyAttached.Contains(id));
                     previouslyAttached.Add(id);
                     break;

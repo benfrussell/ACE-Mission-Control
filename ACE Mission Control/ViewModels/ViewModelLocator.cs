@@ -31,6 +31,12 @@ namespace ACE_Mission_Control.ViewModels
 
         public NavigationServiceEx NavigationService => SimpleIoc.Default.GetInstance<NavigationServiceEx>();
 
+        public MainViewModel MainViewModel => SimpleIoc.Default.GetInstance<MainViewModel>();
+
+        public MissionViewModel MissionViewModel => SimpleIoc.Default.GetInstance<MissionViewModel>();
+
+        public ConfigViewModel ConfigViewModel => SimpleIoc.Default.GetInstance<ConfigViewModel>();
+
         public void Register<VM, V>()
             where VM : class
         {

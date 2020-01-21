@@ -5,14 +5,14 @@
 
     <Style x:Key="ACEButton" TargetType="Button">
         <Setter Property="MinWidth" Value="100"/>
-        <Setter Property="Height" Value="40" />
+        <Setter Property="Height" Value="35" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="AllowFocusOnInteraction" Value="False" />
     </Style>
 
     <Style x:Key="ACEIconButton" TargetType="Button">
-        <Setter Property="MinWidth" Value="40"/>
-        <Setter Property="Height" Value="40" />
+        <Setter Property="MinWidth" Value="35"/>
+        <Setter Property="Height" Value="35" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="AllowFocusOnInteraction" Value="False" />
     </Style>

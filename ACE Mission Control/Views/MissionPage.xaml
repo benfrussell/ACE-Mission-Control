@@ -8,73 +8,101 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <Grid
+    <StackPanel
         x:Name="ContentArea"
         Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="1.5*"/>
-            <RowDefinition Height="10*"/>
-        </Grid.RowDefinitions>
         <Grid
             x:Name="OBCStatusArea"
-            Margin="8,8,8,0"
-            Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="6*"/>
-            </Grid.ColumnDefinitions>
-            <Border Grid.ColumnSpan="2" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"/>
-            <SymbolIcon x:Name="OBCStatusSymbolIcon"
-                        Grid.Column="0"
+            Margin="8,8,8,0">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Border Grid.ColumnSpan="1" Grid.RowSpan="3" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"/>
+            <TextBlock x:Uid="Mission_OBCHeader"
+                       Grid.Row="0"
+                       Grid.ColumnSpan="2"
+                       Margin="8,4,0,8"
+                       FontWeight="Bold"/>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Grid.Row="1"
+                Grid.ColumnSpan="1"
+                Margin="0,8,0,8">
+                <SymbolIcon x:Name="OBCStatusSymbolIcon"
                         VerticalAlignment="Center"
+                        Width="40"
                         Symbol="{x:Bind ViewModel.OBCStatusSymbol}"/>
-            <TextBlock x:Name="OBCStatusTextBlock"
-                       Grid.Column="1"
+                <TextBlock x:Name="OBCStatusTextBlock"
                        VerticalAlignment="Center"
                        Text="{x:Bind ViewModel.OBCStatusText, Mode=OneWay}"/>
-        </Grid>
-        <Grid
-            x:Name="UGCSStatusArea"
-            Margin="8,8,8,0"
-            Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="40"/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Border Grid.ColumnSpan="2" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"/>
-            <SymbolIcon Grid.Column="0" VerticalAlignment="Center" Symbol="Clock" Height="20"/>
-            <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
-                       Grid.Column="1"
-                       VerticalAlignment="Center"
-                       Text="{x:Bind ViewModel.UGCSMissionRetrieveText}"
-                       Height="20"/>
-        </Grid>
-        <StackPanel
-            Margin="{StaticResource XSmallTopMargin}"
-            Orientation="Horizontal"
-            VerticalAlignment="Top"
-            Grid.Row="2">
-            <Button x:Name="LockButton"
+            </StackPanel>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Grid.Row="2"
+                Grid.ColumnSpan="1"
+                Margin="8,8,0,8">
+                <Button x:Name="LockButton"
                     x:Uid="Mission_LockButton"
-                    Margin="8,0,0,0"
                     Style="{ThemeResource ACEIconButton}"
                     Command="{x:Bind ViewModel.LockButtonCommand}"
                     IsEnabled="{x:Bind ViewModel.LockButtonEnabled, Mode=OneWay}">
-                <SymbolIcon x:Name="LockButtonSymbol"
+                    <SymbolIcon x:Name="LockButtonSymbol"
                         Grid.Column="0"
                         VerticalAlignment="Center"
                         Symbol="{x:Bind ViewModel.LockButtonSymbol, Mode=OneWay}"/>
-            </Button>
-            <Button x:Name="RetrieveButton"
-                    x:Uid="Mission_RetrieveButton"
-                    Margin="8,0,0,0"
-                    Style="{ThemeResource ACEButton}"/>
-            <Button x:Name="UploadButton"
+                </Button>
+                <Button x:Name="UploadButton"
                     x:Uid="Mission_UploadButton"
                     Margin="8,0,0,0"
                     Style="{ThemeResource ACEButton}"/>
-        </StackPanel>
+            </StackPanel>
+        </Grid>
+        <Grid
+            x:Name="UGCSStatusArea"
+            Margin="8,8,8,0">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Border Grid.ColumnSpan="1" Grid.RowSpan="3" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"/>
+            <TextBlock x:Uid="Mission_RetrievalHeader"
+                       Grid.Row="0"
+                       Grid.ColumnSpan="2"
+                       Margin="8,4,0,8"
+                       FontWeight="Bold"/>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Grid.Row="1"
+                Grid.ColumnSpan="1"
+                Margin="0,8,0,8">
+                <SymbolIcon Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Symbol="Clock" Width="40" Height="20"/>
+                <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
+                       Grid.Column="1"
+                       Grid.Row="1"
+                       VerticalAlignment="Center"
+                       Text="{x:Bind ViewModel.UGCSMissionRetrieveText}"
+                       Height="20"/>
+            </StackPanel>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Grid.Row="2"
+                Grid.ColumnSpan="1"
+                Margin="8,8,0,8">
+                <Button x:Name="RetrieveButton"
+                        x:Uid="Mission_RetrieveButton"
+                        Style="{ThemeResource ACEButton}"/>
+            </StackPanel>
+        </Grid>
+
         <ContentDialog x:Name="PassphraseDialog"
                        x:Uid="Mission_PassDialog"
                        PrimaryButtonText="Enter"
@@ -94,5 +122,5 @@
                            Foreground="{ThemeResource SystemErrorTextColor}"/>
             </StackPanel>
         </ContentDialog>
-    </Grid>
+    </StackPanel>
 </Page>

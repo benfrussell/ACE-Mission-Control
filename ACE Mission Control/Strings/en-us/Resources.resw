@@ -242,4 +242,10 @@
   <data name="Mission_PassDialog.Title" xml:space="preserve">
     <value>SSH Key Passphrase</value>
   </data>
+  <data name="Mission_OBCHeader.Text" xml:space="preserve">
+    <value>Onboard Computer</value>
+  </data>
+  <data name="Mission_RetrievalHeader.Text" xml:space="preserve">
+    <value>Mission Retrieval</value>
+  </data>
 </root>

@@ -9,11 +9,8 @@ using Windows.UI.Xaml.Navigation;
 
 namespace ACE_Mission_Control.Views
 {
-    public sealed partial class MainPage : Page
-    {
-        private int droneID;
-        private bool isInit = false;
-
+    public sealed partial class MainPage : DroneBasePage
+    { 
         private MainViewModel ViewModel
         {
             get { return ViewModelLocator.Current.MainViewModel; }
@@ -23,13 +20,6 @@ namespace ACE_Mission_Control.Views
         {
             base.OnNavigatedTo(e);
 
-            if (e.Parameter.GetType() == typeof(int))
-                droneID = (int)e.Parameter;
-            else
-                droneID = 0;
-
-            ViewModel.SetDroneID(droneID);
-
             MissionFrame.Navigate(typeof(MissionPage), droneID);
             ConfigFrame.Navigate(typeof(ConfigPage), droneID);
 
@@ -38,10 +28,9 @@ namespace ACE_Mission_Control.Views
 
             isInit = true;
         }
-        public MainPage()
+        public MainPage() : base()
         {
-            InitializeComponent();
-            NavigationCacheMode = NavigationCacheMode.Enabled;
+            
         }
     }
 }

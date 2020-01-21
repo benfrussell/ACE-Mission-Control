@@ -1,16 +1,17 @@
-﻿<Page
+﻿<local:DroneBasePage
     x:Class="ACE_Mission_Control.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ACE_Mission_Control.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
-    <Page.Resources>
+    <local:DroneBasePage.Resources>
         <Storyboard x:Name="FadeInAnimation">
             <FadeOutThemeAnimation Storyboard.TargetName="ContentArea" AutoReverse="True"/>
         </Storyboard>
-    </Page.Resources>
+    </local:DroneBasePage.Resources>
     <Grid 
         x:Name="ContentArea"
         Margin="{StaticResource SmallLeftTopRightBottomMargin}">
@@ -23,15 +24,15 @@
             </Pivot.HeaderTemplate>
             <PivotItem x:Uid="Main_MissionPivotItem">
                 <Grid>
-                    <Frame x:Name="MissionFrame" />
+                    <Frame x:Name="MissionFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
 
             <PivotItem x:Uid="Main_ConfigPivotItem">
                 <Grid>
-                    <Frame x:Name="ConfigFrame" />
+                    <Frame x:Name="ConfigFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
         </Pivot>
     </Grid>
-</Page>
+</local:DroneBasePage>

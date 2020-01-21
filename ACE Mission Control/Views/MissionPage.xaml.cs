@@ -24,27 +24,22 @@ namespace ACE_Mission_Control.Views
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MissionPage : Page
+    public sealed partial class MissionPage : DroneBasePage
     { 
-        private int droneID;
         private bool diagCanClose = false;
-        private bool isInit = false;
 
-        private MissionViewModel ViewModel
+        protected override DroneViewModelBase BaseViewModel
         {
             get { return ViewModelLocator.Current.MissionViewModel; }
+        }
+        private MissionViewModel ViewModel
+        {
+            get { return (MissionViewModel)BaseViewModel; }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-
-            if (e.Parameter.GetType() == typeof(int))
-                droneID = (int)e.Parameter;
-            else
-                droneID = 0;
-
-            ViewModel.SetDroneID(droneID);
 
             if (e.NavigationMode == NavigationMode.Back || isInit)
                 return;
@@ -68,18 +63,9 @@ namespace ACE_Mission_Control.Views
             await PassphraseDialog.ShowAsync();
         }
 
-        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+        public MissionPage() : base()
         {
-            base.OnNavigatingFrom(e);
 
-            Messenger.Default.Unregister(this);
-        }
-
-        public MissionPage()
-        {
-            this.InitializeComponent();
-            NavigationCacheMode = NavigationCacheMode.Enabled;
-            System.Diagnostics.Debug.WriteLine("View Initialized");
         }
 
         // TODO: Re-enable this when the button works

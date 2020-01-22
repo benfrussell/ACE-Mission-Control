@@ -27,6 +27,22 @@ namespace ACE_Mission_Control.ViewModels
     public class ShellViewModel : ViewModelBase
     {
         private string _header;
+        public string Header
+        {
+            get { return _header; }
+            set
+            {
+                if (_header == value)
+                    return;
+                _header = value;
+                RaisePropertyChanged("Header");
+            }
+        }
+
+        public ObservableCollection<Drone> Drones
+        {
+            get { return DroneController.Drones; }
+        }
 
         // Generated Code
 
@@ -40,11 +56,6 @@ namespace ACE_Mission_Control.ViewModels
         private ICommand _loadedCommand;
         private ICommand _itemInvokedCommand;
 
-        public ObservableCollection<Drone> Drones
-        {
-            get { return DroneController.Drones; }
-        }
-
         public bool IsBackEnabled
         {
             get { return _isBackEnabled; }
@@ -57,18 +68,6 @@ namespace ACE_Mission_Control.ViewModels
         {
             get { return _selected; }
             set { Set(ref _selected, value); }
-        }
-
-        public string Header
-        {
-            get { return _header; }
-            set
-            {
-                if (_header == value)
-                    return;
-                _header = value;
-                RaisePropertyChanged("Header");
-            }
         }
 
         public ICommand LoadedCommand => _loadedCommand ?? (_loadedCommand = new RelayCommand(OnLoaded));
@@ -106,14 +105,16 @@ namespace ACE_Mission_Control.ViewModels
         {
             if (args.IsSettingsInvoked)
             {
-                NavigationService.Navigate(typeof(SettingsViewModel).FullName);
+                NavigationService.Navigate(typeof(SettingsViewModel).FullName, new SuppressNavigationTransitionInfo());
                 return;
             }
 
             if (args.InvokedItem.GetType() == typeof(Drone))
             {
-                System.Diagnostics.Debug.WriteLine("Shell page navigating to " + (args.InvokedItem as Drone).ID);
-                NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (args.InvokedItem as Drone).ID);
+                if (NavigationService.Frame.CurrentSourcePageType == typeof(MainPage))
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (args.InvokedItem as Drone).ID, new SuppressNavigationTransitionInfo());
+                else
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (args.InvokedItem as Drone).ID);
             }
             else
             {
@@ -122,7 +123,7 @@ namespace ACE_Mission_Control.ViewModels
                             .OfType<WinUI.NavigationViewItem>()
                             .First(menuItem => (string)menuItem.Content == (string)args.InvokedItem);
                 var pageKey = item.GetValue(NavHelper.NavigateToProperty) as string;
-                NavigationService.Navigate(pageKey);
+                NavigationService.Navigate(pageKey, null, new SuppressNavigationTransitionInfo());
             }
         }
 

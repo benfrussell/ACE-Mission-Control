@@ -10,7 +10,7 @@ using Windows.UI.Xaml.Navigation;
 namespace ACE_Mission_Control.Views
 {
     public sealed partial class MainPage : DroneBasePage
-    { 
+    {
         private MainViewModel ViewModel
         {
             get { return ViewModelLocator.Current.MainViewModel; }
@@ -20,17 +20,24 @@ namespace ACE_Mission_Control.Views
         {
             base.OnNavigatedTo(e);
 
-            MissionFrame.Navigate(typeof(MissionPage), droneID);
-            ConfigFrame.Navigate(typeof(ConfigPage), droneID);
+            var storyboard = ContentArea.Resources["FadeInStoryboard"] as Storyboard;
+            storyboard.Begin();
 
-            if (e.NavigationMode == NavigationMode.Back || isInit)
-                return;
-
-            isInit = true;
+            if (Items.SelectedItem == null || (Items.SelectedItem as PivotItem).Name == "MissionItem")
+            {
+                MissionFrame.Navigate(typeof(MissionPage), droneID, e.NavigationTransitionInfo);
+                ConfigFrame.Navigate(typeof(ConfigPage), droneID, new SuppressNavigationTransitionInfo());
+            }
+            else if ((Items.SelectedItem as PivotItem).Name == "ConfigItem")
+            {
+                MissionFrame.Navigate(typeof(MissionPage), droneID, new SuppressNavigationTransitionInfo());
+                ConfigFrame.Navigate(typeof(ConfigPage), droneID, e.NavigationTransitionInfo);
+            }
+            
         }
         public MainPage() : base()
         {
-            
+            this.InitializeComponent();
         }
     }
 }

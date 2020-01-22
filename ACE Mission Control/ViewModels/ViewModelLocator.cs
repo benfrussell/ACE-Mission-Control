@@ -44,16 +44,5 @@ namespace ACE_Mission_Control.ViewModels
 
             NavigationService.Configure(typeof(VM).FullName, typeof(V));
         }
-        public ViewModelBase GetViewModel<T>(int id) where T : ViewModelBase
-        {
-            System.Diagnostics.Debug.WriteLine("Getting model " + id);
-            var vm = SimpleIoc.Default.GetInstance<T>(id.ToString());
-            if (vm.GetType().IsSubclassOf(typeof(DroneViewModelBase)))
-            {
-                (vm as DroneViewModelBase).SetDroneID(id);
-            }
-                
-            return vm;
-        }
     }
 }

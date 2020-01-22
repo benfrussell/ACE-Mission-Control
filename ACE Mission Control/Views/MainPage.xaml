@@ -7,14 +7,21 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
-    <local:DroneBasePage.Resources>
-        <Storyboard x:Name="FadeInAnimation">
-            <FadeOutThemeAnimation Storyboard.TargetName="ContentArea" AutoReverse="True"/>
-        </Storyboard>
-    </local:DroneBasePage.Resources>
     <Grid 
         x:Name="ContentArea"
         Margin="{StaticResource SmallLeftTopRightBottomMargin}">
+        <Grid.Resources>
+            <Storyboard x:Name="FadeInStoryboard">
+                <DoubleAnimation From="0.6" To="1" Duration="00:00:0.6"
+                                     Storyboard.TargetName="ContentArea"
+                                     Storyboard.TargetProperty="Opacity">
+                    <DoubleAnimation.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+            </Storyboard>
+        </Grid.Resources>
+
         <Pivot
             x:Name="Items">
             <Pivot.HeaderTemplate>
@@ -22,13 +29,13 @@
                     <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{Binding}" />
                 </DataTemplate>
             </Pivot.HeaderTemplate>
-            <PivotItem x:Uid="Main_MissionPivotItem">
-                <Grid>
+            <PivotItem x:Uid="Main_MissionPivotItem" x:Name="MissionItem">
+                <Grid x:Name="MissionGrid">
                     <Frame x:Name="MissionFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
 
-            <PivotItem x:Uid="Main_ConfigPivotItem">
+            <PivotItem x:Uid="Main_ConfigPivotItem" x:Name="ConfigItem">
                 <Grid>
                     <Frame x:Name="ConfigFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>

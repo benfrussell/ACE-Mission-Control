@@ -14,12 +14,9 @@ using System.Threading.Tasks;
  *                          
  * MainPage.xaml.cs:        OnNavigate parses the drone ID parameter or set it 0.
  *                          Navigate the subviews of MainPage with the drone ID as a parameter to load them.
- *                          Link the ViewModel to the page with a property that executes GetViewModel with the drone ID as a parameter.
+ *                          Link the ViewModel to the page by executing the ViewModel's SetDroneID method with the drone ID as a parameter.
  *                          
  * (SubView)Page.xaml.cs:   Same operations as MainPage.xaml.cs. ViewModel is linked with GetViewModel.
- * 
- * ViewModelLocator.cs:     GetViewModel retrieves an instance of the ViewModel associated with the drone ID.
- *                          After retrieving, the drone sets the drone ID in the ViewModel if it has the DroneViewModelBase type.
  *                          
  * DroneViewModelBase.cs:   SetDroneID sets the ID if it has not been set in this instance yet.
  *                          If it is set the DroneAttached abstract method is called.
@@ -48,9 +45,18 @@ namespace ACE_Mission_Control.ViewModels
                     DroneID = id;
                     AttachedDrone = d;
                     IsDroneAttached = true;
+
                     RaisePropertyChanged();
-                    DroneAttached(!previouslyAttached.Contains(id));
-                    previouslyAttached.Add(id);
+
+                    if (!previouslyAttached.Contains(id))
+                    {
+                        DroneAttached(true);
+                        previouslyAttached.Add(id);
+                    }
+                    else
+                    {
+                        DroneAttached(false);
+                    }
                     break;
                 }
             }

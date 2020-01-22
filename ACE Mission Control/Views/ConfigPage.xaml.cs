@@ -24,18 +24,14 @@ namespace ACE_Mission_Control.Views
     /// </summary>
     public sealed partial class ConfigPage : DroneBasePage
     {
-        protected override DroneViewModelBase BaseViewModel
-        {
-            get { return ViewModelLocator.Current.ConfigViewModel; }
-        }
         private ConfigViewModel ViewModel
         {
-            get { return (ConfigViewModel)BaseViewModel; }
+            get { return ViewModelLocator.Current.ConfigViewModel; }
         }
 
         public ConfigPage() : base()
         {
-            
+            this.InitializeComponent();
         }
     }
 }

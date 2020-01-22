@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -26,7 +27,19 @@ namespace ACE_Mission_Control.Views
         protected int droneID;
         protected bool isInit;
 
-        protected virtual DroneViewModelBase BaseViewModel { get; }
+        protected DroneViewModelBase BaseViewModel
+        {
+            get
+            {
+                MemberInfo member = GetType()
+                    .GetMember("ViewModel", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+                    .FirstOrDefault();
+
+                PropertyInfo property = member as PropertyInfo;
+
+                return (DroneViewModelBase)property.GetValue(this, null);
+            }
+        }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -37,6 +50,7 @@ namespace ACE_Mission_Control.Views
             else
                 droneID = 0;
 
+            System.Diagnostics.Debug.WriteLine("Setting Drone ID to " + droneID + " for " + this.GetType().Name);
             BaseViewModel.SetDroneID(droneID);
 
             if (e.NavigationMode == NavigationMode.Back || isInit)

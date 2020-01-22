@@ -28,13 +28,9 @@ namespace ACE_Mission_Control.Views
     { 
         private bool diagCanClose = false;
 
-        protected override DroneViewModelBase BaseViewModel
-        {
-            get { return ViewModelLocator.Current.MissionViewModel; }
-        }
         private MissionViewModel ViewModel
         {
-            get { return (MissionViewModel)BaseViewModel; }
+            get { return ViewModelLocator.Current.MissionViewModel; }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -65,7 +61,7 @@ namespace ACE_Mission_Control.Views
 
         public MissionPage() : base()
         {
-
+            this.InitializeComponent();
         }
 
         // TODO: Re-enable this when the button works

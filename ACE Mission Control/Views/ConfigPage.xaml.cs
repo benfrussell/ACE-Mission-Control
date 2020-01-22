@@ -22,23 +22,14 @@ namespace ACE_Mission_Control.Views
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class ConfigPage : Page
+    public sealed partial class ConfigPage : DroneBasePage
     {
-        private int droneID;
         private ConfigViewModel ViewModel
         {
-            get { return (ConfigViewModel)ViewModelLocator.Current.GetViewModel<ConfigViewModel>(droneID); }
+            get { return ViewModelLocator.Current.ConfigViewModel; }
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            base.OnNavigatedTo(e);
-            if (e.Parameter.GetType() == typeof(int))
-                droneID = (int)e.Parameter;
-            else
-                droneID = 0;
-        }
-        public ConfigPage()
+        public ConfigPage() : base()
         {
             this.InitializeComponent();
         }

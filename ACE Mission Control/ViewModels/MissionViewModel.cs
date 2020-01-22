@@ -152,11 +152,11 @@ namespace ACE_Mission_Control.ViewModels
             OBCStatusText = AttachedDrone.OBCClient.Status.ToString();
 
             // TODO: Replace this with a working button.
-            if (!passDiagShown)
-            {
-                Messenger.Default.Send(new ShowPassphraseDialogMessage(), DroneID);
-                passDiagShown = true;
-            }
+            //if (!passDiagShown)
+            //{
+            //    Messenger.Default.Send(new ShowPassphraseDialogMessage(), DroneID);
+            //    passDiagShown = true;
+            //}
         }
 
         private async void OnboardComputerClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -189,6 +189,7 @@ namespace ACE_Mission_Control.ViewModels
         private void lockButtonClicked()
         {
             System.Diagnostics.Debug.WriteLine("Executing from " + DroneID);
+            Messenger.Default.Send(new ShowPassphraseDialogMessage(), DroneID);
         }
 
         private async void passDialogEntered()

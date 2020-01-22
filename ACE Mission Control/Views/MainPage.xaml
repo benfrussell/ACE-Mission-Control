@@ -1,15 +1,27 @@
-﻿<Page
+﻿<local:DroneBasePage
     x:Class="ACE_Mission_Control.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ACE_Mission_Control.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
-
     <Grid 
         x:Name="ContentArea"
         Margin="{StaticResource SmallLeftTopRightBottomMargin}">
+        <Grid.Resources>
+            <Storyboard x:Name="FadeInStoryboard">
+                <DoubleAnimation From="0.6" To="1" Duration="00:00:0.6"
+                                     Storyboard.TargetName="ContentArea"
+                                     Storyboard.TargetProperty="Opacity">
+                    <DoubleAnimation.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+            </Storyboard>
+        </Grid.Resources>
+
         <Pivot
             x:Name="Items">
             <Pivot.HeaderTemplate>
@@ -17,17 +29,17 @@
                     <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{Binding}" />
                 </DataTemplate>
             </Pivot.HeaderTemplate>
-            <PivotItem x:Uid="Main_MissionPivotItem">
-                <Grid>
-                    <Frame x:Name="MissionFrame" />
+            <PivotItem x:Uid="Main_MissionPivotItem" x:Name="MissionItem">
+                <Grid x:Name="MissionGrid">
+                    <Frame x:Name="MissionFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
 
-            <PivotItem x:Uid="Main_ConfigPivotItem">
+            <PivotItem x:Uid="Main_ConfigPivotItem" x:Name="ConfigItem">
                 <Grid>
-                    <Frame x:Name="ConfigFrame" />
+                    <Frame x:Name="ConfigFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
         </Pivot>
     </Grid>
-</Page>
+</local:DroneBasePage>

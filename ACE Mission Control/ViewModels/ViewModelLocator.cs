@@ -31,22 +31,18 @@ namespace ACE_Mission_Control.ViewModels
 
         public NavigationServiceEx NavigationService => SimpleIoc.Default.GetInstance<NavigationServiceEx>();
 
+        public MainViewModel MainViewModel => SimpleIoc.Default.GetInstance<MainViewModel>();
+
+        public MissionViewModel MissionViewModel => SimpleIoc.Default.GetInstance<MissionViewModel>();
+
+        public ConfigViewModel ConfigViewModel => SimpleIoc.Default.GetInstance<ConfigViewModel>();
+
         public void Register<VM, V>()
             where VM : class
         {
             SimpleIoc.Default.Register<VM>();
 
             NavigationService.Configure(typeof(VM).FullName, typeof(V));
-        }
-        public ViewModelBase GetViewModel<T>(int id) where T : ViewModelBase
-        {
-            var vm = SimpleIoc.Default.GetInstance<T>(id.ToString());
-            if (vm.GetType().IsSubclassOf(typeof(DroneViewModelBase)))
-            {
-                (vm as DroneViewModelBase).SetDroneID(id);
-            }
-                
-            return vm;
         }
     }
 }

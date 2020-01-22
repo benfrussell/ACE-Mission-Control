@@ -189,7 +189,7 @@ namespace ACE_Mission_Control.ViewModels
         private void lockButtonClicked()
         {
             System.Diagnostics.Debug.WriteLine("Executing from " + DroneID);
-            Messenger.Default.Send(new ShowPassphraseDialogMessage(), DroneID);
+            Messenger.Default.Send(new ShowPassphraseDialogMessage());
         }
 
         private async void passDialogEntered()
@@ -199,7 +199,7 @@ namespace ACE_Mission_Control.ViewModels
             if (response != null)
                 PassDialogErrorText = response;
             else
-                Messenger.Default.Send(new HidePassphraseDialogMessage(), DroneID);
+                Messenger.Default.Send(new HidePassphraseDialogMessage());
         }
     }
 }

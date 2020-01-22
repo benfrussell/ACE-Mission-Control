@@ -35,39 +35,41 @@ namespace ACE_Mission_Control.Views
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            base.OnNavigatedTo(e);
-
-            if (e.NavigationMode == NavigationMode.Back || isInit)
-                return;
-
-            // Things after here are only done once
-
-            Messenger.Default.Register<ShowPassphraseDialogMessage>(this, droneID, showDiag);
-
-            Messenger.Default.Register<HidePassphraseDialogMessage>(this, droneID, (msg) =>
+            if (isInit)
             {
-                diagCanClose = true;
-                PassphraseDialog.Hide();
-            });
+                base.OnNavigatedTo(e);
+            }
+            else
+            {
+                Messenger.Default.Register<ShowPassphraseDialogMessage>(this, async (msg) => await PassphraseDialog.ShowAsync());
 
-            isInit = true;
-        }
+                Messenger.Default.Register<HidePassphraseDialogMessage>(this, (msg) =>
+                {
+                    diagCanClose = true;
+                    PassphraseDialog.Hide();
+                });
+                base.OnNavigatedTo(e);
+            }
 
-        private async void showDiag(object msg)
-        {
-            System.Diagnostics.Debug.WriteLine("showDiag called");
-            await PassphraseDialog.ShowAsync();
+
+
+            base.OnNavigatedTo(e);
         }
 
         public MissionPage() : base()
         {
             this.InitializeComponent();
+
+            Loaded += MissionPage_Loaded;
         }
 
-        // TODO: Re-enable this when the button works
+        private void MissionPage_Loaded(object sender, RoutedEventArgs e)
+        {
+        }
+
         private void PassphraseDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
         {
-            // If we're closing because of the primary button, check if it's been allowed first
+            // Only allow the dialog to close if the diagCanClose is true.
             if (args.Result == ContentDialogResult.Primary)
             {
                 if (diagCanClose)
@@ -81,14 +83,5 @@ namespace ACE_Mission_Control.Views
                 PassphraseDialogInput.Password = "";
             }
         }
-
-        //private void PassphraseDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
-        //{
-        //    if (diagCanClose)
-        //        PassphraseDialogInput.Password = "";
-
-        //    args.Cancel = !diagCanClose;
-        //    diagCanClose = false;
-        //}
     }
 }

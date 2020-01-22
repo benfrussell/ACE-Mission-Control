@@ -31,6 +31,7 @@ namespace ACE_Mission_Control.Views
         {
             get
             {
+                // Gets the subclass ViewModel parameter
                 MemberInfo member = GetType()
                     .GetMember("ViewModel", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
                     .FirstOrDefault();
@@ -52,13 +53,6 @@ namespace ACE_Mission_Control.Views
 
             System.Diagnostics.Debug.WriteLine("Setting Drone ID to " + droneID + " for " + this.GetType().Name);
             BaseViewModel.SetDroneID(droneID);
-
-            if (e.NavigationMode == NavigationMode.Back || isInit)
-                return;
-
-            // Use this to limit execution of subsequent code to only execute on the first navigation
-            //if (e.NavigationMode == NavigationMode.Back || isInit)
-            //    return;
 
             isInit = true;
         }

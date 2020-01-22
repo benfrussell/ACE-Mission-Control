@@ -111,6 +111,7 @@ namespace ACE_Mission_Control.ViewModels
 
             if (args.InvokedItem.GetType() == typeof(Drone))
             {
+                // Suppress the transition if navigating from the same type of page
                 if (NavigationService.Frame.CurrentSourcePageType == typeof(MainPage))
                     NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (args.InvokedItem as Drone).ID, new SuppressNavigationTransitionInfo());
                 else

@@ -9,6 +9,7 @@
         <Setter Property="FontSize" Value="{StaticResource LargeFontSize}" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="AllowFocusOnInteraction" Value="False" />
     </Style>
 
     <Style x:Key="BodyTextStyle" TargetType="TextBlock">
@@ -16,12 +17,14 @@
         <Setter Property="FontSize" Value="{StaticResource MediumFontSize}" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="AllowFocusOnInteraction" Value="False" />
     </Style>
 
     <Style x:Key="SubNoteTextStyle" TargetType="TextBlock">
         <Setter Property="FontWeight" Value="Light" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontStyle" Value="Italic" />
+        <Setter Property="AllowFocusOnInteraction" Value="False" />
     </Style>
 
 </ResourceDictionary>

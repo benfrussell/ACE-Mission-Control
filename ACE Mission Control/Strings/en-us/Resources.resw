@@ -211,7 +211,7 @@
     <value>Username</value>
   </data>
   <data name="Mission_RetrieveButton.Content" xml:space="preserve">
-    <value>Retrieve Mission</value>
+    <value>Retrieve Route</value>
     <comment>Mission retrieve button text</comment>
   </data>
   <data name="Mission_UploadButton.Content" xml:space="preserve">
@@ -247,5 +247,11 @@
   </data>
   <data name="Mission_RetrievalHeader.Text" xml:space="preserve">
     <value>Mission Retrieval</value>
+  </data>
+  <data name="Mission_ConnectUGCSButton.Content" xml:space="preserve">
+    <value>Connect UgCS</value>
+  </data>
+  <data name="Mission_ImportFileButton.Content" xml:space="preserve">
+    <value>Import Route XML</value>
   </data>
 </root>

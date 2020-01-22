@@ -16,6 +16,7 @@
                 <ResourceDictionary Source="/Styles/TextBlock.xaml" />
                 <ResourceDictionary Source="/Styles/Page.xaml"/>
                 <ResourceDictionary Source="/Styles/Button.xaml"/>
+                <ResourceDictionary Source="/Styles/DropDownButton.xaml"/>
                 <ResourceDictionary Source="/Styles/TextBox.xaml"/>
                 <ResourceDictionary Source="/Styles/PasswordBox.xaml"/>
                 <ResourceDictionary Source="/Styles/Frame.xaml"/>

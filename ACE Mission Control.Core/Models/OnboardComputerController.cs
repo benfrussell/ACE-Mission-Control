@@ -63,10 +63,17 @@ namespace ACE_Mission_Control.Core.Models
             string error = null;
             try
             {
-                string app_dir = Environment.CurrentDirectory.Substring(0, Environment.CurrentDirectory.LastIndexOf("\\"));
-                PrivateKey = new PrivateKeyFile(app_dir + @"\Scripts\key_gen\keys\id_rsa", passphrase);
-                KeyOpen = true;
-                StartTryingConnections();
+                if (passphrase == null || passphrase.Length == 0)
+                {
+                    error = "Passphrase cannot be empty.";
+                }
+                else
+                {
+                    string app_dir = Environment.CurrentDirectory.Substring(0, Environment.CurrentDirectory.LastIndexOf("\\"));
+                    PrivateKey = new PrivateKeyFile(app_dir + @"\Scripts\key_gen\keys\id_rsa", passphrase);
+                    KeyOpen = true;
+                    StartTryingConnections();
+                }
             }
             catch (InvalidOperationException)
             {

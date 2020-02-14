@@ -50,10 +50,6 @@ namespace ACE_Mission_Control.Views
                 });
                 base.OnNavigatedTo(e);
             }
-
-
-
-            base.OnNavigatedTo(e);
         }
 
         public MissionPage() : base()

@@ -19,5 +19,10 @@ namespace ACE_Mission_Control.ViewModels
         {
 
         }
+
+        protected override void DroneUnattaching()
+        {
+
+        }
     }
 }

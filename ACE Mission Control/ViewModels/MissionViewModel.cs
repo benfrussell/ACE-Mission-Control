@@ -150,13 +150,11 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             OnboardComputerController.StaticPropertyChanged += OnboardComputerClient_StaticPropertyChanged;
             OBCStatusText = AttachedDrone.OBCClient.Status.ToString();
+        }
 
-            // TODO: Replace this with a working button.
-            //if (!passDiagShown)
-            //{
-            //    Messenger.Default.Send(new ShowPassphraseDialogMessage(), DroneID);
-            //    passDiagShown = true;
-            //}
+        protected override void DroneUnattaching()
+        {
+
         }
 
         private async void OnboardComputerClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)

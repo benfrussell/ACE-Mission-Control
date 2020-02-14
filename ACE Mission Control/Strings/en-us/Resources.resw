@@ -254,4 +254,16 @@
   <data name="Mission_ImportFileButton.Content" xml:space="preserve">
     <value>Import Route XML</value>
   </data>
+  <data name="Config_AutomationCheck.Content" xml:space="preserve">
+    <value>Disable Drone Automation</value>
+  </data>
+  <data name="Console_ActivateButton.Content" xml:space="preserve">
+    <value>Activate Debug Console</value>
+  </data>
+  <data name="Config_DiagnosticsLabel.Text" xml:space="preserve">
+    <value>Diagnostics</value>
+  </data>
+  <data name="Main_ConsolePivotItem.Header" xml:space="preserve">
+    <value>Console</value>
+  </data>
 </root>

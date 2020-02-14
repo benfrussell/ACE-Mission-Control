@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ACE_Mission_Control.Core.Models;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using Windows.ApplicationModel.Core;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -54,8 +56,22 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private bool _automation_checked;
+        public bool AutomationChecked
+        {
+            get { return _automation_checked; }
+            set
+            {
+                if (_automation_checked == value)
+                    return;
+                _automation_checked = value;
+                RaisePropertyChanged("AutomationChecked");
+            }
+        }
+
         public RelayCommand ApplyChangesCommand => new RelayCommand(() => applyButtonClicked());
         public RelayCommand ResetChangesCommand => new RelayCommand(() => resetButtonClicked());
+        public RelayCommand AutomationCheckCommand => new RelayCommand(() => automationChecked());
 
         public ConfigViewModel()
         {
@@ -66,6 +82,25 @@ namespace ACE_Mission_Control.ViewModels
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
             Username_Text = AttachedDrone.OBCClient.Username;
+            AutomationChecked = AttachedDrone.OBCClient.AutomationDisabled;
+            AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
+        }
+
+        protected override void DroneUnattaching()
+        {
+            
+        }
+
+        private async void OBCClient_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            // Property changes might come in from the wrong thread. This dispatches it to the UI thread.
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                var client = sender as OnboardComputerClient;
+
+                if (client.AttachedDrone.ID != DroneID)
+                    return;
+            });
         }
 
         private void applyButtonClicked()
@@ -79,6 +114,11 @@ namespace ACE_Mission_Control.ViewModels
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
             Username_Text = AttachedDrone.OBCClient.Username;
+        }
+
+        private void automationChecked()
+        {
+            AttachedDrone.OBCClient.AutomationDisabled = AutomationChecked;
         }
     }
 }

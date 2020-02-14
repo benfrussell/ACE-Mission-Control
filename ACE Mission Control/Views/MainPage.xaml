@@ -40,6 +40,12 @@
                     <Frame x:Name="ConfigFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
+
+            <PivotItem x:Uid="Main_ConsolePivotItem" x:Name="ConsoleItem">
+                <Grid>
+                    <Frame x:Name="ConsoleFrame" Style="{ThemeResource ACEFrame}"/>
+                </Grid>
+            </PivotItem>
         </Pivot>
     </Grid>
 </local:DroneBasePage>

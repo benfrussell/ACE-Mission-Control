@@ -35,8 +35,13 @@ namespace ACE_Mission_Control.ViewModels
 
         public void SetDroneID(int id)
         {
-            if (DroneID != null && DroneID == id)
-                return;
+            if (DroneID != null)
+            {
+                // Don't attach the drone if the new drone is the same as the current one
+                if (DroneID == id)
+                    return;
+                DroneUnattaching();
+            }
 
             foreach (Drone d in DroneController.Drones)
             {
@@ -63,5 +68,6 @@ namespace ACE_Mission_Control.ViewModels
         }
 
         protected abstract void DroneAttached(bool firstTime);
+        protected abstract void DroneUnattaching();
     }
 }

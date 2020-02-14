@@ -9,6 +9,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Renci.SshNet.Common;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -27,8 +28,11 @@ namespace ACE_Mission_Control.Core.Models
 
         public event PropertyChangedEventHandler PropertyChanged;
         public Drone AttachedDrone;
-        private SshClient client;
-        private ShellStream sshStream;
+        public MonitorClient PrimaryMonitorClient;
+        public MonitorClient DebugMonitorClient;
+        public CommanderClient PrimaryCommanderClient;
+
+        private ConnectionInfo connectionInfo;
 
         private string _hostname = "";
         public string Hostname
@@ -42,7 +46,7 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
                 if (Hostname.Length != 0 && Username.Length != 0)
                 {
-                    _isConfigured = true;
+                    IsConfigured = true;
                     UpdateStatus();
                 }
             }
@@ -60,7 +64,7 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
                 if (Hostname.Length != 0 && Username.Length != 0)
                 {
-                    _isConfigured = true;
+                    IsConfigured = true;
                     UpdateStatus();
                 }
             }
@@ -86,6 +90,65 @@ namespace ACE_Mission_Control.Core.Models
         public bool IsConfigured
         {
             get { return _isConfigured; }
+            private set
+            {
+                if (_isConfigured == value)
+                    return;
+                _isConfigured = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool _automationDisabled;
+        public bool AutomationDisabled
+        {
+            get { return _automationDisabled; }
+            set
+            {
+                if (_automationDisabled == value)
+                    return;
+                _automationDisabled = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool _isConnected;
+        public bool IsConnected
+        {
+            get { return _isConnected; }
+            private set
+            {
+                if (_isConnected == value)
+                    return;
+                _isConnected = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool _commanderErrorFlag;
+        public bool CommanderErrorFlag
+        {
+            get { return _commanderErrorFlag; }
+            private set
+            {
+                if (_commanderErrorFlag == value)
+                    return;
+                _commanderErrorFlag = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private string _commanderErrorText;
+        public string CommanderErrorText
+        {
+            get { return _commanderErrorText; }
+            private set
+            {
+                if (_commanderErrorText == value)
+                    return;
+                _commanderErrorText = value;
+                NotifyPropertyChanged();
+            }
         }
 
         public OnboardComputerClient(Drone parentDrone, string hostname, string username)
@@ -93,12 +156,21 @@ namespace ACE_Mission_Control.Core.Models
             AttachedDrone = parentDrone;
             Username = username;
             Hostname = hostname;
-            client = null;
+            AutomationDisabled = false;
+            IsConnected = false;
+
+            PrimaryMonitorClient = new MonitorClient();
+            PrimaryMonitorClient.PropertyChanged += PrimaryMonitorClient_PropertyChanged;
+
+            DebugMonitorClient = new MonitorClient();
+
+            PrimaryCommanderClient = new CommanderClient();
+            PrimaryCommanderClient.PropertyChanged += PrimaryCommanderClient_PropertyChanged;
 
             if (hostname.Length == 0 || username.Length == 0)
-                _isConfigured = false;
+                IsConfigured = false;
             else
-                _isConfigured = true;
+                IsConfigured = true;
 
             UpdateStatus();
         }
@@ -107,11 +179,19 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool TryConnect(out string result)
         {
-            if (client != null && client.IsConnected)
+            if (PrimaryMonitorClient.Receiving && PrimaryCommanderClient.Initialized)
             {
                 result = "Already connected.";
                 return true;
             }
+
+            if (PrimaryMonitorClient.Started)
+            {
+                result = "Already starting.";
+                return true;
+            }
+
+            IsConnected = false;
 
             if (!OnboardComputerController.KeyOpen)
             {
@@ -125,29 +205,53 @@ namespace ACE_Mission_Control.Core.Models
                 return false;
             }
 
-            var connectInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
+            connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
                 OnboardComputerController.PrivateKey));
 
-            client = new SshClient(connectInfo);
+            CommanderErrorFlag = false;
+            CommanderErrorText = "";
 
-            client.Connect();
+            bool successful = PrimaryMonitorClient.StartStream(out result, connectionInfo);
+
             UpdateStatus();
 
-            if (client.IsConnected)
-            {
-                sshStream = client.CreateShellStream("ACE Terminal", 128, 64, 512, 256, 512);
-                sshStream.DataReceived += SshStream_DataReceived;
-                sshStream.WriteLine("python ~/py-scripts/blink.py");
-            }
-
-            result = "Connected maybe!";
-            return true;
+            return successful;
         }
 
-        private void SshStream_DataReceived(object sender, Renci.SshNet.Common.ShellDataEventArgs e)
+        private void PrimaryMonitorClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            //System.Diagnostics.Debug.WriteLine("SSH DATA RECEIVED");
-            System.Diagnostics.Debug.Write(Encoding.Default.GetString(e.Data));
+            // Start the debug command stream if the monitor is receiving successfully
+            if (e.PropertyName == "Receiving" && PrimaryMonitorClient.Receiving)
+            {
+                string result;
+                if (!PrimaryCommanderClient.StartStream(out result, connectionInfo))
+                {
+                    CommanderErrorFlag = true;
+                    CommanderErrorText = result;
+                }
+                UpdateStatus();
+            }
+        }
+
+        private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Initialized" && PrimaryCommanderClient.Initialized)
+            {
+                IsConnected = true;
+            }
+            UpdateStatus();
+        }
+
+        public bool OpenDebugConsole(out string error)
+        {
+            string stream_error;
+            if (!DebugMonitorClient.StartStream(out stream_error, connectionInfo, 2, true))
+            {
+                error = stream_error;
+                return false;
+            }
+            error = "";
+            return true;
         }
 
         public void UpdateStatus()
@@ -156,13 +260,12 @@ namespace ACE_Mission_Control.Core.Models
                 Status = StatusEnum.PrivateKeyClosed;
             else if (!IsConfigured)
                 Status = StatusEnum.NotConfigured;
-            else if (client == null)
+            else if (PrimaryMonitorClient.Started == false)
                 Status = StatusEnum.SearchingPreMission;
-            else if (client.IsConnected)
+            else if (IsConnected)
                 Status = StatusEnum.ConnectedPreMission;
             else
                 Status = StatusEnum.TryingPreMission;
-
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

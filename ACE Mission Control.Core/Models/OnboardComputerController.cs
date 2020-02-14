@@ -51,10 +51,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (Drone d in DroneController.Drones)
             {
-                string result;
-                bool success = d.OBCClient.TryConnect(out result);
-                if (!success)
-                    continue;
+                d.OBCClient.TryConnect();
             }
         }
 

@@ -8,6 +8,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Resources>
+        <helper:AlertEnumToString x:Key="AlertEnumToString" />
+    </Page.Resources>
+    
     <StackPanel
         x:Name="ContentArea"
         Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
@@ -18,9 +22,10 @@
                 <RowDefinition />
                 <RowDefinition />
                 <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
 
-            <Border Grid.ColumnSpan="1" Grid.RowSpan="3" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"
+            <Border Grid.ColumnSpan="1" Grid.RowSpan="4" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"
                     BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>
             <TextBlock x:Uid="Mission_OBCHeader"
                        Grid.Row="0"
@@ -36,7 +41,7 @@
                 <SymbolIcon x:Name="OBCStatusSymbolIcon"
                         VerticalAlignment="Center"
                         Width="40"
-                        Symbol="{x:Bind ViewModel.OBCStatusSymbol}"/>
+                        Symbol="List"/>
                 <TextBlock x:Name="OBCStatusTextBlock"
                        VerticalAlignment="Center"
                        Text="{x:Bind ViewModel.OBCStatusText, Mode=OneWay}"/>
@@ -45,6 +50,20 @@
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Grid.Row="2"
+                Grid.ColumnSpan="1"
+                Margin="2,8,0,8">
+                <SymbolIcon
+                    VerticalAlignment="Center"
+                    Width="40"
+                    Symbol="{x:Bind ViewModel.OBCAlertSymbol, Mode=OneWay}"/>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{x:Bind ViewModel.OBCAlert, Mode=OneWay, Converter={StaticResource AlertEnumToString}}"/>
+            </StackPanel>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Grid.Row="3"
                 Grid.ColumnSpan="1"
                 Margin="10,8,0,8">
                 <Button x:Name="LockButton"

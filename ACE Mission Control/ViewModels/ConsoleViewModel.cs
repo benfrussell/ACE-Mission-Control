@@ -8,6 +8,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Windows.ApplicationModel.Core;
+using static ACE_Mission_Control.Core.Models.ACETypes;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -162,8 +163,13 @@ namespace ACE_Mission_Control.ViewModels
 
         private void activateDebugCommand()
         {
-            string error;
-            CanOpenDebug = !AttachedDrone.OBCClient.OpenDebugConsole(out error);
+            AlertEntry entry;
+            CanOpenDebug = !AttachedDrone.OBCClient.OpenDebugConsole(out entry);
+            if (!CanOpenDebug)
+            {
+                Helpers.AlertEnumToString converter = new Helpers.AlertEnumToString();
+                CMDResponseText = (string)converter.Convert(entry, typeof(string), null, null);
+            }
         }
     }
 }

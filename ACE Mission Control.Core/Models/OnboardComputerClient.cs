@@ -10,20 +10,13 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Renci.SshNet.Common;
+using System.Collections.ObjectModel;
+using static ACE_Mission_Control.Core.Models.ACETypes;
 
 namespace ACE_Mission_Control.Core.Models
 {
     public class OnboardComputerClient : INotifyPropertyChanged
     {
-        public enum StatusEnum
-        {
-            PrivateKeyClosed,
-            NotConfigured,
-            SearchingPreMission,
-            TryingPreMission,
-            ConnectedPreMission
-        }
-
         // Non-static variables
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -31,6 +24,7 @@ namespace ACE_Mission_Control.Core.Models
         public MonitorClient PrimaryMonitorClient;
         public MonitorClient DebugMonitorClient;
         public CommanderClient PrimaryCommanderClient;
+        public ObservableCollection<AlertEntry> Alerts;
 
         private ConnectionInfo connectionInfo;
 
@@ -125,32 +119,6 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool _commanderErrorFlag;
-        public bool CommanderErrorFlag
-        {
-            get { return _commanderErrorFlag; }
-            private set
-            {
-                if (_commanderErrorFlag == value)
-                    return;
-                _commanderErrorFlag = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private string _commanderErrorText;
-        public string CommanderErrorText
-        {
-            get { return _commanderErrorText; }
-            private set
-            {
-                if (_commanderErrorText == value)
-                    return;
-                _commanderErrorText = value;
-                NotifyPropertyChanged();
-            }
-        }
-
         public OnboardComputerClient(Drone parentDrone, string hostname, string username)
         {
             AttachedDrone = parentDrone;
@@ -158,6 +126,7 @@ namespace ACE_Mission_Control.Core.Models
             Hostname = hostname;
             AutomationDisabled = false;
             IsConnected = false;
+            Alerts = new ObservableCollection<AlertEntry>();
 
             PrimaryMonitorClient = new MonitorClient();
             PrimaryMonitorClient.PropertyChanged += PrimaryMonitorClient_PropertyChanged;
@@ -177,58 +146,50 @@ namespace ACE_Mission_Control.Core.Models
 
         // Non-static methods
 
-        public bool TryConnect(out string result)
+        public void TryConnect()
         {
             if (PrimaryMonitorClient.Receiving && PrimaryCommanderClient.Initialized)
-            {
-                result = "Already connected.";
-                return true;
-            }
+                return;
 
-            if (PrimaryMonitorClient.Started)
-            {
-                result = "Already starting.";
-                return true;
-            }
+            if (PrimaryMonitorClient.Connected)
+                return;
 
             IsConnected = false;
 
             if (!OnboardComputerController.KeyOpen)
             {
-                result = "The private key has not been opened.";
-                return false;
+                Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.NoConnectionKeyClosed));
+                return;
             }
 
             if (!IsConfigured)
             {
-                result = "This client isn't configured.";
-                return false;
+                Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.NoConnectionNotConfigured));
+                return;
             }
 
             connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
                 OnboardComputerController.PrivateKey));
 
-            CommanderErrorFlag = false;
-            CommanderErrorText = "";
+            Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.MonitorConnecting));
 
-            bool successful = PrimaryMonitorClient.StartStream(out result, connectionInfo);
+            AlertEntry monitorAlert;
+            PrimaryMonitorClient.StartStream(out monitorAlert, connectionInfo);
 
             UpdateStatus();
 
-            return successful;
+            Alerts.Add(monitorAlert);
         }
 
         private void PrimaryMonitorClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Start the debug command stream if the monitor is receiving successfully
+            // Start the primary command stream if the monitor is receiving successfully
             if (e.PropertyName == "Receiving" && PrimaryMonitorClient.Receiving)
             {
-                string result;
-                if (!PrimaryCommanderClient.StartStream(out result, connectionInfo))
-                {
-                    CommanderErrorFlag = true;
-                    CommanderErrorText = result;
-                }
+                Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.CommanderConnecting));
+                AlertEntry commanderAlert;
+                PrimaryCommanderClient.StartStream(out commanderAlert, connectionInfo);
+                Alerts.Add(commanderAlert);
                 UpdateStatus();
             }
         }
@@ -237,21 +198,17 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (e.PropertyName == "Initialized" && PrimaryCommanderClient.Initialized)
             {
+                Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.ConnectionReady));
                 IsConnected = true;
             }
             UpdateStatus();
         }
 
-        public bool OpenDebugConsole(out string error)
+        public bool OpenDebugConsole(out AlertEntry alertResult)
         {
-            string stream_error;
-            if (!DebugMonitorClient.StartStream(out stream_error, connectionInfo, 2, true))
-            {
-                error = stream_error;
-                return false;
-            }
-            error = "";
-            return true;
+            bool successful;
+            successful = DebugMonitorClient.StartStream(out alertResult, connectionInfo, 2, true);
+            return successful;
         }
 
         public void UpdateStatus()
@@ -260,12 +217,12 @@ namespace ACE_Mission_Control.Core.Models
                 Status = StatusEnum.PrivateKeyClosed;
             else if (!IsConfigured)
                 Status = StatusEnum.NotConfigured;
-            else if (PrimaryMonitorClient.Started == false)
+            else if (PrimaryMonitorClient.Connected == false)
                 Status = StatusEnum.SearchingPreMission;
             else if (IsConnected)
                 Status = StatusEnum.ConnectedPreMission;
             else
-                Status = StatusEnum.TryingPreMission;
+                Status = StatusEnum.ConnectingPreMission;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

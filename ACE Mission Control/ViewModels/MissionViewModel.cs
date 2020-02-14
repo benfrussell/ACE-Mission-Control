@@ -11,6 +11,7 @@ using ACE_Mission_Control.Helpers;
 using GalaSoft.MvvmLight.Messaging;
 using System.ComponentModel;
 using Windows.ApplicationModel.Core;
+using static ACE_Mission_Control.Core.Models.ACETypes;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -18,16 +19,19 @@ namespace ACE_Mission_Control.ViewModels
     public class HidePassphraseDialogMessage : MessageBase { }
     public class MissionViewModel : DroneViewModelBase
     {
-        private Symbol _obcStatusSymbol;
-        public Symbol OBCStatusSymbol
+        private Symbol _obcAlertSymbol;
+        public Symbol OBCAlertSymbol
         {
             set
             {
-                _obcStatusSymbol = value;
+                if (_obcAlertSymbol == value)
+                    return;
+                _obcAlertSymbol = value;
+                RaisePropertyChanged("OBCStatusSymbol");
             }
             get
             {
-                return _obcStatusSymbol;
+                return _obcAlertSymbol;
             }
         }
 
@@ -46,7 +50,21 @@ namespace ACE_Mission_Control.ViewModels
                 if (IsDroneAttached)
                     return _obcStatusText;
                 else
-                    return "Loading page...";
+                    return "Loading associated drone...";
+            }
+        }
+
+        private AlertEntry _obcAlert;
+        public AlertEntry OBCAlert
+        {
+            set
+            {
+                _obcAlert = value;
+                RaisePropertyChanged("OBCAlert");
+            }
+            get
+            {
+                return _obcAlert;
             }
         }
 
@@ -135,26 +153,50 @@ namespace ACE_Mission_Control.ViewModels
         public MissionViewModel()
         {
             System.Diagnostics.Debug.WriteLine("New instance.");
-            OBCStatusSymbol = Symbol.Find;
+            OBCAlertSymbol = Symbol.Message;
             UGCSMissionRetrieveText = "Never!";
         }
 
         protected override void DroneAttached(bool firstTime)
         {
-            if (!firstTime)
-                return;
-
             LockButtonSymbol = OnboardComputerController.KeyOpen ? Symbol.Accept : Symbol.Permissions;
             LockButtonEnabled = !OnboardComputerController.KeyOpen;
+            OBCStatusText = AttachedDrone.OBCClient.Status.ToString();
 
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
+            AttachedDrone.OBCClient.Alerts.CollectionChanged += Alerts_CollectionChanged;
             OnboardComputerController.StaticPropertyChanged += OnboardComputerClient_StaticPropertyChanged;
-            OBCStatusText = AttachedDrone.OBCClient.Status.ToString();
         }
 
         protected override void DroneUnattaching()
         {
+            AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
+            AttachedDrone.OBCClient.Alerts.CollectionChanged -= Alerts_CollectionChanged;
+            OnboardComputerController.StaticPropertyChanged -= OnboardComputerClient_StaticPropertyChanged;
+        }
 
+        private async void Alerts_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                {
+                    ProcessAlertChanges(e.NewItems);
+                }
+            });
+        }
+
+        private void ProcessAlertChanges(System.Collections.IList newItems)
+        {
+            AlertEntry alert = (AlertEntry)newItems[0];
+            if (alert.Level == AlertLevel.Info)
+                OBCAlertSymbol = Symbol.Message;
+            else if (alert.Level == AlertLevel.Medium)
+                OBCAlertSymbol = Symbol.Flag;
+            else if (alert.Level == AlertLevel.High)
+                OBCAlertSymbol = Symbol.Important;
+
+            OBCAlert = alert;
         }
 
         private async void OnboardComputerClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)

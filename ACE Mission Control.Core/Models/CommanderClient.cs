@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using static ACE_Mission_Control.Core.Models.ACETypes;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -56,7 +57,7 @@ namespace ACE_Mission_Control.Core.Models
             ReadyForCommand = false;
         }
 
-        public bool StartStream(out string result, ConnectionInfo connectInfo)
+        public bool StartStream(out AlertEntry alert, ConnectionInfo connectInfo)
         {
             try
             {
@@ -65,18 +66,18 @@ namespace ACE_Mission_Control.Core.Models
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                result = e.Message;
+                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.CommanderSocketError, e.Message);
                 return false;
             }
             catch (SshAuthenticationException e)
             {
-                result = e.Message;
+                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.CommanderSSHError, e.Message);
                 return false;
             }
 
             if (client == null || !client.IsConnected)
             {
-                result = "Client did not connect.";
+                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.CommanderCouldNotConnect);
                 return false;
             }
 
@@ -84,7 +85,7 @@ namespace ACE_Mission_Control.Core.Models
             stream.DataReceived += Stream_DataReceived;
             stream.WriteLine("python3 ~/Drone/build/bin/ace_commander.py");
 
-            result = "Successful";
+            alert = MakeAlertEntry(AlertLevel.Info, AlertType.CommanderStarting);
             Started = true;
             return true;
         }

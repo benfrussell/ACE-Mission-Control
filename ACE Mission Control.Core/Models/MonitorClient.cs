@@ -97,6 +97,16 @@ namespace ACE_Mission_Control.Core.Models
             return true;
         }
 
+        public void Disconnect()
+        {
+            if (client == null || !client.IsConnected)
+                return;
+
+            client.Disconnect();
+            Receiving = false;
+            Connected = false;
+        }
+
         private void Stream_DataReceived(object sender, Renci.SshNet.Common.ShellDataEventArgs e)
         {
             string data_text = Encoding.UTF8.GetString(e.Data);

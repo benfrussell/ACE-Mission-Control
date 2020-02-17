@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using Renci.SshNet.Common;
 using System.Collections.ObjectModel;
 using static ACE_Mission_Control.Core.Models.ACETypes;
+using System.Timers;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -27,6 +28,7 @@ namespace ACE_Mission_Control.Core.Models
         public ObservableCollection<AlertEntry> Alerts;
 
         private ConnectionInfo connectionInfo;
+        private Timer connectionTimeout;
 
         private string _hostname = "";
         public string Hostname
@@ -119,6 +121,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private bool _attemptingConnection;
+        public bool AttemptingConnection
+        {
+            get { return _attemptingConnection; }
+            private set
+            {
+                if (_attemptingConnection == value)
+                    return;
+                _attemptingConnection = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public OnboardComputerClient(Drone parentDrone, string hostname, string username)
         {
             AttachedDrone = parentDrone;
@@ -126,7 +141,11 @@ namespace ACE_Mission_Control.Core.Models
             Hostname = hostname;
             AutomationDisabled = false;
             IsConnected = false;
+            AttemptingConnection = false;
             Alerts = new ObservableCollection<AlertEntry>();
+
+            connectionTimeout = new Timer(15000);
+            connectionTimeout.Elapsed += ConnectionTimeout_Elapsed;
 
             PrimaryMonitorClient = new MonitorClient();
             PrimaryMonitorClient.PropertyChanged += PrimaryMonitorClient_PropertyChanged;
@@ -148,13 +167,11 @@ namespace ACE_Mission_Control.Core.Models
 
         public void TryConnect()
         {
-            if (PrimaryMonitorClient.Receiving && PrimaryCommanderClient.Initialized)
-                return;
-
             if (PrimaryMonitorClient.Connected)
                 return;
 
-            IsConnected = false;
+            if (AttemptingConnection)
+                return;
 
             if (!OnboardComputerController.KeyOpen)
             {
@@ -168,13 +185,25 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             }
 
+            IsConnected = false;
+            AttemptingConnection = true;
+            System.Diagnostics.Debug.WriteLine("Starting attempt...");
+
             connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
                 OnboardComputerController.PrivateKey));
 
             Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.MonitorConnecting));
 
             AlertEntry monitorAlert;
-            PrimaryMonitorClient.StartStream(out monitorAlert, connectionInfo);
+
+            bool successful = PrimaryMonitorClient.StartStream(out monitorAlert, connectionInfo);
+            if (!successful)
+                AttemptingConnection = false;
+            else
+                connectionTimeout.Start();
+
+            if (!successful)
+                System.Diagnostics.Debug.WriteLine("Finishing attempt...");
 
             UpdateStatus();
 
@@ -186,9 +215,20 @@ namespace ACE_Mission_Control.Core.Models
             // Start the primary command stream if the monitor is receiving successfully
             if (e.PropertyName == "Receiving" && PrimaryMonitorClient.Receiving)
             {
+                // Reset the timeout to 0
+                connectionTimeout.Stop();
+                connectionTimeout.Start();
+
                 Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.CommanderConnecting));
                 AlertEntry commanderAlert;
-                PrimaryCommanderClient.StartStream(out commanderAlert, connectionInfo);
+
+                bool successful = PrimaryCommanderClient.StartStream(out commanderAlert, connectionInfo);
+                connectionTimeout.Stop();
+                if (!successful)
+                    AttemptingConnection = false;
+                else
+                    connectionTimeout.Start();
+
                 Alerts.Add(commanderAlert);
                 UpdateStatus();
             }
@@ -200,8 +240,23 @@ namespace ACE_Mission_Control.Core.Models
             {
                 Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.ConnectionReady));
                 IsConnected = true;
+                AttemptingConnection = false;
+                connectionTimeout.Stop();
             }
             UpdateStatus();
+        }
+
+        private void ConnectionTimeout_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (IsConnected)
+                return;
+
+            PrimaryMonitorClient.Disconnect();
+            PrimaryCommanderClient.Disconnect();
+
+            IsConnected = false;
+            AttemptingConnection = false;
+            Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.ConnectionTimedOut, Alerts[0].Type.ToString()));
         }
 
         public bool OpenDebugConsole(out AlertEntry alertResult)

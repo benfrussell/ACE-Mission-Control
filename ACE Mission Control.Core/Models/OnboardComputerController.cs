@@ -40,7 +40,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public static void StartTryingConnections()
         {
-            connectTimer = new Timer(5000);
+            connectTimer = new Timer(3000);
             // Hook up the Elapsed event for the timer.
             connectTimer.Elapsed += StartConnectionEvent;
             connectTimer.AutoReset = true;
@@ -51,7 +51,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (Drone d in DroneController.Drones)
             {
-                d.OBCClient.TryConnect();
+                if (!d.OBCClient.AttemptingConnection && !d.OBCClient.IsConnected)
+                    d.OBCClient.TryConnect();
             }
         }
 

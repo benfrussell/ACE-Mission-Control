@@ -266,4 +266,58 @@
   <data name="Main_ConsolePivotItem.Header" xml:space="preserve">
     <value>Console</value>
   </data>
+  <data name="Main_MissionPlannerHeader.Text" xml:space="preserve">
+    <value>Mission Planner</value>
+  </data>
+  <data name="Main_MissionStatusHeader.Text" xml:space="preserve">
+    <value>Mission Status</value>
+  </data>
+  <data name="Main_OBCHeader.Text" xml:space="preserve">
+    <value>Onboard Computer</value>
+  </data>
+  <data name="Alert_CommanderConnecting" xml:space="preserve">
+    <value>Started! Connecting to Commander...</value>
+  </data>
+  <data name="Alert_CommanderCouldNotConnect" xml:space="preserve">
+    <value>Connecting to Commander failed for an unknown reason!</value>
+  </data>
+  <data name="Alert_CommanderSocketError" xml:space="preserve">
+    <value>Connection failed (Commander Socket):</value>
+  </data>
+  <data name="Alert_CommanderSSHError" xml:space="preserve">
+    <value>Connection failed (Commander SSH):</value>
+  </data>
+  <data name="Alert_CommanderStarting" xml:space="preserve">
+    <value>Connected! Starting Commander...</value>
+  </data>
+  <data name="Alert_ConnectionReady" xml:space="preserve">
+    <value>Onboard Computer is ready!</value>
+  </data>
+  <data name="Alert_ConnectionTimedOut" xml:space="preserve">
+    <value>Connection took to long. Stopped while</value>
+  </data>
+  <data name="Alert_MonitorConnecting" xml:space="preserve">
+    <value>Searching for device...</value>
+  </data>
+  <data name="Alert_MonitorCouldNotConnect" xml:space="preserve">
+    <value>Connecting to Monitor failed for an unknown reason!</value>
+  </data>
+  <data name="Alert_MonitorSocketError" xml:space="preserve">
+    <value>Can't connect to device.</value>
+  </data>
+  <data name="Alert_MonitorSSHError" xml:space="preserve">
+    <value>Connection failed (Monitor SSH):</value>
+  </data>
+  <data name="Alert_MonitorStarting" xml:space="preserve">
+    <value>Connected! Starting Monitor...</value>
+  </data>
+  <data name="Alert_NoConnectionKeyClosed" xml:space="preserve">
+    <value>Can't connect: SSH key is locked.</value>
+  </data>
+  <data name="Alert_NoConnectionNotConfigured" xml:space="preserve">
+    <value>Can't connect: Connection is not configured.</value>
+  </data>
+  <data name="Alert_None" xml:space="preserve">
+    <value>Nothing to report.</value>
+  </data>
 </root>

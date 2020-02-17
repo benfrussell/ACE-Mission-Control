@@ -4,12 +4,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:ACE_Mission_Control.Views"
+    xmlns:helper="using:ACE_Mission_Control.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
+    <Page.Resources>
+        <helper:AlertEnumToString x:Key="AlertEnumToString" />
+    </Page.Resources>
     <Grid 
         x:Name="ContentArea"
         Margin="{StaticResource SmallLeftTopRightBottomMargin}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        
         <Grid.Resources>
             <Storyboard x:Name="FadeInStoryboard">
                 <DoubleAnimation From="0.6" To="1" Duration="00:00:0.6"
@@ -22,8 +37,68 @@
             </Storyboard>
         </Grid.Resources>
 
+        <Border Grid.Row="0" Grid.Column="0" BorderBrush="DarkOrange" BorderThickness="3,0,0,0" Margin="12,0,0,0"/>
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical" Margin="20,0,0,0">
+            <TextBlock
+                x:Uid="Main_MissionStatusHeader"
+                Style="{ThemeResource SubtitleTextBlockStyle}"
+                Margin="4,0,0,0"/>
+            <TextBlock
+                x:Name="OBCStatusTextBlock"
+                VerticalAlignment="Center"
+                Text="{x:Bind ViewModel.OBCStatusText, Mode=OneWay}"
+                Margin="4,0,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="0" Grid.Column="1" BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="8,0,0,0">
+            <TextBlock
+                x:Uid="Main_OBCHeader"
+                Style="{ThemeResource SubtitleTextBlockStyle}"
+                Margin="4,0,0,0"/>
+            <TextBlock
+                Grid.Column="1"
+                x:Uid="Main_OBCConnected"
+                Text="{x:Bind ViewModel.OBCConnectedText, Mode=OneWay}"
+                Margin="4,0,0,0"/>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Margin="4,2,0,0">
+                <SymbolIcon
+                    VerticalAlignment="Center"
+                    Symbol="{x:Bind ViewModel.OBCAlertSymbol, Mode=OneWay}"/>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Height="20"
+                    Margin="4,0,0,0"
+                    Text="{x:Bind ViewModel.OBCAlert, Mode=OneWay, Converter={StaticResource AlertEnumToString}}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Border Grid.Row="0" Grid.Column="2" BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>
+        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Vertical" Margin="8,0,0,0">
+            <TextBlock
+                x:Uid="Main_MissionPlannerHeader"
+                Style="{ThemeResource SubtitleTextBlockStyle}"
+                Margin="4,0,0,0"/>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Margin="4,2,0,0">
+                <SymbolIcon Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Symbol="Clock"/>
+                <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
+                       VerticalAlignment="Center"
+                       Text="{x:Bind ViewModel.UGCSMissionRetrieveText}"
+                       Margin="4,0,0,0"
+                       Height="20"/>
+            </StackPanel>
+        </StackPanel>
+
         <Pivot
-            x:Name="Items">
+            x:Name="Items"
+            Grid.Row="1"
+            Grid.ColumnSpan="3">
             <Pivot.HeaderTemplate>
                 <DataTemplate>
                     <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{Binding}" />

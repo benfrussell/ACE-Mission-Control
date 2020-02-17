@@ -26,8 +26,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             None,
             Info, // Info about what's going on
-            Medium, // Something unexpected, action not likely necessary
-            High, // Something unexpected, action very likely necessary
+            Medium, // Something unexpected, action not critical
+            High, // Something unexpected, action IS critical
         }
 
         public enum AlertType
@@ -45,7 +45,8 @@ namespace ACE_Mission_Control.Core.Models
             CommanderSSHError,
             CommanderCouldNotConnect,
             CommanderStarting,
-            ConnectionReady
+            ConnectionReady,
+            ConnectionTimedOut
         }
 
         public static AlertEntry MakeAlertEntry(AlertLevel level, AlertType type, string info = "")

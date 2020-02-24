@@ -4,25 +4,28 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:ACE_Mission_Control.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helper="using:ACE_Mission_Control.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
         <StackPanel Margin="8,8,8,8">
-            <TextBlock x:Uid="Config_OBCConfigLabel" Margin="0,0,0,8" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <TextBlock x:Uid="Config_OBCConfigLabel" Margin="0,0,0,4" Style="{ThemeResource SubtitleTextBlockStyle}"/>
             <StackPanel>
                 <TextBlock x:Uid="Config_OBCHostnameLabel" />
                 <TextBox
                     Text="{x:Bind ViewModel.Hostname_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     x:Name="OBCHostnameBox"
-                    IsSpellCheckEnabled="False" />
+                    IsSpellCheckEnabled="False"
+                    helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.ApplyChangesCommand}" />
 
                 <TextBlock x:Uid="Config_OBCUsernameLabel"/>
                 <TextBox
                     Text="{x:Bind ViewModel.Username_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     x:Name="OBCUsernameBox"
-                    IsSpellCheckEnabled="False" />
+                    IsSpellCheckEnabled="False"
+                    helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.ApplyChangesCommand}" />
                 
                 <StackPanel
                     Margin="{StaticResource XSmallTopMargin}"
@@ -41,15 +44,26 @@
                             Command="{x:Bind ViewModel.ResetChangesCommand}" />
                 </StackPanel>
             </StackPanel>
-            <TextBlock x:Uid="Config_DiagnosticsLabel" Margin="0,16,0,8" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <TextBlock x:Uid="Config_DiagnosticsLabel" Margin="0,16,0,4" Style="{ThemeResource SubtitleTextBlockStyle}"/>
             <StackPanel
                 Margin="{StaticResource XSmallTopMargin}"
                 HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Uid="Config_ConnectButton"
+                            IsEnabled="{x:Bind ViewModel.ConnectButtonEnabled, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.ConnectCommand}"
+                            Style="{ThemeResource ACEButton}"/>
+                    <CheckBox x:Name="AutoConnectCheck"
+                              x:Uid="Config_AutoConnectCheck"
+                              Margin="8,0,0,0"
+                              IsChecked="{x:Bind ViewModel.DisableAutoConnectChecked, Mode=TwoWay}"
+                              Command="{x:Bind ViewModel.DisableAutoConnectCheckCommand}" />
+                </StackPanel>
                 <CheckBox x:Name="AutomationCheck"
                           x:Uid="Config_AutomationCheck"
                           Margin="0,8,0,0"
-                          IsChecked="{x:Bind ViewModel.AutomationChecked, Mode=TwoWay}"
-                          Command="{x:Bind ViewModel.AutomationCheckCommand}" />
+                          IsChecked="{x:Bind ViewModel.DisableAutomationChecked, Mode=TwoWay}"
+                          Command="{x:Bind ViewModel.DisableAutomationCheckCommand}" />
             </StackPanel>
         </StackPanel>
     </Grid>

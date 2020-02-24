@@ -303,7 +303,7 @@
     <value>Connecting to Monitor failed for an unknown reason!</value>
   </data>
   <data name="Alert_MonitorSocketError" xml:space="preserve">
-    <value>Can't connect to device.</value>
+    <value>Connection failed (Monitor Socket):</value>
   </data>
   <data name="Alert_MonitorSSHError" xml:space="preserve">
     <value>Connection failed (Monitor SSH):</value>
@@ -319,5 +319,20 @@
   </data>
   <data name="Alert_None" xml:space="preserve">
     <value>Nothing to report.</value>
+  </data>
+  <data name="Alert_OBCError" xml:space="preserve">
+    <value>Onboard Computer error:</value>
+  </data>
+  <data name="Alert_OBCSlow" xml:space="preserve">
+    <value>Onboard Computer working slow. Response delay</value>
+  </data>
+  <data name="Alert_OBCStoppedResponding" xml:space="preserve">
+    <value>Onboard Computer stopped responding.</value>
+  </data>
+  <data name="Config_AutoConnectCheck.Content" xml:space="preserve">
+    <value>Disable Drone Auto-Connecting</value>
+  </data>
+  <data name="Config_ConnectButton.Content" xml:space="preserve">
+    <value>Connect</value>
   </data>
 </root>

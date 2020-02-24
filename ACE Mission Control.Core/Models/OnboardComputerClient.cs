@@ -13,6 +13,7 @@ using Renci.SshNet.Common;
 using System.Collections.ObjectModel;
 using static ACE_Mission_Control.Core.Models.ACETypes;
 using System.Timers;
+using Pbdrone;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -26,9 +27,12 @@ namespace ACE_Mission_Control.Core.Models
         public MonitorClient DebugMonitorClient;
         public CommanderClient PrimaryCommanderClient;
         public ObservableCollection<AlertEntry> Alerts;
+        public double ConnectionTimeoutDelay;
+        public double HeartbeatTimeoutDelay;
 
         private ConnectionInfo connectionInfo;
         private Timer connectionTimeout;
+        private Timer heartbeatTimeout;
 
         private string _hostname = "";
         public string Hostname
@@ -108,6 +112,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private bool _autoConnectDisabled;
+        public bool AutoConnectDisabled
+        {
+            get { return _autoConnectDisabled; }
+            set
+            {
+                if (_autoConnectDisabled == value)
+                    return;
+                _autoConnectDisabled = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         private bool _isConnected;
         public bool IsConnected
         {
@@ -140,15 +157,22 @@ namespace ACE_Mission_Control.Core.Models
             Username = username;
             Hostname = hostname;
             AutomationDisabled = false;
+            AutoConnectDisabled = false;
             IsConnected = false;
             AttemptingConnection = false;
             Alerts = new ObservableCollection<AlertEntry>();
 
-            connectionTimeout = new Timer(15000);
+            ConnectionTimeoutDelay = 15000;
+            connectionTimeout = new Timer(ConnectionTimeoutDelay);
             connectionTimeout.Elapsed += ConnectionTimeout_Elapsed;
+
+            HeartbeatTimeoutDelay = 3000;
+            heartbeatTimeout = new Timer(HeartbeatTimeoutDelay);
+            heartbeatTimeout.Elapsed += HeartbeatTimeout_Elapsed;
 
             PrimaryMonitorClient = new MonitorClient();
             PrimaryMonitorClient.PropertyChanged += PrimaryMonitorClient_PropertyChanged;
+            PrimaryMonitorClient.MessageReceivedEvent += PrimaryMonitorClient_MessageReceivedEvent;
 
             DebugMonitorClient = new MonitorClient();
 
@@ -185,9 +209,10 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             }
 
+            System.Diagnostics.Debug.WriteLine("TRY CONNECT");
+
             IsConnected = false;
             AttemptingConnection = true;
-            System.Diagnostics.Debug.WriteLine("Starting attempt...");
 
             connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
                 OnboardComputerController.PrivateKey));
@@ -201,9 +226,6 @@ namespace ACE_Mission_Control.Core.Models
                 AttemptingConnection = false;
             else
                 connectionTimeout.Start();
-
-            if (!successful)
-                System.Diagnostics.Debug.WriteLine("Finishing attempt...");
 
             UpdateStatus();
 
@@ -242,6 +264,7 @@ namespace ACE_Mission_Control.Core.Models
                 IsConnected = true;
                 AttemptingConnection = false;
                 connectionTimeout.Stop();
+                heartbeatTimeout.Start();
             }
             UpdateStatus();
         }
@@ -250,20 +273,53 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (IsConnected)
                 return;
-
-            PrimaryMonitorClient.Disconnect();
-            PrimaryCommanderClient.Disconnect();
-
-            IsConnected = false;
-            AttemptingConnection = false;
+            Disconnect();
             Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.ConnectionTimedOut, Alerts[0].Type.ToString()));
+        }
+
+        private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
+        {
+            if (!IsConnected)
+                return;
+
+            if (e.MessageType == MessageType.Heartbeat)
+            {
+                Heartbeat heartbeat = (Heartbeat)e.Message;
+                if (heartbeat.Arrhythmia > 0)
+                    Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
+                heartbeatTimeout.Stop();
+                heartbeatTimeout.Start();
+            }
+            else if (e.MessageType == MessageType.ACEError)
+            {
+                ACEError error = (ACEError)e.Message;
+                Alerts.Add(MakeAlertEntry(AlertLevel.High, AlertType.OBCError, error.Timestamp + ": " + error.Message));
+            }
+        }
+
+        private void HeartbeatTimeout_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (!IsConnected)
+                return;
+            Disconnect();
+            Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.OBCStoppedResponding));
         }
 
         public bool OpenDebugConsole(out AlertEntry alertResult)
         {
             bool successful;
-            successful = DebugMonitorClient.StartStream(out alertResult, connectionInfo, 2, true);
+            successful = DebugMonitorClient.StartStream(out alertResult, connectionInfo, 2, false);
             return successful;
+        }
+
+        public void Disconnect()
+        {
+            PrimaryMonitorClient.Disconnect();
+            PrimaryCommanderClient.Disconnect();
+            if (DebugMonitorClient.Connected)
+                DebugMonitorClient.Disconnect();
+            IsConnected = false;
+            AttemptingConnection = false;
         }
 
         public void UpdateStatus()

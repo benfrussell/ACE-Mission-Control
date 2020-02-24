@@ -51,7 +51,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (Drone d in DroneController.Drones)
             {
-                if (!d.OBCClient.AttemptingConnection && !d.OBCClient.IsConnected)
+                if (!d.OBCClient.AutoConnectDisabled && !d.OBCClient.AttemptingConnection && !d.OBCClient.IsConnected)
                     d.OBCClient.TryConnect();
             }
         }

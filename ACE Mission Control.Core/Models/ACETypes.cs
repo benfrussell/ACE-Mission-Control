@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Pbdrone;
+using Google.Protobuf;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -46,7 +48,21 @@ namespace ACE_Mission_Control.Core.Models
             CommanderCouldNotConnect,
             CommanderStarting,
             ConnectionReady,
-            ConnectionTimedOut
+            ConnectionTimedOut,
+            OBCStoppedResponding,
+            OBCSlow,
+            OBCError
+        }
+
+        public enum MessageType : int
+        {
+            Heartbeat = 0,
+            InterfaceStatus = 1,
+            FlightStatus = 2,
+            ControlDevice = 3,
+            Position = 4,
+            FlightAnomaly = 5,
+            ACEError = 6
         }
 
         public static AlertEntry MakeAlertEntry(AlertLevel level, AlertType type, string info = "")

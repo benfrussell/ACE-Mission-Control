@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package pbdrone;
+
+// Code 0
+message Heartbeat {
+	float arrhythmia = 1;
+}
+
+// Code 1
+message InterfaceStatus {
+	enum State {
+		OFFLINE = 0;
+		ATTEMPTING = 1;
+		ONLINE = 2;
+	}
+
+	enum FailState {
+		NO_FAILURE = 0;
+		ATTEMPT_FAILURE = 1;
+		DROPPED_FAILURE = 2;
+		THREAD_FAILURE = 3;
+	}
+
+	State interface_state = 1;
+	FailState failure_type = 2;
+	string failure_output = 3;
+}
+
+// Code 2
+message FlightStatus {
+	enum State {
+		STOPPED = 0;
+		ON_GROUND = 1;
+		IN_AIR = 2;
+	}
+
+	State flight_state = 1;
+}
+
+// Code 3
+message ControlDevice {
+	enum Device {
+		RC = 0;
+		MSDK = 1;
+		OSDK = 2;
+	}
+
+	Device control_device = 1;
+}
+
+// Code 4
+message Position {
+	float longitude = 1;
+	float latitude = 2;
+	float altitude = 3;
+	int32 satellites = 4;
+}
+
+// Code 5
+message FlightAnomaly {
+	repeated string anomaly = 1;
+}
+
+// Code 6
+message ACEError {
+	string timestamp = 1;
+	string message = 2;
+}

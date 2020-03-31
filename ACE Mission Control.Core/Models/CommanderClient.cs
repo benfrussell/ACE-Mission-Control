@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
-using static ACE_Mission_Control.Core.Models.ACETypes;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -66,26 +66,26 @@ namespace ACE_Mission_Control.Core.Models
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.CommanderSocketError, e.Message);
+                alert = new AlertEntry(AlertLevel.Medium, AlertType.CommanderSocketError, e.Message);
                 return false;
             }
             catch (SshAuthenticationException e)
             {
-                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.CommanderSSHError, e.Message);
+                alert = new AlertEntry(AlertLevel.Medium, AlertType.CommanderSSHError, e.Message);
                 return false;
             }
 
             if (client == null || !client.IsConnected)
             {
-                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.CommanderCouldNotConnect);
+                alert = new AlertEntry(AlertLevel.Medium, AlertType.CommanderCouldNotConnect);
                 return false;
             }
 
             stream = client.CreateShellStream("Commander", 128, 64, 512, 256, 512);
             stream.DataReceived += Stream_DataReceived;
-            stream.WriteLine("python3 ~/Drone/build/bin/ace_commander.py");
+            stream.WriteLine("python3 ~/ACE-Onboard-Computer/build/bin/ace_commander.py");
 
-            alert = MakeAlertEntry(AlertLevel.Info, AlertType.CommanderStarting);
+            alert = new AlertEntry(AlertLevel.Info, AlertType.CommanderStarting);
             Started = true;
             return true;
         }

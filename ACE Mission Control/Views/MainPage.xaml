@@ -9,7 +9,7 @@
     Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
     <Page.Resources>
-        <helper:AlertEnumToString x:Key="AlertEnumToString" />
+        <helper:AlertToString x:Key="AlertToString" />
     </Page.Resources>
     <Grid 
         x:Name="ContentArea"
@@ -72,7 +72,7 @@
                     VerticalAlignment="Center"
                     Height="20"
                     Margin="4,0,0,0"
-                    Text="{x:Bind ViewModel.OBCAlert, Mode=OneWay, Converter={StaticResource AlertEnumToString}}"/>
+                    Text="{x:Bind ViewModel.OBCAlert, Mode=OneWay, Converter={StaticResource AlertToString}}"/>
             </StackPanel>
         </StackPanel>
 

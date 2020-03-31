@@ -11,7 +11,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Renci.SshNet.Common;
 using System.Collections.ObjectModel;
-using static ACE_Mission_Control.Core.Models.ACETypes;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
 using System.Timers;
 using Pbdrone;
 
@@ -26,7 +26,6 @@ namespace ACE_Mission_Control.Core.Models
         public MonitorClient PrimaryMonitorClient;
         public MonitorClient DebugMonitorClient;
         public CommanderClient PrimaryCommanderClient;
-        public ObservableCollection<AlertEntry> Alerts;
         public double ConnectionTimeoutDelay;
         public double HeartbeatTimeoutDelay;
 
@@ -160,7 +159,6 @@ namespace ACE_Mission_Control.Core.Models
             AutoConnectDisabled = false;
             IsConnected = false;
             AttemptingConnection = false;
-            Alerts = new ObservableCollection<AlertEntry>();
 
             ConnectionTimeoutDelay = 15000;
             connectionTimeout = new Timer(ConnectionTimeoutDelay);
@@ -199,17 +197,15 @@ namespace ACE_Mission_Control.Core.Models
 
             if (!OnboardComputerController.KeyOpen)
             {
-                Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.NoConnectionKeyClosed));
+                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.NoConnectionKeyClosed));
                 return;
             }
 
             if (!IsConfigured)
             {
-                Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.NoConnectionNotConfigured));
+                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.NoConnectionNotConfigured));
                 return;
             }
-
-            System.Diagnostics.Debug.WriteLine("TRY CONNECT");
 
             IsConnected = false;
             AttemptingConnection = true;
@@ -217,7 +213,7 @@ namespace ACE_Mission_Control.Core.Models
             connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
                 OnboardComputerController.PrivateKey));
 
-            Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.MonitorConnecting));
+            AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Info, AlertType.MonitorConnecting));
 
             AlertEntry monitorAlert;
 
@@ -225,11 +221,14 @@ namespace ACE_Mission_Control.Core.Models
             if (!successful)
                 AttemptingConnection = false;
             else
+            {
                 connectionTimeout.Start();
+                Debug.WriteLine("CONNECT TIMEOUT RESTART PRIMARY MONITOR CONNECTED");
+            }
 
             UpdateStatus();
 
-            Alerts.Add(monitorAlert);
+            AttachedDrone.AddAlert(monitorAlert);
         }
 
         private void PrimaryMonitorClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -238,20 +237,25 @@ namespace ACE_Mission_Control.Core.Models
             if (e.PropertyName == "Receiving" && PrimaryMonitorClient.Receiving)
             {
                 // Reset the timeout to 0
+                Debug.WriteLine("CONNECT TIMEOUT RESTART PRIMARY MONITOR STARTED");
                 connectionTimeout.Stop();
                 connectionTimeout.Start();
 
-                Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.CommanderConnecting));
+                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Info, AlertType.CommanderConnecting));
                 AlertEntry commanderAlert;
 
                 bool successful = PrimaryCommanderClient.StartStream(out commanderAlert, connectionInfo);
+                Debug.WriteLine("CONNECT TIMEOUT STOP PRIMARY COMMANDER CONNECTED");
                 connectionTimeout.Stop();
                 if (!successful)
                     AttemptingConnection = false;
                 else
+                {
                     connectionTimeout.Start();
+                    Debug.WriteLine("CONNECT TIMEOUT START PRIMARY COMMANDER CONNECTED");
+                }
 
-                Alerts.Add(commanderAlert);
+                AttachedDrone.AddAlert(commanderAlert);
                 UpdateStatus();
             }
         }
@@ -260,9 +264,10 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (e.PropertyName == "Initialized" && PrimaryCommanderClient.Initialized)
             {
-                Alerts.Add(MakeAlertEntry(AlertLevel.Info, AlertType.ConnectionReady));
+                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Info, AlertType.ConnectionReady));
                 IsConnected = true;
                 AttemptingConnection = false;
+                Debug.WriteLine("CONNECT TIMEOUT STOP PRIMARY COMMANDER STARTED");
                 connectionTimeout.Stop();
                 heartbeatTimeout.Start();
             }
@@ -274,7 +279,7 @@ namespace ACE_Mission_Control.Core.Models
             if (IsConnected)
                 return;
             Disconnect();
-            Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.ConnectionTimedOut, Alerts[0].Type.ToString()));
+            AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.ConnectionTimedOut, AttachedDrone.AlertLog[0].Type.ToString()));
         }
 
         private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
@@ -286,14 +291,14 @@ namespace ACE_Mission_Control.Core.Models
             {
                 Heartbeat heartbeat = (Heartbeat)e.Message;
                 if (heartbeat.Arrhythmia > 0)
-                    Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
+                    AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
                 heartbeatTimeout.Stop();
                 heartbeatTimeout.Start();
             }
             else if (e.MessageType == MessageType.ACEError)
             {
                 ACEError error = (ACEError)e.Message;
-                Alerts.Add(MakeAlertEntry(AlertLevel.High, AlertType.OBCError, error.Timestamp + ": " + error.Message));
+                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.High, AlertType.OBCError, error.Timestamp + ": " + error.Message));
             }
         }
 
@@ -302,7 +307,7 @@ namespace ACE_Mission_Control.Core.Models
             if (!IsConnected)
                 return;
             Disconnect();
-            Alerts.Add(MakeAlertEntry(AlertLevel.Medium, AlertType.OBCStoppedResponding));
+            AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.OBCStoppedResponding));
         }
 
         public bool OpenDebugConsole(out AlertEntry alertResult)

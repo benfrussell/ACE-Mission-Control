@@ -245,14 +245,14 @@
   <data name="Mission_OBCHeader.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Mission_RetrievalHeader.Text" xml:space="preserve">
-    <value>Mission Retrieval</value>
+  <data name="Mission_MissionControlHeader.Text" xml:space="preserve">
+    <value>Mission Controls</value>
   </data>
   <data name="Mission_ConnectUGCSButton.Content" xml:space="preserve">
     <value>Connect UgCS</value>
   </data>
   <data name="Mission_ImportFileButton.Content" xml:space="preserve">
-    <value>Import Route XML</value>
+    <value>Import Route JSON</value>
   </data>
   <data name="Config_AutomationCheck.Content" xml:space="preserve">
     <value>Disable Drone Automation</value>
@@ -334,5 +334,32 @@
   </data>
   <data name="Config_ConnectButton.Content" xml:space="preserve">
     <value>Connect</value>
+  </data>
+  <data name="Mission_FlyThroughCheckbox.Content" xml:space="preserve">
+    <value>Activated</value>
+  </data>
+  <data name="Mission_ResetButton.Content" xml:space="preserve">
+    <value>Reset Mission Progress</value>
+  </data>
+  <data name="Mission_RestartOBC.Content" xml:space="preserve">
+    <value>Restart Director</value>
+  </data>
+  <data name="Mission_SetDuration.Text" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Mission_SetFlyThrough.Text" xml:space="preserve">
+    <value>Fly-Through Mode</value>
+  </data>
+  <data name="Mission_SetPayload.Text" xml:space="preserve">
+    <value>Payload</value>
+  </data>
+  <data name="Mission_TestInterface.Content" xml:space="preserve">
+    <value>Test Drone Interface</value>
+  </data>
+  <data name="Mission_TestPayload.Content" xml:space="preserve">
+    <value>Test Payload</value>
+  </data>
+  <data name="Mission_ActivateButton.Content" xml:space="preserve">
+    <value>ActivateMission</value>
   </data>
 </root>

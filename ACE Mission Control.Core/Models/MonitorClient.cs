@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
-using static ACE_Mission_Control.Core.Models.ACETypes;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
 using Google.Protobuf;
 using Pbdrone;
 
@@ -75,20 +75,20 @@ namespace ACE_Mission_Control.Core.Models
             catch (System.Net.Sockets.SocketException e)
             {
                 if (e.SocketErrorCode == System.Net.Sockets.SocketError.TimedOut)
-                    alert = MakeAlertEntry(AlertLevel.Info, AlertType.MonitorConnecting);
+                    alert = new AlertEntry(AlertLevel.Info, AlertType.MonitorConnecting);
                 else
-                    alert = MakeAlertEntry(AlertLevel.Medium, AlertType.MonitorSocketError, e.Message);
+                    alert = new AlertEntry(AlertLevel.Medium, AlertType.MonitorSocketError, e.Message);
                 return false;
             }
             catch (SshAuthenticationException e)
             {
-                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.MonitorSSHError, e.Message);
+                alert = new AlertEntry(AlertLevel.Medium, AlertType.MonitorSSHError, e.Message);
                 return false;
             }
 
             if (client == null || !client.IsConnected)
             {
-                alert = MakeAlertEntry(AlertLevel.Medium, AlertType.MonitorCouldNotConnect);
+                alert = new AlertEntry(AlertLevel.Medium, AlertType.MonitorCouldNotConnect);
                 return false;
             }
 
@@ -100,10 +100,10 @@ namespace ACE_Mission_Control.Core.Models
 
             stream = client.CreateShellStream("Monitor", 128, 64, 512, 256, 512);
             stream.DataReceived += Stream_DataReceived;
-            stream.WriteLine("python3 ~/Drone/build/bin/ace_monitor.py " + debug_arg + heartbeat_arg);
+            stream.WriteLine("python3 ~/ACE-Onboard-Computer/build/bin/ace_monitor.py " + debug_arg + heartbeat_arg);
 
             Connected = true;
-            alert = MakeAlertEntry(AlertLevel.Info, AlertType.MonitorStarting);
+            alert = new AlertEntry(AlertLevel.Info, AlertType.MonitorStarting);
             return true;
         }
 

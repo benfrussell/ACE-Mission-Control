@@ -4,14 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Data;
-using static ACE_Mission_Control.Core.Models.ACETypes;
+using ACE_Mission_Control.Core.Models;
 
 namespace ACE_Mission_Control.Helpers
 {
-    public class AlertEnumToString : IValueConverter
+    public class AlertToString : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
+            if (value == null)
+                return null;
+
             if (targetType != typeof(string))
                 throw new InvalidCastException();
             AlertEntry alertValue = (AlertEntry)value;

@@ -4,7 +4,7 @@ using ACE_Mission_Control.Core.Models;
 using GalaSoft.MvvmLight;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml.Controls;
-using static ACE_Mission_Control.Core.Models.ACETypes;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -99,7 +99,7 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneAttached(bool firstTime)
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
-            AttachedDrone.OBCClient.Alerts.CollectionChanged += Alerts_CollectionChanged;
+            AttachedDrone.AlertLog.CollectionChanged += Alerts_CollectionChanged;
             OBCStatusText = AttachedDrone.OBCClient.Status.ToString();
             OBCConnectedText = AttachedDrone.OBCClient.IsConnected ? "Connected" : "Not Connected";
         }
@@ -107,7 +107,7 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneUnattaching()
         {
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
-            AttachedDrone.OBCClient.Alerts.CollectionChanged -= Alerts_CollectionChanged;
+            AttachedDrone.AlertLog.CollectionChanged -= Alerts_CollectionChanged;
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)

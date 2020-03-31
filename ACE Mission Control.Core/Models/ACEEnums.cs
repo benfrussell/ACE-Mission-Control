@@ -6,7 +6,7 @@ using Google.Protobuf;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public static class ACETypes
+    public class ACEEnums
     {
         public enum StatusEnum
         {
@@ -15,13 +15,6 @@ namespace ACE_Mission_Control.Core.Models
             SearchingPreMission,
             ConnectingPreMission,
             ConnectedPreMission
-        }
-
-        public struct AlertEntry
-        {
-            public AlertLevel Level;
-            public AlertType Type;
-            public string Info;
         }
 
         public enum AlertLevel
@@ -63,15 +56,6 @@ namespace ACE_Mission_Control.Core.Models
             Position = 4,
             FlightAnomaly = 5,
             ACEError = 6
-        }
-
-        public static AlertEntry MakeAlertEntry(AlertLevel level, AlertType type, string info = "")
-        {
-            AlertEntry entry = new AlertEntry();
-            entry.Level = level;
-            entry.Type = type;
-            entry.Info = info;
-            return entry;
         }
     }
 }

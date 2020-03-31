@@ -11,7 +11,9 @@ using ACE_Mission_Control.Helpers;
 using GalaSoft.MvvmLight.Messaging;
 using System.ComponentModel;
 using Windows.ApplicationModel.Core;
-using static ACE_Mission_Control.Core.Models.ACETypes;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
+using System.Collections.ObjectModel;
+using Windows.UI.Core;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -84,6 +86,103 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        public bool OBCConnected
+        {
+            get
+            {
+                return AttachedDrone.OBCClient.IsConnected;
+            }
+        }
+
+        public bool OBCCanBeTested
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public bool MissionCanBeReset
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public bool MissionCanBeModified
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        private string _missionActivatedText;
+        public string MissionActivatedText
+        {
+            set
+            {
+                if (value == _missionActivatedText)
+                    return;
+                _missionActivatedText = value;
+                RaisePropertyChanged();
+            }
+            get
+            {
+                return _missionActivatedText;
+            }
+        }
+
+        public bool FlyThroughMode
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public string TreatmentDuration
+        {
+            get
+            {
+                return "90";
+            }
+        }
+
+        public List<string> AvailablePayloads
+        {
+            get
+            {
+                return new List<string>();
+            }
+        }
+
+        public int SelectedPayload
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        public bool UGCSConnected
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+
+        private ObservableCollection<AlertEntry> _alerts;
+        public ObservableCollection<AlertEntry> Alerts
+        {
+            get {
+                return _alerts;
+            }
+        }
+
         private static bool passDiagShown = false;
 
         public RelayCommand LockButtonCommand => new RelayCommand(() => lockButtonClicked());
@@ -96,7 +195,7 @@ namespace ACE_Mission_Control.ViewModels
 
         public MissionViewModel()
         {
-            System.Diagnostics.Debug.WriteLine("New instance.");
+            _alerts = new ObservableCollection<AlertEntry>();
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -105,11 +204,26 @@ namespace ACE_Mission_Control.ViewModels
             LockButtonEnabled = !OnboardComputerController.KeyOpen;
 
             OnboardComputerController.StaticPropertyChanged += OnboardComputerClient_StaticPropertyChanged;
+            AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
+
+            _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
+        }
+
+        private async void AlertLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+
+                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                    foreach (AlertEntry entry in e.NewItems)
+                        _alerts.Add(entry);
+            });
         }
 
         protected override void DroneUnattaching()
         {
             OnboardComputerController.StaticPropertyChanged -= OnboardComputerClient_StaticPropertyChanged;
+            AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
         }
 
         private async void OnboardComputerClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -135,9 +249,15 @@ namespace ACE_Mission_Control.ViewModels
             string response = await OnboardComputerController.OpenPrivateKeyAsync(PassDialogInputText);
             PassDialogLoading = false;
             if (response != null)
+            {
                 PassDialogErrorText = response;
+            }
             else
+            {
                 Messenger.Default.Send(new HidePassphraseDialogMessage());
+                OnboardComputerController.StartTryingConnections();
+            }
+                
         }
     }
 }

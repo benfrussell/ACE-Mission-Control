@@ -4,7 +4,6 @@ using ACE_Mission_Control.Core.Models;
 using GalaSoft.MvvmLight;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml.Controls;
-using static ACE_Mission_Control.Core.Models.ACEEnums;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -142,11 +141,11 @@ namespace ACE_Mission_Control.ViewModels
         private void ProcessAlertChanges(System.Collections.IList newItems)
         {
             AlertEntry alert = (AlertEntry)newItems[0];
-            if (alert.Level == AlertLevel.Info)
+            if (alert.Level == AlertEntry.AlertLevel.Info)
                 OBCAlertSymbol = Symbol.Message;
-            else if (alert.Level == AlertLevel.Medium)
+            else if (alert.Level == AlertEntry.AlertLevel.Medium)
                 OBCAlertSymbol = Symbol.Flag;
-            else if (alert.Level == AlertLevel.High)
+            else if (alert.Level == AlertEntry.AlertLevel.High)
                 OBCAlertSymbol = Symbol.Important;
 
             OBCAlert = alert;

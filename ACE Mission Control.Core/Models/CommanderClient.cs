@@ -66,18 +66,18 @@ namespace ACE_Mission_Control.Core.Models
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                alert = new AlertEntry(AlertLevel.Medium, AlertType.CommanderSocketError, e.Message);
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderSocketError, e.Message);
                 return false;
             }
             catch (SshAuthenticationException e)
             {
-                alert = new AlertEntry(AlertLevel.Medium, AlertType.CommanderSSHError, e.Message);
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderSSHError, e.Message);
                 return false;
             }
 
             if (client == null || !client.IsConnected)
             {
-                alert = new AlertEntry(AlertLevel.Medium, AlertType.CommanderCouldNotConnect);
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderCouldNotConnect);
                 return false;
             }
 
@@ -85,7 +85,7 @@ namespace ACE_Mission_Control.Core.Models
             stream.DataReceived += Stream_DataReceived;
             stream.WriteLine("python3 ~/ACE-Onboard-Computer/build/bin/ace_commander.py");
 
-            alert = new AlertEntry(AlertLevel.Info, AlertType.CommanderStarting);
+            alert = new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommanderStarting);
             Started = true;
             return true;
         }

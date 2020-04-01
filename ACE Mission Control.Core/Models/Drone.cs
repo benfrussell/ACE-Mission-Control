@@ -17,6 +17,16 @@ namespace ACE_Mission_Control.Core.Models
         public List<Vector<double>> MissionArea;
         public ObservableCollection<AlertEntry> AlertLog;
 
+        public AlertEntry.AlertType LastAlertType
+        {
+            get
+            {
+                if (AlertLog.Count == 0)
+                    return AlertEntry.AlertType.None;
+                return AlertLog[AlertLog.Count - 1].Type;
+            }
+        }
+
         public Drone(int id, string name, string clientHostname, string clientUsername)
         {
             ID = id;
@@ -25,8 +35,10 @@ namespace ACE_Mission_Control.Core.Models
             AlertLog = new ObservableCollection<AlertEntry>();
         }
 
-        public void AddAlert(AlertEntry entry)
+        public void AddAlert(AlertEntry entry, bool blockDuplicates = false)
         {
+            if (blockDuplicates && entry.Type == LastAlertType)
+                return;
             AlertLog.Add(entry);
         }
     }

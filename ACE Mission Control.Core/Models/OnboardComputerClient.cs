@@ -197,13 +197,13 @@ namespace ACE_Mission_Control.Core.Models
 
             if (!OnboardComputerController.KeyOpen)
             {
-                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.NoConnectionKeyClosed));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionKeyClosed), true);
                 return;
             }
 
             if (!IsConfigured)
             {
-                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.NoConnectionNotConfigured));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionNotConfigured), true);
                 return;
             }
 
@@ -213,7 +213,7 @@ namespace ACE_Mission_Control.Core.Models
             connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
                 OnboardComputerController.PrivateKey));
 
-            AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Info, AlertType.MonitorConnecting));
+            AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.MonitorConnecting));
 
             AlertEntry monitorAlert;
 
@@ -241,7 +241,7 @@ namespace ACE_Mission_Control.Core.Models
                 connectionTimeout.Stop();
                 connectionTimeout.Start();
 
-                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Info, AlertType.CommanderConnecting));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommanderConnecting));
                 AlertEntry commanderAlert;
 
                 bool successful = PrimaryCommanderClient.StartStream(out commanderAlert, connectionInfo);
@@ -264,7 +264,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (e.PropertyName == "Initialized" && PrimaryCommanderClient.Initialized)
             {
-                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Info, AlertType.ConnectionReady));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionReady));
                 IsConnected = true;
                 AttemptingConnection = false;
                 Debug.WriteLine("CONNECT TIMEOUT STOP PRIMARY COMMANDER STARTED");
@@ -279,7 +279,7 @@ namespace ACE_Mission_Control.Core.Models
             if (IsConnected)
                 return;
             Disconnect();
-            AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.ConnectionTimedOut, AttachedDrone.AlertLog[0].Type.ToString()));
+            AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.ConnectionTimedOut, AttachedDrone.AlertLog[0].Type.ToString()));
         }
 
         private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
@@ -291,14 +291,14 @@ namespace ACE_Mission_Control.Core.Models
             {
                 Heartbeat heartbeat = (Heartbeat)e.Message;
                 if (heartbeat.Arrhythmia > 0)
-                    AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
+                    AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
                 heartbeatTimeout.Stop();
                 heartbeatTimeout.Start();
             }
             else if (e.MessageType == MessageType.ACEError)
             {
                 ACEError error = (ACEError)e.Message;
-                AttachedDrone.AddAlert(new AlertEntry(AlertLevel.High, AlertType.OBCError, error.Timestamp + ": " + error.Message));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.OBCError, error.Timestamp + ": " + error.Message));
             }
         }
 
@@ -307,7 +307,7 @@ namespace ACE_Mission_Control.Core.Models
             if (!IsConnected)
                 return;
             Disconnect();
-            AttachedDrone.AddAlert(new AlertEntry(AlertLevel.Medium, AlertType.OBCStoppedResponding));
+            AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCStoppedResponding));
         }
 
         public bool OpenDebugConsole(out AlertEntry alertResult)

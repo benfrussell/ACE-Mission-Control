@@ -6,11 +6,41 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class AlertEntry
     {
+        public enum AlertLevel
+        {
+            None,
+            Info, // Info about what's going on
+            Medium, // Something unexpected, action not critical
+            High, // Something unexpected, action IS critical
+        }
+        
+        public enum AlertType
+        {
+            None,
+            NoConnectionKeyClosed,
+            NoConnectionNotConfigured,
+            MonitorSocketError,
+            MonitorSSHError,
+            MonitorCouldNotConnect,
+            MonitorStarting,
+            MonitorConnecting,
+            CommanderConnecting,
+            CommanderSocketError,
+            CommanderSSHError,
+            CommanderCouldNotConnect,
+            CommanderStarting,
+            ConnectionReady,
+            ConnectionTimedOut,
+            OBCStoppedResponding,
+            OBCSlow,
+            OBCError
+        }
+
         public DateTime Timestamp;
-        public ACEEnums.AlertLevel Level;
-        public ACEEnums.AlertType Type;
+        public AlertLevel Level;
+        public AlertType Type;
         public string Info;
-        public AlertEntry(ACEEnums.AlertLevel level, ACEEnums.AlertType type, string info = "")
+        public AlertEntry(AlertLevel level, AlertType type, string info = "")
         {
             Timestamp = DateTime.Now;
             Level = level;

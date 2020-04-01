@@ -11,7 +11,6 @@ using ACE_Mission_Control.Helpers;
 using GalaSoft.MvvmLight.Messaging;
 using System.ComponentModel;
 using Windows.ApplicationModel.Core;
-using static ACE_Mission_Control.Core.Models.ACEEnums;
 using System.Collections.ObjectModel;
 using Windows.UI.Core;
 
@@ -19,6 +18,7 @@ namespace ACE_Mission_Control.ViewModels
 {
     public class ShowPassphraseDialogMessage : MessageBase { }
     public class HidePassphraseDialogMessage : MessageBase { }
+    public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
     public class MissionViewModel : DroneViewModelBase
     {
         private Symbol _lockButtonSymbol;
@@ -217,6 +217,8 @@ namespace ACE_Mission_Control.ViewModels
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
                     foreach (AlertEntry entry in e.NewItems)
                         _alerts.Add(entry);
+                var msg = new ScrollAlertDataGridMessage() { newEntry = _alerts[_alerts.Count - 1] };
+                Messenger.Default.Send(msg);
             });
         }
 

@@ -4,8 +4,8 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
-using static ACE_Mission_Control.Core.Models.ACEEnums;
 using Google.Protobuf;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
 using Pbdrone;
 
 namespace ACE_Mission_Control.Core.Models
@@ -75,20 +75,20 @@ namespace ACE_Mission_Control.Core.Models
             catch (System.Net.Sockets.SocketException e)
             {
                 if (e.SocketErrorCode == System.Net.Sockets.SocketError.TimedOut)
-                    alert = new AlertEntry(AlertLevel.Info, AlertType.MonitorConnecting);
+                    alert = new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.MonitorConnecting);
                 else
-                    alert = new AlertEntry(AlertLevel.Medium, AlertType.MonitorSocketError, e.Message);
+                    alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSocketError, e.Message);
                 return false;
             }
             catch (SshAuthenticationException e)
             {
-                alert = new AlertEntry(AlertLevel.Medium, AlertType.MonitorSSHError, e.Message);
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSSHError, e.Message);
                 return false;
             }
 
             if (client == null || !client.IsConnected)
             {
-                alert = new AlertEntry(AlertLevel.Medium, AlertType.MonitorCouldNotConnect);
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorCouldNotConnect);
                 return false;
             }
 
@@ -103,7 +103,7 @@ namespace ACE_Mission_Control.Core.Models
             stream.WriteLine("python3 ~/ACE-Onboard-Computer/build/bin/ace_monitor.py " + debug_arg + heartbeat_arg);
 
             Connected = true;
-            alert = new AlertEntry(AlertLevel.Info, AlertType.MonitorStarting);
+            alert = new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.MonitorStarting);
             return true;
         }
 

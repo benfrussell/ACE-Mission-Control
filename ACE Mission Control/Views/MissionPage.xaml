@@ -116,7 +116,8 @@
                 <AppBarSeparator />
                 <Button x:Name="ImportFileButton"
                         x:Uid="Mission_ImportFileButton"
-                        Style="{ThemeResource ACEButton}"/>
+                        Style="{ThemeResource ACEButton}"
+                        Command="{x:Bind ViewModel.ImportMissionCommand}"/>
             </StackPanel>
             <StackPanel
                 Orientation="Horizontal"
@@ -147,6 +148,14 @@
                         IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
                         Text="{x:Bind ViewModel.TreatmentDuration, Mode=OneWay}"/>
                 </StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <TextBlock x:Uid="Mission_AreaScanEntry"
+                               Margin="16,0,0,4"/>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.FirstAreaScanVertices, Mode=OneWay}"
+                              SelectedItem="{x:Bind ViewModel.SelectedAreaScanEntry, Mode=TwoWay}"
+                              IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                              Margin="16,0,0,0"/>
+                </StackPanel>
                 <StackPanel
                     Orientation="Vertical">
                     <TextBlock
@@ -172,7 +181,8 @@
                         x:Uid="Mission_ActivateButton"
                         Margin="8,0,0,0"
                         Style="{ThemeResource ACEButton}"
-                        Content="{x:Bind ViewModel.MissionActivatedText, Mode=OneWay}"/>
+                        Content="{x:Bind ViewModel.MissionActivatedText, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.MissionCanToggleActivation, Mode=OneWay}"/>
                 <AppBarSeparator/>
                 <Button x:Name="ResetButton"
                         x:Uid="Mission_ResetButton"
@@ -239,6 +249,33 @@
                 </StackPanel>
                 <TextBlock Text="{x:Bind ViewModel.PassDialogErrorText, Mode=OneWay}"
                            Foreground="{ThemeResource SystemErrorTextColor}"/>
+            </StackPanel>
+        </ContentDialog>
+
+        <ContentDialog x:Name="SetupMissionDialog"
+                       x:Uid="Mission_SetupMissionDialog"
+                       PrimaryButtonText="Finish"
+                       SecondaryButtonText="Cancel"
+                       PrimaryButtonCommand="{x:Bind ViewModel.SetupMissionDialogEnterCommand}">
+            <StackPanel>
+                <TextBlock x:Uid="Mission_SetupMissionTitle"
+                           Style="{ThemeResource SubheaderTextBlockStyle}"/>
+                <TextBlock x:Uid="Mission_SetupMissionSubtitle"
+                           Style="{ThemeResource BodyTextStyle}"
+                           Margin="0,0,0,8"/>
+                <Border Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}">
+                    <ListView x:Name="SetupMissionRoutesList"
+                              ItemsSource="{x:Bind ViewModel.AreaScanRoutes, Mode=TwoWay}"
+                              CanReorderItems="True"
+                              CanDragItems="True"
+                              AllowDrop="True">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="ace:AreaScanRoute">
+                                <TextBlock Text="{x:Bind Name}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Border>
             </StackPanel>
         </ContentDialog>
     </Grid>

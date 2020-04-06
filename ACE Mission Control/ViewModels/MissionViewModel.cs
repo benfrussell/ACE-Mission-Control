@@ -13,12 +13,21 @@ using System.ComponentModel;
 using Windows.ApplicationModel.Core;
 using System.Collections.ObjectModel;
 using Windows.UI.Core;
+using Windows.Storage.Pickers;
+using Windows.Storage;
 
 namespace ACE_Mission_Control.ViewModels
 {
+    // --- Messages
+
     public class ShowPassphraseDialogMessage : MessageBase { }
     public class HidePassphraseDialogMessage : MessageBase { }
+    public class ShowSetupMissionDialogMessage : MessageBase { }
+    public class HideSetupMissionDialogMessage : MessageBase { }
     public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
+
+    // --- Properties
+
     public class MissionViewModel : DroneViewModelBase
     {
         private Symbol _lockButtonSymbol;
@@ -88,34 +97,27 @@ namespace ACE_Mission_Control.ViewModels
 
         public bool OBCConnected
         {
-            get
-            {
-                return AttachedDrone.OBCClient.IsConnected;
-            }
+            get { return AttachedDrone.OBCClient.IsConnected; }
         }
 
         public bool OBCCanBeTested
         {
-            get
-            {
-                return false;
-            }
+            get { return AttachedDrone.OBCCanBeTested; }
         }
 
         public bool MissionCanBeReset
         {
-            get
-            {
-                return false;
-            }
+            get { return AttachedDrone.MissionCanBeReset; }
         }
 
         public bool MissionCanBeModified
         {
-            get
-            {
-                return false;
-            }
+            get { return AttachedDrone.MissionCanBeModified; }
+        }
+
+        public bool MissionCanToggleActivation
+        {
+            get { return AttachedDrone.MissionCanToggleActivation; }
         }
 
         private string _missionActivatedText;
@@ -134,35 +136,47 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private bool _flyThroughMode;
         public bool FlyThroughMode
         {
-            get
+            get { return _flyThroughMode; }
+            set
             {
-                return false;
+                if (_flyThroughMode == value)
+                    return;
+                _flyThroughMode = value;
+                RaisePropertyChanged();
             }
         }
 
+        private string _treatmentDuration;
         public string TreatmentDuration
         {
-            get
+            get { return _treatmentDuration; }
+            set
             {
-                return "90";
+                if (_treatmentDuration == value)
+                    return;
+                _treatmentDuration = value;
+                RaisePropertyChanged();
             }
         }
 
         public List<string> AvailablePayloads
         {
-            get
-            {
-                return new List<string>();
-            }
+            get { return AttachedDrone.AvailablePayloads; }
         }
 
+        private int _selectedPayload;
         public int SelectedPayload
         {
-            get
+            get { return _selectedPayload; }
+            set
             {
-                return 0;
+                if (_selectedPayload == value)
+                    return;
+                _selectedPayload = value;
+                RaisePropertyChanged();
             }
         }
 
@@ -174,28 +188,58 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-
         private ObservableCollection<AlertEntry> _alerts;
         public ObservableCollection<AlertEntry> Alerts
         {
-            get {
-                return _alerts;
+            get { return _alerts; }
+        }
+
+        private ObservableCollection<AreaScanRoute> _areaScanRoutes;
+        public ObservableCollection<AreaScanRoute> AreaScanRoutes
+        {
+            get { return _areaScanRoutes; }
+            set
+            {
+                if (_areaScanRoutes == value)
+                    return;
+                _areaScanRoutes = value;
+                RaisePropertyChanged("AreaScanRoutes");
             }
         }
 
-        private static bool passDiagShown = false;
+        private List<int> _firstAreaScanVertices;
+        public List<int> FirstAreaScanVertices
+        {
+            get { return _firstAreaScanVertices; }
+            set
+            {
+                if (_firstAreaScanVertices == value)
+                    return;
+                _firstAreaScanVertices = value;
+                RaisePropertyChanged("FirstAreaScanVertices");
+            }
+        }
 
-        public RelayCommand LockButtonCommand => new RelayCommand(() => lockButtonClicked());
-
-        public RelayCommand PassDialogEnterCommand => new RelayCommand(() => {
-            PassDialogErrorText = "";
-            PassDialogLoading = true;
-            passDialogEntered(); }
-        );
+        private int _selectedAreaScanEntry;
+        public int SelectedAreaScanEntry
+        {
+            get { return _selectedAreaScanEntry; }
+            set
+            {
+                if (_selectedAreaScanEntry == value)
+                    return;
+                _selectedAreaScanEntry = value;
+                AttachedDrone.MissionData.AreaScanRoutes[0].EntryVertex = value;
+                RaisePropertyChanged("SelectedAreaScanEntry");
+            }
+        }
 
         public MissionViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();
+            _areaScanRoutes = new ObservableCollection<AreaScanRoute>();
+            _selectedAreaScanEntry = 0;
+            _firstAreaScanVertices = new List<int>();
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -204,16 +248,70 @@ namespace ACE_Mission_Control.ViewModels
             LockButtonEnabled = !OnboardComputerController.KeyOpen;
 
             OnboardComputerController.StaticPropertyChanged += OnboardComputerClient_StaticPropertyChanged;
+            AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
+            AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
 
             _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
+        }
+
+        private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (e.PropertyName == "IsConnected")
+                    RaisePropertyChanged("OBCConnected");
+            });
+        }
+
+        private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                switch (e.PropertyName)
+                {
+                    case "OBCCanBeTested":
+                        RaisePropertyChanged("OBCCanBeTested");
+                        break;
+                    case "MissionCanBeReset":
+                        RaisePropertyChanged("MissionCanBeReset");
+                        break;
+                    case "MissionCanBeModified":
+                        RaisePropertyChanged("MissionCanBeModified");
+                        break;
+                    case "MissionCanToggleActivation":
+                        RaisePropertyChanged("MissionCanToggleActivation");
+                        break;
+                    case "MissionIsActivated":
+                        if (AttachedDrone.MissionIsActivated)
+                            MissionActivatedText = "Mission_DeactivateButton.Content".GetLocalized();
+                        else
+                            MissionActivatedText = "Mission_ActivateButton.Content".GetLocalized();
+                        break;
+                    case "FlyThroughMode":
+                        FlyThroughMode = AttachedDrone.FlyThroughMode;
+                        break;
+                    case "TreatmentDuration":
+                        TreatmentDuration = AttachedDrone.TreatmentDuration.ToString();
+                        break;
+                    case "SelectedPayload":
+                        SelectedPayload = AttachedDrone.SelectedPayload;
+                        break;
+                    case "AvailablePayloads":
+                        RaisePropertyChanged("AvailablePayloads");
+                        break;
+                    case "MissionData":
+                        AreaScanRoutes = AttachedDrone.MissionData.AreaScanRoutes;
+                        Messenger.Default.Send(new ShowSetupMissionDialogMessage());
+                        break;
+                }
+            });
         }
 
         private async void AlertLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
                     foreach (AlertEntry entry in e.NewItems)
                         _alerts.Add(entry);
@@ -225,7 +323,9 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneUnattaching()
         {
             OnboardComputerController.StaticPropertyChanged -= OnboardComputerClient_StaticPropertyChanged;
+            AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
+            AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
         }
 
         private async void OnboardComputerClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -240,11 +340,36 @@ namespace ACE_Mission_Control.ViewModels
             });
         }
 
+        // --- Commands
+
+        public RelayCommand ImportMissionCommand => new RelayCommand(() => importMissionDialog());
+
+        private async void importMissionDialog()
+        {
+            var picker = new FileOpenPicker();
+            picker.FileTypeFilter.Add(".json");
+            picker.ViewMode = PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+
+            var result = await picker.PickSingleFileAsync();
+            if (result != null)
+            {
+                AttachedDrone.MissionData = await MissionData.CreateMissionDataFromFile(result);
+            }
+        }
+
+        public RelayCommand LockButtonCommand => new RelayCommand(() => lockButtonClicked());
+
         private void lockButtonClicked()
         {
-            System.Diagnostics.Debug.WriteLine("Executing from " + DroneID);
             Messenger.Default.Send(new ShowPassphraseDialogMessage());
         }
+
+        public RelayCommand PassDialogEnterCommand => new RelayCommand(() => {
+            PassDialogErrorText = "";
+            PassDialogLoading = true;
+            passDialogEntered();
+        });
 
         private async void passDialogEntered()
         {
@@ -260,6 +385,21 @@ namespace ACE_Mission_Control.ViewModels
                 OnboardComputerController.StartTryingConnections();
             }
                 
+        }
+
+        public RelayCommand SetupMissionDialogEnterCommand => new RelayCommand(() => setupMissionDialogEntered());
+
+        private void setupMissionDialogEntered()
+        {
+            AttachedDrone.MissionData.AreaScanRoutes = AreaScanRoutes;
+            SelectedAreaScanEntry = 0;
+            FirstAreaScanVertices.Clear();
+            foreach (int v in AttachedDrone.MissionData.AreaScanRoutes[0].Vertices)
+            {
+                FirstAreaScanVertices.Add(v);
+            }
+            AttachedDrone.NewMission = true;
+            Messenger.Default.Send(new HideSetupMissionDialogMessage());
         }
     }
 }

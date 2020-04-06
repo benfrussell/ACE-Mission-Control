@@ -3,14 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.IO;
-using Microsoft.Win32;
 using Renci.SshNet;
-using System.Security.Principal;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Renci.SshNet.Common;
-using System.Collections.ObjectModel;
 using static ACE_Mission_Control.Core.Models.ACEEnums;
 using System.Timers;
 using Pbdrone;
@@ -298,7 +293,7 @@ namespace ACE_Mission_Control.Core.Models
             else if (e.MessageType == MessageType.ACEError)
             {
                 ACEError error = (ACEError)e.Message;
-                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.OBCError, error.Timestamp + ": " + error.Message));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.OBCError, error.Timestamp + ": " + error.Error));
             }
         }
 

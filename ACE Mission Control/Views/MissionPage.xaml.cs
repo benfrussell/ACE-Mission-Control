@@ -49,6 +49,10 @@ namespace ACE_Mission_Control.Views
                     PassphraseDialog.Hide();
                 });
 
+                Messenger.Default.Register<ShowSetupMissionDialogMessage>(this, async (msg) => await SetupMissionDialog.ShowAsync());
+
+                Messenger.Default.Register<HideSetupMissionDialogMessage>(this, (msg) => SetupMissionDialog.Hide());
+
                 Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
                 base.OnNavigatedTo(e);
             }

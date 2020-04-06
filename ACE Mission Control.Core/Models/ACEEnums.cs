@@ -23,7 +23,7 @@ namespace ACE_Mission_Control.Core.Models
             InterfaceStatus = 1,
             FlightStatus = 2,
             ControlDevice = 3,
-            Position = 4,
+            Telemetry = 4,
             FlightAnomaly = 5,
             ACEError = 6
         }

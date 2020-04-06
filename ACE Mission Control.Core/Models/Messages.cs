@@ -25,32 +25,47 @@ namespace Pbdrone {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Cg5tZXNzYWdlcy5wcm90bxIHcGJkcm9uZSIfCglIZWFydGJlYXQSEgoKYXJy",
-            "aHl0aG1pYRgBIAEoAiKpAgoPSW50ZXJmYWNlU3RhdHVzEjcKD2ludGVyZmFj",
+            "aHl0aG1pYRgBIAEoAiLSAgoPSW50ZXJmYWNlU3RhdHVzEjcKD2ludGVyZmFj",
             "ZV9zdGF0ZRgBIAEoDjIeLnBiZHJvbmUuSW50ZXJmYWNlU3RhdHVzLlN0YXRl",
             "EjgKDGZhaWx1cmVfdHlwZRgCIAEoDjIiLnBiZHJvbmUuSW50ZXJmYWNlU3Rh",
-            "dHVzLkZhaWxTdGF0ZRIWCg5mYWlsdXJlX291dHB1dBgDIAEoCSIwCgVTdGF0",
-            "ZRILCgdPRkZMSU5FEAASDgoKQVRURU1QVElORxABEgoKBk9OTElORRACIlkK",
-            "CUZhaWxTdGF0ZRIOCgpOT19GQUlMVVJFEAASEwoPQVRURU1QVF9GQUlMVVJF",
-            "EAESEwoPRFJPUFBFRF9GQUlMVVJFEAISEgoOVEhSRUFEX0ZBSUxVUkUQAyJy",
-            "CgxGbGlnaHRTdGF0dXMSMQoMZmxpZ2h0X3N0YXRlGAEgASgOMhsucGJkcm9u",
-            "ZS5GbGlnaHRTdGF0dXMuU3RhdGUiLwoFU3RhdGUSCwoHU1RPUFBFRBAAEg0K",
-            "CU9OX0dST1VORBABEgoKBklOX0FJUhACImwKDUNvbnRyb2xEZXZpY2USNQoO",
-            "Y29udHJvbF9kZXZpY2UYASABKA4yHS5wYmRyb25lLkNvbnRyb2xEZXZpY2Uu",
-            "RGV2aWNlIiQKBkRldmljZRIGCgJSQxAAEggKBE1TREsQARIICgRPU0RLEAIi",
-            "VQoIUG9zaXRpb24SEQoJbG9uZ2l0dWRlGAEgASgCEhAKCGxhdGl0dWRlGAIg",
-            "ASgCEhAKCGFsdGl0dWRlGAMgASgCEhIKCnNhdGVsbGl0ZXMYBCABKAUiIAoN",
-            "RmxpZ2h0QW5vbWFseRIPCgdhbm9tYWx5GAEgAygJIi4KCEFDRUVycm9yEhEK",
-            "CXRpbWVzdGFtcBgBIAEoCRIPCgdtZXNzYWdlGAIgASgJYgZwcm90bzM="));
+            "dHVzLkZhaWxTdGF0ZRIWCg5mYWlsdXJlX291dHB1dBgDIAEoCRITCgthY3Rp",
+            "dmVfbW9kZRgEIAEoCCIwCgVTdGF0ZRILCgdPRkZMSU5FEAASDgoKQVRURU1Q",
+            "VElORxABEgoKBk9OTElORRACIm0KCUZhaWxTdGF0ZRIOCgpOT19GQUlMVVJF",
+            "EAASEwoPQVRURU1QVF9GQUlMVVJFEAESEwoPRFJPUFBFRF9GQUlMVVJFEAIS",
+            "EgoOVEhSRUFEX0ZBSUxVUkUQAxISCg5USFJFQURfVElNRU9VVBAEInIKDEZs",
+            "aWdodFN0YXR1cxIxCgxmbGlnaHRfc3RhdGUYASABKA4yGy5wYmRyb25lLkZs",
+            "aWdodFN0YXR1cy5TdGF0ZSIvCgVTdGF0ZRILCgdTVE9QUEVEEAASDQoJT05f",
+            "R1JPVU5EEAESCgoGSU5fQUlSEAIibAoNQ29udHJvbERldmljZRI1Cg5jb250",
+            "cm9sX2RldmljZRgBIAEoDjIdLnBiZHJvbmUuQ29udHJvbERldmljZS5EZXZp",
+            "Y2UiJAoGRGV2aWNlEgYKAlJDEAASCAoETVNESxABEggKBE9TREsQAiKWAQoJ",
+            "VGVsZW1ldHJ5EhEKCWxvbmdpdHVkZRgBIAEoARIQCghsYXRpdHVkZRgCIAEo",
+            "ARIQCghhbHRpdHVkZRgDIAEoAhISCgpzYXRlbGxpdGVzGAQgASgFEg0KBXZl",
+            "bF94GAUgASgCEg0KBXZlbF95GAYgASgCEg8KB2FjY2VsX3gYByABKAISDwoH",
+            "YWNjZWxfeRgIIAEoAiIgCg1GbGlnaHRBbm9tYWx5Eg8KB2Fub21hbHkYASAD",
+            "KAkiLAoIQUNFRXJyb3ISEQoJdGltZXN0YW1wGAEgASgJEg0KBWVycm9yGAIg",
+            "ASgJIroCCg1NaXNzaW9uU3RhdHVzEjMKDW1pc3Npb25fc3RhZ2UYASABKA4y",
+            "HC5wYmRyb25lLk1pc3Npb25TdGF0dXMuU3RhZ2USEQoJYWN0aXZhdGVkGAIg",
+            "ASgIEhMKC2luX3Byb2dyZXNzGAMgASgIEhYKDmxhc3RfbG9uZ2l0dWRlGAQg",
+            "ASgBEhUKDWxhc3RfbGF0aXR1ZGUYBSABKAESFQoNbGFzdF9hbHRpdHVkZRgG",
+            "IAEoAhILCgNsb2cYByABKAkSDgoGZXJyb3JzGAggASgIImkKBVN0YWdlEg4K",
+            "Ck5PX01JU1NJT04QABIJCgVSRUFEWRABEgsKB0VOUk9VVEUQAhINCglFWEVD",
+            "VVRJTkcQAxINCglSRVRVUk5JTkcQBBIMCghPVkVSUklERRAFEgwKCENPTVBM",
+            "RVRFEAYiiwEKDU1pc3Npb25Db25maWcSGgoSdHJlYXRtZW50X2R1cmF0aW9u",
+            "GAEgASgFEhgKEGZseV90aHJvdWdoX21vZGUYAiABKAgSGAoQc2VsZWN0ZWRf",
+            "cGF5bG9hZBgDIAEoBRIaChJhdmFpbGFibGVfcGF5bG9hZHMYBCADKAkSDgoG",
+            "cm91dGVzGAUgAygJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Heartbeat), global::Pbdrone.Heartbeat.Parser, new[]{ "Arrhythmia" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.InterfaceStatus), global::Pbdrone.InterfaceStatus.Parser, new[]{ "InterfaceState", "FailureType", "FailureOutput" }, null, new[]{ typeof(global::Pbdrone.InterfaceStatus.Types.State), typeof(global::Pbdrone.InterfaceStatus.Types.FailState) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.InterfaceStatus), global::Pbdrone.InterfaceStatus.Parser, new[]{ "InterfaceState", "FailureType", "FailureOutput", "ActiveMode" }, null, new[]{ typeof(global::Pbdrone.InterfaceStatus.Types.State), typeof(global::Pbdrone.InterfaceStatus.Types.FailState) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.FlightStatus), global::Pbdrone.FlightStatus.Parser, new[]{ "FlightState" }, null, new[]{ typeof(global::Pbdrone.FlightStatus.Types.State) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ControlDevice), global::Pbdrone.ControlDevice.Parser, new[]{ "ControlDevice_" }, null, new[]{ typeof(global::Pbdrone.ControlDevice.Types.Device) }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Position), global::Pbdrone.Position.Parser, new[]{ "Longitude", "Latitude", "Altitude", "Satellites" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Telemetry), global::Pbdrone.Telemetry.Parser, new[]{ "Longitude", "Latitude", "Altitude", "Satellites", "VelX", "VelY", "AccelX", "AccelY" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.FlightAnomaly), global::Pbdrone.FlightAnomaly.Parser, new[]{ "Anomaly" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ACEError), global::Pbdrone.ACEError.Parser, new[]{ "Timestamp", "Message" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ACEError), global::Pbdrone.ACEError.Parser, new[]{ "Timestamp", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionStatus), global::Pbdrone.MissionStatus.Parser, new[]{ "MissionStage", "Activated", "InProgress", "LastLongitude", "LastLatitude", "LastAltitude", "Log", "Errors" }, null, new[]{ typeof(global::Pbdrone.MissionStatus.Types.Stage) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionConfig), global::Pbdrone.MissionConfig.Parser, new[]{ "TreatmentDuration", "FlyThroughMode", "SelectedPayload", "AvailablePayloads", "Routes" }, null, null, null, null)
           }));
     }
     #endregion
@@ -190,7 +205,7 @@ namespace Pbdrone {
   }
 
   /// <summary>
-  /// Code 1
+  /// Code 1 - sent by Drone
   /// </summary>
   public sealed partial class InterfaceStatus : pb::IMessage<InterfaceStatus> {
     private static readonly pb::MessageParser<InterfaceStatus> _parser = new pb::MessageParser<InterfaceStatus>(() => new InterfaceStatus());
@@ -220,6 +235,7 @@ namespace Pbdrone {
       interfaceState_ = other.interfaceState_;
       failureType_ = other.failureType_;
       failureOutput_ = other.failureOutput_;
+      activeMode_ = other.activeMode_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -261,6 +277,17 @@ namespace Pbdrone {
       }
     }
 
+    /// <summary>Field number for the "active_mode" field.</summary>
+    public const int ActiveModeFieldNumber = 4;
+    private bool activeMode_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool ActiveMode {
+      get { return activeMode_; }
+      set {
+        activeMode_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as InterfaceStatus);
@@ -277,6 +304,7 @@ namespace Pbdrone {
       if (InterfaceState != other.InterfaceState) return false;
       if (FailureType != other.FailureType) return false;
       if (FailureOutput != other.FailureOutput) return false;
+      if (ActiveMode != other.ActiveMode) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -286,6 +314,7 @@ namespace Pbdrone {
       if (InterfaceState != global::Pbdrone.InterfaceStatus.Types.State.Offline) hash ^= InterfaceState.GetHashCode();
       if (FailureType != global::Pbdrone.InterfaceStatus.Types.FailState.NoFailure) hash ^= FailureType.GetHashCode();
       if (FailureOutput.Length != 0) hash ^= FailureOutput.GetHashCode();
+      if (ActiveMode != false) hash ^= ActiveMode.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -311,6 +340,10 @@ namespace Pbdrone {
         output.WriteRawTag(26);
         output.WriteString(FailureOutput);
       }
+      if (ActiveMode != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(ActiveMode);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -327,6 +360,9 @@ namespace Pbdrone {
       }
       if (FailureOutput.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(FailureOutput);
+      }
+      if (ActiveMode != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -347,6 +383,9 @@ namespace Pbdrone {
       }
       if (other.FailureOutput.Length != 0) {
         FailureOutput = other.FailureOutput;
+      }
+      if (other.ActiveMode != false) {
+        ActiveMode = other.ActiveMode;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -371,6 +410,10 @@ namespace Pbdrone {
             FailureOutput = input.ReadString();
             break;
           }
+          case 32: {
+            ActiveMode = input.ReadBool();
+            break;
+          }
         }
       }
     }
@@ -390,6 +433,7 @@ namespace Pbdrone {
         [pbr::OriginalName("ATTEMPT_FAILURE")] AttemptFailure = 1,
         [pbr::OriginalName("DROPPED_FAILURE")] DroppedFailure = 2,
         [pbr::OriginalName("THREAD_FAILURE")] ThreadFailure = 3,
+        [pbr::OriginalName("THREAD_TIMEOUT")] ThreadTimeout = 4,
       }
 
     }
@@ -398,7 +442,7 @@ namespace Pbdrone {
   }
 
   /// <summary>
-  /// Code 2
+  /// Code 2 - sent by Drone
   /// </summary>
   public sealed partial class FlightStatus : pb::IMessage<FlightStatus> {
     private static readonly pb::MessageParser<FlightStatus> _parser = new pb::MessageParser<FlightStatus>(() => new FlightStatus());
@@ -543,7 +587,7 @@ namespace Pbdrone {
   }
 
   /// <summary>
-  /// Code 3
+  /// Code 3 - sent by Drone
   /// </summary>
   public sealed partial class ControlDevice : pb::IMessage<ControlDevice> {
     private static readonly pb::MessageParser<ControlDevice> _parser = new pb::MessageParser<ControlDevice>(() => new ControlDevice());
@@ -688,13 +732,13 @@ namespace Pbdrone {
   }
 
   /// <summary>
-  /// Code 4
+  /// Code 4 - sent by Drone
   /// </summary>
-  public sealed partial class Position : pb::IMessage<Position> {
-    private static readonly pb::MessageParser<Position> _parser = new pb::MessageParser<Position>(() => new Position());
+  public sealed partial class Telemetry : pb::IMessage<Telemetry> {
+    private static readonly pb::MessageParser<Telemetry> _parser = new pb::MessageParser<Telemetry>(() => new Telemetry());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Position> Parser { get { return _parser; } }
+    public static pb::MessageParser<Telemetry> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -707,31 +751,35 @@ namespace Pbdrone {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Position() {
+    public Telemetry() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Position(Position other) : this() {
+    public Telemetry(Telemetry other) : this() {
       longitude_ = other.longitude_;
       latitude_ = other.latitude_;
       altitude_ = other.altitude_;
       satellites_ = other.satellites_;
+      velX_ = other.velX_;
+      velY_ = other.velY_;
+      accelX_ = other.accelX_;
+      accelY_ = other.accelY_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Position Clone() {
-      return new Position(this);
+    public Telemetry Clone() {
+      return new Telemetry(this);
     }
 
     /// <summary>Field number for the "longitude" field.</summary>
     public const int LongitudeFieldNumber = 1;
-    private float longitude_;
+    private double longitude_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public float Longitude {
+    public double Longitude {
       get { return longitude_; }
       set {
         longitude_ = value;
@@ -740,9 +788,9 @@ namespace Pbdrone {
 
     /// <summary>Field number for the "latitude" field.</summary>
     public const int LatitudeFieldNumber = 2;
-    private float latitude_;
+    private double latitude_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public float Latitude {
+    public double Latitude {
       get { return latitude_; }
       set {
         latitude_ = value;
@@ -771,33 +819,85 @@ namespace Pbdrone {
       }
     }
 
+    /// <summary>Field number for the "vel_x" field.</summary>
+    public const int VelXFieldNumber = 5;
+    private float velX_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as Position);
+    public float VelX {
+      get { return velX_; }
+      set {
+        velX_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "vel_y" field.</summary>
+    public const int VelYFieldNumber = 6;
+    private float velY_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public float VelY {
+      get { return velY_; }
+      set {
+        velY_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "accel_x" field.</summary>
+    public const int AccelXFieldNumber = 7;
+    private float accelX_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public float AccelX {
+      get { return accelX_; }
+      set {
+        accelX_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "accel_y" field.</summary>
+    public const int AccelYFieldNumber = 8;
+    private float accelY_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public float AccelY {
+      get { return accelY_; }
+      set {
+        accelY_ = value;
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Position other) {
+    public override bool Equals(object other) {
+      return Equals(other as Telemetry);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(Telemetry other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Longitude, other.Longitude)) return false;
-      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Latitude, other.Latitude)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(Longitude, other.Longitude)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(Latitude, other.Latitude)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Altitude, other.Altitude)) return false;
       if (Satellites != other.Satellites) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(VelX, other.VelX)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(VelY, other.VelY)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(AccelX, other.AccelX)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(AccelY, other.AccelY)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (Longitude != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Longitude);
-      if (Latitude != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Latitude);
+      if (Longitude != 0D) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(Longitude);
+      if (Latitude != 0D) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(Latitude);
       if (Altitude != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Altitude);
       if (Satellites != 0) hash ^= Satellites.GetHashCode();
+      if (VelX != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(VelX);
+      if (VelY != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(VelY);
+      if (AccelX != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(AccelX);
+      if (AccelY != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(AccelY);
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -811,13 +911,13 @@ namespace Pbdrone {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (Longitude != 0F) {
-        output.WriteRawTag(13);
-        output.WriteFloat(Longitude);
+      if (Longitude != 0D) {
+        output.WriteRawTag(9);
+        output.WriteDouble(Longitude);
       }
-      if (Latitude != 0F) {
-        output.WriteRawTag(21);
-        output.WriteFloat(Latitude);
+      if (Latitude != 0D) {
+        output.WriteRawTag(17);
+        output.WriteDouble(Latitude);
       }
       if (Altitude != 0F) {
         output.WriteRawTag(29);
@@ -827,6 +927,22 @@ namespace Pbdrone {
         output.WriteRawTag(32);
         output.WriteInt32(Satellites);
       }
+      if (VelX != 0F) {
+        output.WriteRawTag(45);
+        output.WriteFloat(VelX);
+      }
+      if (VelY != 0F) {
+        output.WriteRawTag(53);
+        output.WriteFloat(VelY);
+      }
+      if (AccelX != 0F) {
+        output.WriteRawTag(61);
+        output.WriteFloat(AccelX);
+      }
+      if (AccelY != 0F) {
+        output.WriteRawTag(69);
+        output.WriteFloat(AccelY);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -835,17 +951,29 @@ namespace Pbdrone {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (Longitude != 0F) {
-        size += 1 + 4;
+      if (Longitude != 0D) {
+        size += 1 + 8;
       }
-      if (Latitude != 0F) {
-        size += 1 + 4;
+      if (Latitude != 0D) {
+        size += 1 + 8;
       }
       if (Altitude != 0F) {
         size += 1 + 4;
       }
       if (Satellites != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Satellites);
+      }
+      if (VelX != 0F) {
+        size += 1 + 4;
+      }
+      if (VelY != 0F) {
+        size += 1 + 4;
+      }
+      if (AccelX != 0F) {
+        size += 1 + 4;
+      }
+      if (AccelY != 0F) {
+        size += 1 + 4;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -854,14 +982,14 @@ namespace Pbdrone {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Position other) {
+    public void MergeFrom(Telemetry other) {
       if (other == null) {
         return;
       }
-      if (other.Longitude != 0F) {
+      if (other.Longitude != 0D) {
         Longitude = other.Longitude;
       }
-      if (other.Latitude != 0F) {
+      if (other.Latitude != 0D) {
         Latitude = other.Latitude;
       }
       if (other.Altitude != 0F) {
@@ -869,6 +997,18 @@ namespace Pbdrone {
       }
       if (other.Satellites != 0) {
         Satellites = other.Satellites;
+      }
+      if (other.VelX != 0F) {
+        VelX = other.VelX;
+      }
+      if (other.VelY != 0F) {
+        VelY = other.VelY;
+      }
+      if (other.AccelX != 0F) {
+        AccelX = other.AccelX;
+      }
+      if (other.AccelY != 0F) {
+        AccelY = other.AccelY;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -881,12 +1021,12 @@ namespace Pbdrone {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 13: {
-            Longitude = input.ReadFloat();
+          case 9: {
+            Longitude = input.ReadDouble();
             break;
           }
-          case 21: {
-            Latitude = input.ReadFloat();
+          case 17: {
+            Latitude = input.ReadDouble();
             break;
           }
           case 29: {
@@ -895,6 +1035,22 @@ namespace Pbdrone {
           }
           case 32: {
             Satellites = input.ReadInt32();
+            break;
+          }
+          case 45: {
+            VelX = input.ReadFloat();
+            break;
+          }
+          case 53: {
+            VelY = input.ReadFloat();
+            break;
+          }
+          case 61: {
+            AccelX = input.ReadFloat();
+            break;
+          }
+          case 69: {
+            AccelY = input.ReadFloat();
             break;
           }
         }
@@ -1056,7 +1212,7 @@ namespace Pbdrone {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ACEError(ACEError other) : this() {
       timestamp_ = other.timestamp_;
-      message_ = other.message_;
+      error_ = other.error_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1076,14 +1232,14 @@ namespace Pbdrone {
       }
     }
 
-    /// <summary>Field number for the "message" field.</summary>
-    public const int MessageFieldNumber = 2;
-    private string message_ = "";
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    private string error_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Message {
-      get { return message_; }
+    public string Error {
+      get { return error_; }
       set {
-        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -1101,7 +1257,7 @@ namespace Pbdrone {
         return true;
       }
       if (Timestamp != other.Timestamp) return false;
-      if (Message != other.Message) return false;
+      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1109,7 +1265,7 @@ namespace Pbdrone {
     public override int GetHashCode() {
       int hash = 1;
       if (Timestamp.Length != 0) hash ^= Timestamp.GetHashCode();
-      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (Error.Length != 0) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1127,9 +1283,9 @@ namespace Pbdrone {
         output.WriteRawTag(10);
         output.WriteString(Timestamp);
       }
-      if (Message.Length != 0) {
+      if (Error.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteString(Message);
+        output.WriteString(Error);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1142,8 +1298,8 @@ namespace Pbdrone {
       if (Timestamp.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Timestamp);
       }
-      if (Message.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      if (Error.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1159,8 +1315,8 @@ namespace Pbdrone {
       if (other.Timestamp.Length != 0) {
         Timestamp = other.Timestamp;
       }
-      if (other.Message.Length != 0) {
-        Message = other.Message;
+      if (other.Error.Length != 0) {
+        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1178,7 +1334,583 @@ namespace Pbdrone {
             break;
           }
           case 18: {
-            Message = input.ReadString();
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  /// Code 7
+  /// </summary>
+  public sealed partial class MissionStatus : pb::IMessage<MissionStatus> {
+    private static readonly pb::MessageParser<MissionStatus> _parser = new pb::MessageParser<MissionStatus>(() => new MissionStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<MissionStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Pbdrone.MessagesReflection.Descriptor.MessageTypes[7]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MissionStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MissionStatus(MissionStatus other) : this() {
+      missionStage_ = other.missionStage_;
+      activated_ = other.activated_;
+      inProgress_ = other.inProgress_;
+      lastLongitude_ = other.lastLongitude_;
+      lastLatitude_ = other.lastLatitude_;
+      lastAltitude_ = other.lastAltitude_;
+      log_ = other.log_;
+      errors_ = other.errors_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MissionStatus Clone() {
+      return new MissionStatus(this);
+    }
+
+    /// <summary>Field number for the "mission_stage" field.</summary>
+    public const int MissionStageFieldNumber = 1;
+    private global::Pbdrone.MissionStatus.Types.Stage missionStage_ = global::Pbdrone.MissionStatus.Types.Stage.NoMission;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Pbdrone.MissionStatus.Types.Stage MissionStage {
+      get { return missionStage_; }
+      set {
+        missionStage_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "activated" field.</summary>
+    public const int ActivatedFieldNumber = 2;
+    private bool activated_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Activated {
+      get { return activated_; }
+      set {
+        activated_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "in_progress" field.</summary>
+    public const int InProgressFieldNumber = 3;
+    private bool inProgress_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool InProgress {
+      get { return inProgress_; }
+      set {
+        inProgress_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "last_longitude" field.</summary>
+    public const int LastLongitudeFieldNumber = 4;
+    private double lastLongitude_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public double LastLongitude {
+      get { return lastLongitude_; }
+      set {
+        lastLongitude_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "last_latitude" field.</summary>
+    public const int LastLatitudeFieldNumber = 5;
+    private double lastLatitude_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public double LastLatitude {
+      get { return lastLatitude_; }
+      set {
+        lastLatitude_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "last_altitude" field.</summary>
+    public const int LastAltitudeFieldNumber = 6;
+    private float lastAltitude_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public float LastAltitude {
+      get { return lastAltitude_; }
+      set {
+        lastAltitude_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "log" field.</summary>
+    public const int LogFieldNumber = 7;
+    private string log_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Log {
+      get { return log_; }
+      set {
+        log_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "errors" field.</summary>
+    public const int ErrorsFieldNumber = 8;
+    private bool errors_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Errors {
+      get { return errors_; }
+      set {
+        errors_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as MissionStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(MissionStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (MissionStage != other.MissionStage) return false;
+      if (Activated != other.Activated) return false;
+      if (InProgress != other.InProgress) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(LastLongitude, other.LastLongitude)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(LastLatitude, other.LastLatitude)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(LastAltitude, other.LastAltitude)) return false;
+      if (Log != other.Log) return false;
+      if (Errors != other.Errors) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (MissionStage != global::Pbdrone.MissionStatus.Types.Stage.NoMission) hash ^= MissionStage.GetHashCode();
+      if (Activated != false) hash ^= Activated.GetHashCode();
+      if (InProgress != false) hash ^= InProgress.GetHashCode();
+      if (LastLongitude != 0D) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(LastLongitude);
+      if (LastLatitude != 0D) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(LastLatitude);
+      if (LastAltitude != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(LastAltitude);
+      if (Log.Length != 0) hash ^= Log.GetHashCode();
+      if (Errors != false) hash ^= Errors.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (MissionStage != global::Pbdrone.MissionStatus.Types.Stage.NoMission) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) MissionStage);
+      }
+      if (Activated != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(Activated);
+      }
+      if (InProgress != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(InProgress);
+      }
+      if (LastLongitude != 0D) {
+        output.WriteRawTag(33);
+        output.WriteDouble(LastLongitude);
+      }
+      if (LastLatitude != 0D) {
+        output.WriteRawTag(41);
+        output.WriteDouble(LastLatitude);
+      }
+      if (LastAltitude != 0F) {
+        output.WriteRawTag(53);
+        output.WriteFloat(LastAltitude);
+      }
+      if (Log.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(Log);
+      }
+      if (Errors != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(Errors);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (MissionStage != global::Pbdrone.MissionStatus.Types.Stage.NoMission) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) MissionStage);
+      }
+      if (Activated != false) {
+        size += 1 + 1;
+      }
+      if (InProgress != false) {
+        size += 1 + 1;
+      }
+      if (LastLongitude != 0D) {
+        size += 1 + 8;
+      }
+      if (LastLatitude != 0D) {
+        size += 1 + 8;
+      }
+      if (LastAltitude != 0F) {
+        size += 1 + 4;
+      }
+      if (Log.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Log);
+      }
+      if (Errors != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(MissionStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.MissionStage != global::Pbdrone.MissionStatus.Types.Stage.NoMission) {
+        MissionStage = other.MissionStage;
+      }
+      if (other.Activated != false) {
+        Activated = other.Activated;
+      }
+      if (other.InProgress != false) {
+        InProgress = other.InProgress;
+      }
+      if (other.LastLongitude != 0D) {
+        LastLongitude = other.LastLongitude;
+      }
+      if (other.LastLatitude != 0D) {
+        LastLatitude = other.LastLatitude;
+      }
+      if (other.LastAltitude != 0F) {
+        LastAltitude = other.LastAltitude;
+      }
+      if (other.Log.Length != 0) {
+        Log = other.Log;
+      }
+      if (other.Errors != false) {
+        Errors = other.Errors;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            MissionStage = (global::Pbdrone.MissionStatus.Types.Stage) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            Activated = input.ReadBool();
+            break;
+          }
+          case 24: {
+            InProgress = input.ReadBool();
+            break;
+          }
+          case 33: {
+            LastLongitude = input.ReadDouble();
+            break;
+          }
+          case 41: {
+            LastLatitude = input.ReadDouble();
+            break;
+          }
+          case 53: {
+            LastAltitude = input.ReadFloat();
+            break;
+          }
+          case 58: {
+            Log = input.ReadString();
+            break;
+          }
+          case 64: {
+            Errors = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+
+    #region Nested types
+    /// <summary>Container for nested types declared in the MissionStatus message type.</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static partial class Types {
+      public enum Stage {
+        [pbr::OriginalName("NO_MISSION")] NoMission = 0,
+        [pbr::OriginalName("READY")] Ready = 1,
+        /// <summary>
+        /// Stage 2 and 3 are the only times that we receive high-rate telemetry
+        /// </summary>
+        [pbr::OriginalName("ENROUTE")] Enroute = 2,
+        [pbr::OriginalName("EXECUTING")] Executing = 3,
+        [pbr::OriginalName("RETURNING")] Returning = 4,
+        [pbr::OriginalName("OVERRIDE")] Override = 5,
+        [pbr::OriginalName("COMPLETE")] Complete = 6,
+      }
+
+    }
+    #endregion
+
+  }
+
+  /// <summary>
+  /// Code 8
+  /// </summary>
+  public sealed partial class MissionConfig : pb::IMessage<MissionConfig> {
+    private static readonly pb::MessageParser<MissionConfig> _parser = new pb::MessageParser<MissionConfig>(() => new MissionConfig());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<MissionConfig> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Pbdrone.MessagesReflection.Descriptor.MessageTypes[8]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MissionConfig() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MissionConfig(MissionConfig other) : this() {
+      treatmentDuration_ = other.treatmentDuration_;
+      flyThroughMode_ = other.flyThroughMode_;
+      selectedPayload_ = other.selectedPayload_;
+      availablePayloads_ = other.availablePayloads_.Clone();
+      routes_ = other.routes_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MissionConfig Clone() {
+      return new MissionConfig(this);
+    }
+
+    /// <summary>Field number for the "treatment_duration" field.</summary>
+    public const int TreatmentDurationFieldNumber = 1;
+    private int treatmentDuration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int TreatmentDuration {
+      get { return treatmentDuration_; }
+      set {
+        treatmentDuration_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "fly_through_mode" field.</summary>
+    public const int FlyThroughModeFieldNumber = 2;
+    private bool flyThroughMode_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool FlyThroughMode {
+      get { return flyThroughMode_; }
+      set {
+        flyThroughMode_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "selected_payload" field.</summary>
+    public const int SelectedPayloadFieldNumber = 3;
+    private int selectedPayload_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int SelectedPayload {
+      get { return selectedPayload_; }
+      set {
+        selectedPayload_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "available_payloads" field.</summary>
+    public const int AvailablePayloadsFieldNumber = 4;
+    private static readonly pb::FieldCodec<string> _repeated_availablePayloads_codec
+        = pb::FieldCodec.ForString(34);
+    private readonly pbc::RepeatedField<string> availablePayloads_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<string> AvailablePayloads {
+      get { return availablePayloads_; }
+    }
+
+    /// <summary>Field number for the "routes" field.</summary>
+    public const int RoutesFieldNumber = 5;
+    private static readonly pb::FieldCodec<string> _repeated_routes_codec
+        = pb::FieldCodec.ForString(42);
+    private readonly pbc::RepeatedField<string> routes_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<string> Routes {
+      get { return routes_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as MissionConfig);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(MissionConfig other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TreatmentDuration != other.TreatmentDuration) return false;
+      if (FlyThroughMode != other.FlyThroughMode) return false;
+      if (SelectedPayload != other.SelectedPayload) return false;
+      if(!availablePayloads_.Equals(other.availablePayloads_)) return false;
+      if(!routes_.Equals(other.routes_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TreatmentDuration != 0) hash ^= TreatmentDuration.GetHashCode();
+      if (FlyThroughMode != false) hash ^= FlyThroughMode.GetHashCode();
+      if (SelectedPayload != 0) hash ^= SelectedPayload.GetHashCode();
+      hash ^= availablePayloads_.GetHashCode();
+      hash ^= routes_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (TreatmentDuration != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(TreatmentDuration);
+      }
+      if (FlyThroughMode != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(FlyThroughMode);
+      }
+      if (SelectedPayload != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(SelectedPayload);
+      }
+      availablePayloads_.WriteTo(output, _repeated_availablePayloads_codec);
+      routes_.WriteTo(output, _repeated_routes_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (TreatmentDuration != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(TreatmentDuration);
+      }
+      if (FlyThroughMode != false) {
+        size += 1 + 1;
+      }
+      if (SelectedPayload != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(SelectedPayload);
+      }
+      size += availablePayloads_.CalculateSize(_repeated_availablePayloads_codec);
+      size += routes_.CalculateSize(_repeated_routes_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(MissionConfig other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TreatmentDuration != 0) {
+        TreatmentDuration = other.TreatmentDuration;
+      }
+      if (other.FlyThroughMode != false) {
+        FlyThroughMode = other.FlyThroughMode;
+      }
+      if (other.SelectedPayload != 0) {
+        SelectedPayload = other.SelectedPayload;
+      }
+      availablePayloads_.Add(other.availablePayloads_);
+      routes_.Add(other.routes_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            TreatmentDuration = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            FlyThroughMode = input.ReadBool();
+            break;
+          }
+          case 24: {
+            SelectedPayload = input.ReadInt32();
+            break;
+          }
+          case 34: {
+            availablePayloads_.AddEntriesFrom(input, _repeated_availablePayloads_codec);
+            break;
+          }
+          case 42: {
+            routes_.AddEntriesFrom(input, _repeated_routes_codec);
             break;
           }
         }

@@ -157,8 +157,8 @@ namespace ACE_Mission_Control.Core.Models
                     case MessageType.ControlDevice:
                         message = ControlDevice.Parser.ParseFrom(message_data);
                         break;
-                    case MessageType.Position:
-                        message = Position.Parser.ParseFrom(message_data);
+                    case MessageType.Telemetry:
+                        message = Telemetry.Parser.ParseFrom(message_data);
                         break;
                     case MessageType.FlightAnomaly:
                         message = FlightAnomaly.Parser.ParseFrom(message_data);

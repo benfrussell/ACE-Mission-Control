@@ -360,6 +360,18 @@
     <value>Test Payload</value>
   </data>
   <data name="Mission_ActivateButton.Content" xml:space="preserve">
-    <value>ActivateMission</value>
+    <value>Activate</value>
+  </data>
+  <data name="Mission_DeactivateButton.Content" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="Mission_SetupMissionSubtitle.Text" xml:space="preserve">
+    <value>Drag the routes into the order that they will be treated.</value>
+  </data>
+  <data name="Mission_SetupMissionTitle.Text" xml:space="preserve">
+    <value>Setup Mission</value>
+  </data>
+  <data name="Mission_AreaScanEntry.Text" xml:space="preserve">
+    <value>Entry Waypoint</value>
   </data>
 </root>

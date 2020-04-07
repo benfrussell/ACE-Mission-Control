@@ -15,6 +15,8 @@ using System.Collections.ObjectModel;
 using Windows.UI.Core;
 using Windows.Storage.Pickers;
 using Windows.Storage;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -158,7 +160,100 @@ namespace ACE_Mission_Control.ViewModels
                 if (_treatmentDuration == value)
                     return;
                 _treatmentDuration = value;
-                RaisePropertyChanged();
+                int parseOut;
+                if (_treatmentDuration.Length == 0 || int.TryParse(_treatmentDuration, out parseOut))
+                {
+                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+                    TreatmentDurationValidText = "";
+                }
+                else
+                {
+                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
+                    TreatmentDurationValidText = "Mission_InvalidInteger".GetLocalized();
+                }
+                RaisePropertyChanged("TreatmentDuration");
+            }
+        }
+
+        private SolidColorBrush _treatmentDurationBorderColour;
+        public SolidColorBrush TreatmentDurationBorderColour
+        {
+            get { return _treatmentDurationBorderColour; }
+            set
+            {
+                if (_treatmentDurationBorderColour == value)
+                    return;
+                _treatmentDurationBorderColour = value;
+                RaisePropertyChanged("TreatmentDurationBorderColour");
+            }
+        }
+
+        private string _treatmentDurationValidText;
+        public string TreatmentDurationValidText
+        {
+            get { return _treatmentDurationValidText; }
+            set
+            {
+                if (_treatmentDurationValidText == value)
+                    return;
+                _treatmentDurationValidText = value;
+                RaisePropertyChanged("TreatmentDurationValidText");
+            }
+        }
+
+        private string _entryWaypoint;
+        public string EntryWaypoint
+        {
+            get { return _entryWaypoint; }
+            set
+            {
+                if (_entryWaypoint == value)
+                    return;
+                _entryWaypoint = value;
+                int parseOut = -1;
+                if (_entryWaypoint.Length > 0 && !int.TryParse(_entryWaypoint, out parseOut))
+                {
+                    EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
+                    EntryWaypointValidText = "Mission_InvalidInteger".GetLocalized();
+                }
+                else if (_entryWaypoint.Length > 0 && !AttachedDrone.MissionData.AreaScanRoutes[0].Vertices.Contains(parseOut))
+                {
+                    EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
+                    EntryWaypointValidText = "Mission_InvalidEntryWaypoint".GetLocalized();
+                }
+                else
+                {
+                    AttachedDrone.MissionData.AreaScanRoutes[0].EntryVertex = parseOut;
+                    EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+                    EntryWaypointValidText = "";
+                }
+                RaisePropertyChanged("EntryWaypoint");
+            }
+        }
+
+        private SolidColorBrush _entryWaypointBorderColour;
+        public SolidColorBrush EntryWaypointBorderColour
+        {
+            get { return _entryWaypointBorderColour; }
+            set
+            {
+                if (_entryWaypointBorderColour == value)
+                    return;
+                _entryWaypointBorderColour = value;
+                RaisePropertyChanged("EntryWaypointBorderColour");
+            }
+        }
+
+        private string _entryWaypointValidText;
+        public string EntryWaypointValidText
+        {
+            get { return _entryWaypointValidText; }
+            set
+            {
+                if (_entryWaypointValidText == value)
+                    return;
+                _entryWaypointValidText = value;
+                RaisePropertyChanged("EntryWaypointValidText");
             }
         }
 
@@ -207,39 +302,12 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private List<int> _firstAreaScanVertices;
-        public List<int> FirstAreaScanVertices
-        {
-            get { return _firstAreaScanVertices; }
-            set
-            {
-                if (_firstAreaScanVertices == value)
-                    return;
-                _firstAreaScanVertices = value;
-                RaisePropertyChanged("FirstAreaScanVertices");
-            }
-        }
-
-        private int _selectedAreaScanEntry;
-        public int SelectedAreaScanEntry
-        {
-            get { return _selectedAreaScanEntry; }
-            set
-            {
-                if (_selectedAreaScanEntry == value)
-                    return;
-                _selectedAreaScanEntry = value;
-                AttachedDrone.MissionData.AreaScanRoutes[0].EntryVertex = value;
-                RaisePropertyChanged("SelectedAreaScanEntry");
-            }
-        }
-
         public MissionViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();
-            _areaScanRoutes = new ObservableCollection<AreaScanRoute>();
-            _selectedAreaScanEntry = 0;
-            _firstAreaScanVertices = new List<int>();
+            AreaScanRoutes = new ObservableCollection<AreaScanRoute>();
+            EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+            TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -284,9 +352,9 @@ namespace ACE_Mission_Control.ViewModels
                         break;
                     case "MissionIsActivated":
                         if (AttachedDrone.MissionIsActivated)
-                            MissionActivatedText = "Mission_DeactivateButton.Content".GetLocalized();
+                            MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
                         else
-                            MissionActivatedText = "Mission_ActivateButton.Content".GetLocalized();
+                            MissionActivatedText = "Mission_ActivateButton".GetLocalized();
                         break;
                     case "FlyThroughMode":
                         FlyThroughMode = AttachedDrone.FlyThroughMode;
@@ -392,12 +460,6 @@ namespace ACE_Mission_Control.ViewModels
         private void setupMissionDialogEntered()
         {
             AttachedDrone.MissionData.AreaScanRoutes = AreaScanRoutes;
-            SelectedAreaScanEntry = 0;
-            FirstAreaScanVertices.Clear();
-            foreach (int v in AttachedDrone.MissionData.AreaScanRoutes[0].Vertices)
-            {
-                FirstAreaScanVertices.Add(v);
-            }
             AttachedDrone.NewMission = true;
             Messenger.Default.Send(new HideSetupMissionDialogMessage());
         }

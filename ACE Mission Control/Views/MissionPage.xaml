@@ -19,7 +19,7 @@
         Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="80" />
-            <RowDefinition Height="200" />
+            <RowDefinition Height="210" />
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid
@@ -82,7 +82,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="20" />
                 <RowDefinition Height="55" />
-                <RowDefinition />
+                <RowDefinition Height="75"/>
                 <RowDefinition />
             </Grid.RowDefinitions>
 
@@ -123,7 +123,7 @@
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Grid.Row="2"
-                Margin="10,4,0,0">
+                Margin="10,0,0,0">
                 <StackPanel
                     Orientation="Vertical">
                     <TextBlock
@@ -146,15 +146,25 @@
                         MaxWidth="100"
                         Margin="16,0,0,0"
                         IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
-                        Text="{x:Bind ViewModel.TreatmentDuration, Mode=OneWay}"/>
+                        BorderBrush="{x:Bind ViewModel.TreatmentDurationBorderColour, Mode=OneWay}"
+                        Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="{x:Bind ViewModel.TreatmentDurationValidText, Mode=OneWay}"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource SystemErrorTextColor}"
+                               Margin="16,0,0,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Vertical">
                     <TextBlock x:Uid="Mission_AreaScanEntry"
                                Margin="16,0,0,4"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.FirstAreaScanVertices, Mode=OneWay}"
-                              SelectedItem="{x:Bind ViewModel.SelectedAreaScanEntry, Mode=TwoWay}"
-                              IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
-                              Margin="16,0,0,0"/>
+                    <TextBox Text="{x:Bind ViewModel.EntryWaypoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             BorderBrush="{x:Bind ViewModel.EntryWaypointBorderColour, Mode=OneWay}"
+                             IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                             MaxWidth="100"
+                             Margin="16,0,0,0"/>
+                    <TextBlock Text="{x:Bind ViewModel.EntryWaypointValidText, Mode=OneWay}"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource SystemErrorTextColor}"
+                               Margin="16,0,0,0"/>
                 </StackPanel>
                 <StackPanel
                     Orientation="Vertical">
@@ -264,17 +274,19 @@
                            Style="{ThemeResource BodyTextStyle}"
                            Margin="0,0,0,8"/>
                 <Border Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}">
-                    <ListView x:Name="SetupMissionRoutesList"
-                              ItemsSource="{x:Bind ViewModel.AreaScanRoutes, Mode=TwoWay}"
-                              CanReorderItems="True"
-                              CanDragItems="True"
-                              AllowDrop="True">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="ace:AreaScanRoute">
-                                <TextBlock Text="{x:Bind Name}"/>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <ScrollViewer>
+                        <ListView x:Name="SetupMissionRoutesList"
+                                  ItemsSource="{x:Bind ViewModel.AreaScanRoutes, Mode=TwoWay}"
+                                  CanReorderItems="True"
+                                  CanDragItems="True"
+                                  AllowDrop="True">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="ace:AreaScanRoute">
+                                    <TextBlock Text="{x:Bind Name}"/>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
                 </Border>
             </StackPanel>
         </ContentDialog>

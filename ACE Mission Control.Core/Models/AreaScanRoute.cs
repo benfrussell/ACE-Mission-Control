@@ -9,14 +9,14 @@ namespace ACE_Mission_Control.Core.Models
     {
         public string Name;
         public List<double[]> Area;
-        public IEnumerable<int> Vertices;
+        public List<int> Vertices;
         public int EntryVertex;
 
         public AreaScanRoute(string name, List<double[]> area)
         {
             Name = name;
             Area = area;
-            Vertices = Enumerable.Range(0, area.Count - 1);
+            Vertices = Enumerable.Range(1, area.Count).ToList();
             EntryVertex = 0;
         }
 
@@ -24,7 +24,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             Name = "";
             Area = new List<double[]>();
-            Vertices = Enumerable.Empty<int>();
+            Vertices = new List<int>();
             EntryVertex = 0;
         }
     }

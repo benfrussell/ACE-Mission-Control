@@ -359,10 +359,10 @@
   <data name="Mission_TestPayload.Content" xml:space="preserve">
     <value>Test Payload</value>
   </data>
-  <data name="Mission_ActivateButton.Content" xml:space="preserve">
+  <data name="Mission_ActivateButton" xml:space="preserve">
     <value>Activate</value>
   </data>
-  <data name="Mission_DeactivateButton.Content" xml:space="preserve">
+  <data name="Mission_DeactivateButton" xml:space="preserve">
     <value>Deactivate</value>
   </data>
   <data name="Mission_SetupMissionSubtitle.Text" xml:space="preserve">
@@ -373,5 +373,11 @@
   </data>
   <data name="Mission_AreaScanEntry.Text" xml:space="preserve">
     <value>Entry Waypoint</value>
+  </data>
+  <data name="Mission_InvalidEntryWaypoint" xml:space="preserve">
+    <value>Waypoint not found in area scan.</value>
+  </data>
+  <data name="Mission_InvalidInteger" xml:space="preserve">
+    <value>Not a valid interger.</value>
   </data>
 </root>

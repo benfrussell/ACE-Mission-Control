@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 using Windows.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,59 +14,79 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class MissionData
     {
-        private string _name;
-        public string Name
-        {
-            get { return _name; }
-        }
-
         public ObservableCollection<AreaScanRoute> AreaScanRoutes;
-        public MissionData(string name, ObservableCollection<AreaScanRoute> areaScanRoutes)
+        public MissionData(ObservableCollection<AreaScanRoute> areaScanRoutes)
         {
-            _name = name;
             AreaScanRoutes = areaScanRoutes;
         }
 
         public MissionData()
         {
-            _name = null;
             AreaScanRoutes = new ObservableCollection<AreaScanRoute>();
+        }
+
+        public async void AddRoutesFromFile(StorageFile file)
+        {
+            foreach (AreaScanRoute route in await CreateRoutesFromFile(file))
+            {
+                AreaScanRoutes.Add(route);
+            }
         }
 
         public static async Task<MissionData> CreateMissionDataFromFile(StorageFile file)
         {
+            List<AreaScanRoute> routes = await CreateRoutesFromFile(file);
+            return new MissionData(new ObservableCollection<AreaScanRoute>(routes));
+        }
+
+        public static async Task<List<AreaScanRoute>> CreateRoutesFromFile(StorageFile file)
+        {
             string fileText = await FileIO.ReadTextAsync(file);
             JObject fileJson = JObject.Parse(fileText);
-            string missionName = fileJson["mission"]["name"].ToObject<string>();
+            List<AreaScanRoute> routes = new List<AreaScanRoute>();
 
-            var routeTokens = fileJson["mission"]["routes"].Children();
-            ObservableCollection<AreaScanRoute> routes = new ObservableCollection<AreaScanRoute>();
-
-            foreach (JToken routeToken in routeTokens)
+            if (fileJson.ContainsKey("mission"))
             {
-                string routeName = routeToken["name"].ToObject<string>();
-
-                foreach (JToken segmentToken in routeToken["segments"].Children())
+                var routeTokens = fileJson["mission"]["routes"].Children();
+                foreach (JToken routeToken in routeTokens)
                 {
-                    if (segmentToken["type"].ToObject<string>() == "AreaScan")
+                    routes = routes.Concat(parseRoute(routeToken)).ToList();
+                }
+            }
+            else if (fileJson.ContainsKey("route"))
+            {
+                var routeToken = fileJson["route"];
+                routes = routes.Concat(parseRoute(routeToken)).ToList();
+            }
+
+            return routes;
+        }
+
+        private static List<AreaScanRoute> parseRoute(JToken routeToken)
+        {
+            List<AreaScanRoute> routes = new List<AreaScanRoute>();
+            string routeName = routeToken["name"].ToObject<string>();
+
+            foreach (JToken segmentToken in routeToken["segments"].Children())
+            {
+                if (segmentToken["type"].ToObject<string>() == "AreaScan")
+                {
+                    var pointsToken = segmentToken["polygon"]["points"].Children();
+                    List<double[]> routeArea = new List<double[]>();
+
+                    foreach (JToken pointToken in pointsToken)
                     {
-                        var pointsToken = segmentToken["polygon"]["points"].Children();
-                        List<double[]> routeArea = new List<double[]>();
+                        double lat = pointToken["latitude"].ToObject<double>();
+                        double lon = pointToken["longitude"].ToObject<double>();
 
-                        foreach (JToken pointToken in pointsToken)
-                        {
-                            double lat = pointToken["latitude"].ToObject<double>();
-                            double lon = pointToken["longitude"].ToObject<double>();
-
-                            routeArea.Add(new double[2] { lat, lon });
-                        }
-
-                        routes.Add(new AreaScanRoute(routeName, routeArea));
+                        routeArea.Add(new double[2] { lat, lon });
                     }
+
+                    routes.Add(new AreaScanRoute(routeName, routeArea));
                 }
             }
 
-            return new MissionData(missionName, routes);
+            return routes;
         }
     }
 }

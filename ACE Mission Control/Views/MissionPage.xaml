@@ -117,7 +117,7 @@
                 <Button x:Name="ImportFileButton"
                         x:Uid="Mission_ImportFileButton"
                         Style="{ThemeResource ACEButton}"
-                        Command="{x:Bind ViewModel.ImportMissionCommand}"/>
+                        Command="{x:Bind ViewModel.ImportFileCommand}"/>
             </StackPanel>
             <StackPanel
                 Orientation="Horizontal"
@@ -266,16 +266,25 @@
                        x:Uid="Mission_SetupMissionDialog"
                        PrimaryButtonText="Finish"
                        SecondaryButtonText="Cancel"
-                       PrimaryButtonCommand="{x:Bind ViewModel.SetupMissionDialogEnterCommand}">
-            <StackPanel>
+                       PrimaryButtonCommand="{x:Bind ViewModel.SetupMissionDialogEnterCommand}"
+                       Closed="SetupMissionDialog_Closed">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="45"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="*" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
                 <TextBlock x:Uid="Mission_SetupMissionTitle"
+                           Grid.Row="0"
                            Style="{ThemeResource SubheaderTextBlockStyle}"/>
                 <TextBlock x:Uid="Mission_SetupMissionSubtitle"
+                           Grid.Row="1"
                            Style="{ThemeResource BodyTextStyle}"
                            Margin="0,0,0,8"/>
-                <Border Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}">
-                    <ScrollViewer>
-                        <ListView x:Name="SetupMissionRoutesList"
+                <Border Grid.Row="2"
+                        Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}">
+                    <ListView x:Name="SetupMissionRoutesList"
                                   ItemsSource="{x:Bind ViewModel.AreaScanRoutes, Mode=TwoWay}"
                                   CanReorderItems="True"
                                   CanDragItems="True"
@@ -286,9 +295,14 @@
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
-                    </ScrollViewer>
                 </Border>
-            </StackPanel>
+                <Button x:Uid="Mission_AddFileButton"
+                        Margin="0,8,0,0"
+                        HorizontalAlignment="Right"
+                        Style="{ThemeResource ACEButton}"
+                        Command="{x:Bind ViewModel.AddFileCommand}"
+                        Grid.Row="3"/>
+            </Grid>
         </ContentDialog>
     </Grid>
 </local:DroneBasePage>

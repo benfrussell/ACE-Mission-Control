@@ -252,7 +252,7 @@
     <value>Connect UgCS</value>
   </data>
   <data name="Mission_ImportFileButton.Content" xml:space="preserve">
-    <value>Import Route JSON</value>
+    <value>Import From File</value>
   </data>
   <data name="Config_AutomationCheck.Content" xml:space="preserve">
     <value>Disable Drone Automation</value>
@@ -379,5 +379,8 @@
   </data>
   <data name="Mission_InvalidInteger" xml:space="preserve">
     <value>Not a valid interger.</value>
+  </data>
+  <data name="Mission_AddFileButton.Content" xml:space="preserve">
+    <value>Add From File</value>
   </data>
 </root>

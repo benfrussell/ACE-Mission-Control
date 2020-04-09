@@ -25,7 +25,7 @@ namespace ACE_Mission_Control.ViewModels
     public class ShowPassphraseDialogMessage : MessageBase { }
     public class HidePassphraseDialogMessage : MessageBase { }
     public class ShowSetupMissionDialogMessage : MessageBase { }
-    public class HideSetupMissionDialogMessage : MessageBase { }
+    public class SetupMissionDialogClosedMessage : MessageBase { }
     public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
 
     // --- Properties
@@ -302,12 +302,17 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private bool setupMissionDialogOpen;
+
         public MissionViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();
             AreaScanRoutes = new ObservableCollection<AreaScanRoute>();
             EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
             TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+
+            setupMissionDialogOpen = false;
+            Messenger.Default.Register<SetupMissionDialogClosedMessage>(this,  (msg) => { setupMissionDialogOpen = false; });
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -370,7 +375,11 @@ namespace ACE_Mission_Control.ViewModels
                         break;
                     case "MissionData":
                         AreaScanRoutes = AttachedDrone.MissionData.AreaScanRoutes;
-                        Messenger.Default.Send(new ShowSetupMissionDialogMessage());
+                        if (!setupMissionDialogOpen)
+                        {
+                            Messenger.Default.Send(new ShowSetupMissionDialogMessage());
+                            setupMissionDialogOpen = true;
+                        }
                         break;
                 }
             });
@@ -410,19 +419,50 @@ namespace ACE_Mission_Control.ViewModels
 
         // --- Commands
 
-        public RelayCommand ImportMissionCommand => new RelayCommand(() => importMissionDialog());
+        public RelayCommand ImportFileCommand => new RelayCommand(() => importFileDialog());
 
-        private async void importMissionDialog()
+        private async void importFileDialog()
         {
             var picker = new FileOpenPicker();
             picker.FileTypeFilter.Add(".json");
             picker.ViewMode = PickerViewMode.Thumbnail;
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 
-            var result = await picker.PickSingleFileAsync();
+            var result = await picker.PickMultipleFilesAsync();
             if (result != null)
             {
-                AttachedDrone.MissionData = await MissionData.CreateMissionDataFromFile(result);
+                bool firstFile = true;
+                foreach (StorageFile file in result)
+                {
+                    if (firstFile)
+                    {
+                        AttachedDrone.MissionData = await MissionData.CreateMissionDataFromFile(file);
+                        firstFile = false;
+                    }
+                    else
+                    {
+                        AttachedDrone.MissionData.AddRoutesFromFile(file);
+                    }
+                }
+            }
+        }
+
+        public RelayCommand AddFileCommand => new RelayCommand(() => addFileDialog());
+
+        private async void addFileDialog()
+        {
+            var picker = new FileOpenPicker();
+            picker.FileTypeFilter.Add(".json");
+            picker.ViewMode = PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+
+            var result = await picker.PickMultipleFilesAsync();
+            if (result != null)
+            {
+                foreach (StorageFile file in result)
+                {
+                    AttachedDrone.MissionData.AddRoutesFromFile(file);
+                }
             }
         }
 
@@ -461,7 +501,6 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.MissionData.AreaScanRoutes = AreaScanRoutes;
             AttachedDrone.NewMission = true;
-            Messenger.Default.Send(new HideSetupMissionDialogMessage());
         }
     }
 }

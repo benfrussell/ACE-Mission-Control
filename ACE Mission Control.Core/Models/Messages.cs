@@ -53,7 +53,9 @@ namespace Pbdrone {
             "RVRFEAYiiwEKDU1pc3Npb25Db25maWcSGgoSdHJlYXRtZW50X2R1cmF0aW9u",
             "GAEgASgFEhgKEGZseV90aHJvdWdoX21vZGUYAiABKAgSGAoQc2VsZWN0ZWRf",
             "cGF5bG9hZBgDIAEoBRIaChJhdmFpbGFibGVfcGF5bG9hZHMYBCADKAkSDgoG",
-            "cm91dGVzGAUgAygJYgZwcm90bzM="));
+            "cm91dGVzGAUgAygJIkgKD0NvbW1hbmRSZXNwb25zZRIPCgdjb21tYW5kGAEg",
+            "ASgJEhIKCnN1Y2Nlc3NmdWwYAiABKAgSEAoIcmVzcG9uc2UYAyABKAliBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -65,7 +67,8 @@ namespace Pbdrone {
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.FlightAnomaly), global::Pbdrone.FlightAnomaly.Parser, new[]{ "Anomaly" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ACEError), global::Pbdrone.ACEError.Parser, new[]{ "Timestamp", "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionStatus), global::Pbdrone.MissionStatus.Parser, new[]{ "MissionStage", "Activated", "InProgress", "LastLongitude", "LastLatitude", "LastAltitude", "Log", "Errors" }, null, new[]{ typeof(global::Pbdrone.MissionStatus.Types.Stage) }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionConfig), global::Pbdrone.MissionConfig.Parser, new[]{ "TreatmentDuration", "FlyThroughMode", "SelectedPayload", "AvailablePayloads", "Routes" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionConfig), global::Pbdrone.MissionConfig.Parser, new[]{ "TreatmentDuration", "FlyThroughMode", "SelectedPayload", "AvailablePayloads", "Routes" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.CommandResponse), global::Pbdrone.CommandResponse.Parser, new[]{ "Command", "Successful", "Response" }, null, null, null, null)
           }));
     }
     #endregion
@@ -1911,6 +1914,194 @@ namespace Pbdrone {
           }
           case 42: {
             routes_.AddEntriesFrom(input, _repeated_routes_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  /// Code 9
+  /// </summary>
+  public sealed partial class CommandResponse : pb::IMessage<CommandResponse> {
+    private static readonly pb::MessageParser<CommandResponse> _parser = new pb::MessageParser<CommandResponse>(() => new CommandResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<CommandResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Pbdrone.MessagesReflection.Descriptor.MessageTypes[9]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CommandResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CommandResponse(CommandResponse other) : this() {
+      command_ = other.command_;
+      successful_ = other.successful_;
+      response_ = other.response_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public CommandResponse Clone() {
+      return new CommandResponse(this);
+    }
+
+    /// <summary>Field number for the "command" field.</summary>
+    public const int CommandFieldNumber = 1;
+    private string command_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Command {
+      get { return command_; }
+      set {
+        command_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "successful" field.</summary>
+    public const int SuccessfulFieldNumber = 2;
+    private bool successful_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Successful {
+      get { return successful_; }
+      set {
+        successful_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "response" field.</summary>
+    public const int ResponseFieldNumber = 3;
+    private string response_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Response {
+      get { return response_; }
+      set {
+        response_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as CommandResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(CommandResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Command != other.Command) return false;
+      if (Successful != other.Successful) return false;
+      if (Response != other.Response) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Command.Length != 0) hash ^= Command.GetHashCode();
+      if (Successful != false) hash ^= Successful.GetHashCode();
+      if (Response.Length != 0) hash ^= Response.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Command.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Command);
+      }
+      if (Successful != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(Successful);
+      }
+      if (Response.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Response);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Command.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Command);
+      }
+      if (Successful != false) {
+        size += 1 + 1;
+      }
+      if (Response.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Response);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(CommandResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Command.Length != 0) {
+        Command = other.Command;
+      }
+      if (other.Successful != false) {
+        Successful = other.Successful;
+      }
+      if (other.Response.Length != 0) {
+        Response = other.Response;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Command = input.ReadString();
+            break;
+          }
+          case 16: {
+            Successful = input.ReadBool();
+            break;
+          }
+          case 26: {
+            Response = input.ReadString();
             break;
           }
         }

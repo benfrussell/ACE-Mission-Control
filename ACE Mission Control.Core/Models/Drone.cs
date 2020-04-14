@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Numerics;
+using System.Linq;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using Pbdrone;
@@ -12,11 +13,6 @@ namespace ACE_Mission_Control.Core.Models
     public class Drone : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-
-        public int ID;
-        public string Name;
-        public OnboardComputerClient OBCClient;
-        public ObservableCollection<AlertEntry> AlertLog;
 
         public AlertEntry.AlertType LastAlertType
         {
@@ -213,17 +209,118 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        public int ID;
+        public string Name;
+        public OnboardComputerClient OBCClient;
+        public ObservableCollection<AlertEntry> AlertLog;
+        private Queue<string> commandQueue;
+
         public Drone(int id, string name, string clientHostname, string clientUsername)
         {
+            commandQueue = new Queue<string>();
+
             ID = id;
             Name = name;
 
             OBCClient = new OnboardComputerClient(this, clientHostname, clientUsername);
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
+            OBCClient.PrimaryMonitorClient.MessageReceivedEvent += PrimaryMonitorClient_MessageReceivedEvent;
+            OBCClient.PrimaryCommanderClient.PropertyChanged += PrimaryCommanderClient_PropertyChanged;
 
             AlertLog = new ObservableCollection<AlertEntry>();
             MissionData = new MissionData();
             NewMission = false;
+        }
+
+        private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ReadyForCommand" && OBCClient.PrimaryCommanderClient.ReadyForCommand && commandQueue.Count > 0)
+                SendCommand(commandQueue.Dequeue());
+            else if (e.PropertyName == "Started" && OBCClient.PrimaryCommanderClient.Started)
+                OBCClient.PrimaryCommanderClient.Stream.ErrorOccurred += CommandStream_ErrorOccurred;
+        }
+
+        private void CommandStream_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
+        {
+            var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderStreamError, e.Exception.Message);
+            AddAlert(alert);
+        }
+
+        public void SendCommand(string command)
+        {
+            if (!OBCClient.PrimaryCommanderClient.Initialized)
+            {
+                var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderNotInitialized);
+                AddAlert(alert);
+                return;
+            }
+            else if (!OBCClient.PrimaryCommanderClient.ReadyForCommand)
+            {
+                commandQueue.Enqueue(command);
+                return;
+            }
+
+            AlertEntry.AlertType alertError;
+            OBCClient.PrimaryCommanderClient.SendCommand(out alertError, command);
+
+            if (alertError != AlertEntry.AlertType.None)
+            {
+                var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, alertError);
+                AddAlert(alert);
+            }
+        }
+
+        public void UploadMission()
+        {
+            string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2}", 
+                MissionData.AreaScanRoutes[0].GetVerticesString(),
+                TreatmentDuration,
+                MissionData.AreaScanRoutes[0].GetEntryVetexString());
+            SendCommand(uploadCmd);
+
+            if (MissionData.AreaScanRoutes.Count > 1)
+                for (int i = 1; i < MissionData.AreaScanRoutes.Count; i++)
+                    SendCommand("add_area -data " + MissionData.AreaScanRoutes[i].GetVerticesString());
+        }
+
+        private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
+        {
+            switch (e.MessageType)
+            {
+                case ACEEnums.MessageType.InterfaceStatus:
+                    var interfaceStatus = (InterfaceStatus)e.Message;
+                    InterfaceState = interfaceStatus.InterfaceState;
+                    break;
+                case ACEEnums.MessageType.FlightStatus:
+                    var flightStatus = (FlightStatus)e.Message;
+                    FlightState = flightStatus.FlightState;
+                    break;
+                case ACEEnums.MessageType.MissionStatus:
+                    var missionStatus = (MissionStatus)e.Message;
+                    MissionStage = missionStatus.MissionStage;
+                    MissionIsActivated = missionStatus.Activated;
+                    MissionHasProgress = missionStatus.InProgress;
+                    break;
+                case ACEEnums.MessageType.MissionConfig:
+                    var missionConfig = (MissionConfig)e.Message;
+                    FlyThroughMode = missionConfig.FlyThroughMode;
+                    TreatmentDuration = missionConfig.TreatmentDuration;
+                    AvailablePayloads = missionConfig.AvailablePayloads.ToList();
+                    SelectedPayload = missionConfig.SelectedPayload;
+                    break;
+                case ACEEnums.MessageType.CommandResponse:
+                    var commandResponse = (CommandResponse)e.Message;
+                    var responseLevel = commandResponse.Successful ? AlertEntry.AlertLevel.Info : AlertEntry.AlertLevel.Medium;
+                    if (!commandResponse.Successful)
+                    {
+                        string alertInfo = "'" + commandResponse.Command + "' " + commandResponse.Response;
+                        var alert = new AlertEntry(responseLevel, AlertEntry.AlertType.CommandError);
+                        AddAlert(alert);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)

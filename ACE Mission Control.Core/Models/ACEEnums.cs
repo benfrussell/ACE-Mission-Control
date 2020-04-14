@@ -25,7 +25,10 @@ namespace ACE_Mission_Control.Core.Models
             ControlDevice = 3,
             Telemetry = 4,
             FlightAnomaly = 5,
-            ACEError = 6
+            ACEError = 6,
+            MissionStatus = 7,
+            MissionConfig = 8,
+            CommandResponse = 9
         }
     }
 }

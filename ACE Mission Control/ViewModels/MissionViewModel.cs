@@ -160,8 +160,7 @@ namespace ACE_Mission_Control.ViewModels
                 if (_treatmentDuration == value)
                     return;
                 _treatmentDuration = value;
-                int parseOut;
-                if (_treatmentDuration.Length == 0 || int.TryParse(_treatmentDuration, out parseOut))
+                if (isTreatmentDurationValid(_treatmentDuration))
                 {
                     TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
                     TreatmentDurationValidText = "";
@@ -417,10 +416,53 @@ namespace ACE_Mission_Control.ViewModels
             });
         }
 
-        // --- Commands
+        private bool isTreatmentDurationValid(string durationString)
+        {
+            int parseOut;
+            return durationString.Length == 0 || int.TryParse(durationString, out parseOut);
+        }
+
+        private bool isEntryPointValid(string entryString)
+        {
+            int parseOut;
+            return entryString.Length > 0 && !int.TryParse(entryString, out parseOut) && !AttachedDrone.MissionData.AreaScanRoutes[0].Vertices.Contains(parseOut);
+        }
+
+        // --- OBC Commands
+
+        public RelayCommand LockButtonCommand => new RelayCommand(() => lockButtonClicked());
+        private void lockButtonClicked()
+        {
+            Messenger.Default.Send(new ShowPassphraseDialogMessage());
+        }
+
+        public RelayCommand ConnectDroneCommand => new RelayCommand(() => connectDroneCommand());
+        private void connectDroneCommand()
+        {
+            AttachedDrone.SendCommand("start_interface");
+        }
+
+        public RelayCommand RestartOBCCommand => new RelayCommand(() => restartOBCCommand());
+        private void restartOBCCommand()
+        {
+            AttachedDrone.SendCommand("stop_director");
+        }
+
+        public RelayCommand TestPayloadCommand => new RelayCommand(() => testPayloadCommand());
+        private void testPayloadCommand()
+        {
+            AttachedDrone.SendCommand("test_payload");
+        }
+
+        public RelayCommand TestInterfaceCommand => new RelayCommand(() => testInterfaceCommand());
+        private void testInterfaceCommand()
+        {
+            AttachedDrone.SendCommand("test_interface");
+        }
+
+        // --- Mission Commands
 
         public RelayCommand ImportFileCommand => new RelayCommand(() => importFileDialog());
-
         private async void importFileDialog()
         {
             var picker = new FileOpenPicker();
@@ -447,8 +489,59 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public RelayCommand AddFileCommand => new RelayCommand(() => addFileDialog());
+        public RelayCommand PayloadSelectionCommand => new RelayCommand(() => payloadSelectionCommand());
+        private void payloadSelectionCommand()
+        {
+            AttachedDrone.SendCommand("set_payload " + SelectedPayload.ToString());
+        }
 
+        public RelayCommand DurationChangedCommand => new RelayCommand(() => durationChangedCommand());
+        private void durationChangedCommand()
+        {
+            if (isTreatmentDurationValid(TreatmentDuration))
+                AttachedDrone.SendCommand("set_duration " + TreatmentDuration.ToString());
+        }
+
+        public RelayCommand EntryChangedCommand => new RelayCommand(() => entryChangedCommand());
+        private void entryChangedCommand()
+        {
+            if (isEntryPointValid(TreatmentDuration))
+                AttachedDrone.SendCommand("set_entry " + AttachedDrone.MissionData.AreaScanRoutes[0].GetEntryVetexString());
+        }
+
+        public RelayCommand FlyThroughChangedCommand => new RelayCommand(() => flyThroughChangedCommand());
+        private void flyThroughChangedCommand()
+        {
+            if (FlyThroughMode)
+                AttachedDrone.SendCommand("set_fly_through -on");
+            else
+                AttachedDrone.SendCommand("set_fly_through -off");
+        }
+
+        public RelayCommand UploadCommand => new RelayCommand(() => uploadCommand());
+        private void uploadCommand()
+        {
+            AttachedDrone.UploadMission();
+        }
+
+        public RelayCommand ActivateCommand => new RelayCommand(() => activateCommand());
+        private void activateCommand()
+        {
+            if (AttachedDrone.MissionIsActivated)
+                AttachedDrone.SendCommand("deactivate_mission");
+            else
+                AttachedDrone.SendCommand("activate_mission");
+        }
+
+        public RelayCommand ResetCommand => new RelayCommand(() => resetCommand());
+        private void resetCommand()
+        {
+            AttachedDrone.SendCommand("reset_mission");
+        }
+
+        // --- Dialog Commands
+
+        public RelayCommand AddFileCommand => new RelayCommand(() => addFileDialog());
         private async void addFileDialog()
         {
             var picker = new FileOpenPicker();
@@ -466,19 +559,11 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public RelayCommand LockButtonCommand => new RelayCommand(() => lockButtonClicked());
-
-        private void lockButtonClicked()
-        {
-            Messenger.Default.Send(new ShowPassphraseDialogMessage());
-        }
-
         public RelayCommand PassDialogEnterCommand => new RelayCommand(() => {
             PassDialogErrorText = "";
             PassDialogLoading = true;
             passDialogEntered();
         });
-
         private async void passDialogEntered()
         {
             string response = await OnboardComputerController.OpenPrivateKeyAsync(PassDialogInputText);
@@ -496,7 +581,6 @@ namespace ACE_Mission_Control.ViewModels
         }
 
         public RelayCommand SetupMissionDialogEnterCommand => new RelayCommand(() => setupMissionDialogEntered());
-
         private void setupMissionDialogEntered()
         {
             AttachedDrone.MissionData.AreaScanRoutes = AreaScanRoutes;

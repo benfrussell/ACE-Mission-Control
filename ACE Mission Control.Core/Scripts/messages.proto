@@ -106,3 +106,10 @@ message MissionConfig {
 	repeated string available_payloads = 4;
 	repeated string routes = 5;
 }
+
+// Code 9
+message CommandResponse {
+	string command = 1;
+	bool successful = 2;
+	string response = 3;
+}

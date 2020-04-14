@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ACE_Mission_Control.Core.Models;
+using ACE_Mission_Control.Helpers;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -84,10 +85,11 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand ConsoleCommandEnteredCommand => new RelayCommand(() => {
             if (CommandText != "" && AttachedDrone.OBCClient.PrimaryCommanderClient.ReadyForCommand)
             {
-                string error;
+                AlertEntry.AlertType error;
                 if (!AttachedDrone.OBCClient.PrimaryCommanderClient.SendCommand(out error, CommandText))
                 {
-                    CMDResponseText = error;
+                    var converter = new AlertToString();
+                    CMDResponseText = (string)converter.Convert(new AlertEntry(AlertEntry.AlertLevel.Medium, error), typeof(string), null, null);
                 }
                 else
                 {

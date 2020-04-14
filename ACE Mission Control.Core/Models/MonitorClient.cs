@@ -166,6 +166,12 @@ namespace ACE_Mission_Control.Core.Models
                     case MessageType.ACEError:
                         message = ACEError.Parser.ParseFrom(message_data);
                         break;
+                    case MessageType.MissionStatus:
+                        message = MissionStatus.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.MissionConfig:
+                        message = MissionConfig.Parser.ParseFrom(message_data);
+                        break;
                     default:
                         System.Diagnostics.Debug.WriteLine("Received unknown message type: " + message_type_id);
                         break;

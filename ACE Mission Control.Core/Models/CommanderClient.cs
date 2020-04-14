@@ -46,10 +46,21 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public bool Started = false;
+        private bool _started;
+        public bool Started
+        {
+            get { return _started; }
+            private set
+            {
+                if (_started == value)
+                    return;
+                _started = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private SshClient client;
-        private ShellStream stream;
+        public ShellStream Stream;
 
         public CommanderClient()
         {
@@ -81,25 +92,25 @@ namespace ACE_Mission_Control.Core.Models
                 return false;
             }
 
-            stream = client.CreateShellStream("Commander", 128, 64, 512, 256, 512);
-            stream.DataReceived += Stream_DataReceived;
-            stream.WriteLine("python3 ~/ACE-Onboard-Computer/build/bin/ace_commander.py");
+            Stream = client.CreateShellStream("Commander", 128, 64, 512, 256, 512);
+            Stream.DataReceived += Stream_DataReceived;
+            Stream.WriteLine("python3 ~/ACE-Onboard-Computer/build/bin/ace_commander.py");
 
             alert = new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommanderStarting);
             Started = true;
             return true;
         }
 
-        public bool SendCommand(out string error, string command)
+        public bool SendCommand(out AlertEntry.AlertType error, string command)
         {
-            if (!stream.CanWrite)
+            if (!Stream.CanWrite)
             {
-                error = "The command stream is not currently writeable.";
+                error = AlertEntry.AlertType.CommanderNotWriteable;
                 return false;
             }
 
-            stream.WriteLine(command);
-            error = "";
+            Stream.WriteLine(command);
+            error = AlertEntry.AlertType.None;
             return true;
         }
 
@@ -119,7 +130,8 @@ namespace ACE_Mission_Control.Core.Models
             if (data_text[0] == '>')
             {
                 ReadyForCommand = true;
-                if (!Initialized) { Initialized = true; }
+                if (!Initialized) 
+                    Initialized = true;
             }
             else
             {

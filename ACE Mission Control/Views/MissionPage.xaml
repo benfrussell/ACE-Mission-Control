@@ -8,6 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:ace="using:ACE_Mission_Control.Core.Models"
+    xmlns:i="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <local:DroneBasePage.Resources>
@@ -58,21 +60,38 @@
                                 VerticalAlignment="Center"
                                 Symbol="{x:Bind ViewModel.LockButtonSymbol, Mode=OneWay}"/>
                 </Button>
+                <ToggleSwitch x:Name="ConnectDroneSwitch"
+                              x:Uid="Mission_ConnectDroneSwitch"
+                              Margin="8,0,0,0"
+                              IsEnabled="{x:Bind ViewModel.OBCConnected, Mode=OneWay}">
+                    <i:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Checked">
+                            <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectDroneCommand}"/>
+                        </core:EventTriggerBehavior>
+                        <core:EventTriggerBehavior EventName="Unchecked">
+                            <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectDroneCommand}"/>
+                        </core:EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                </ToggleSwitch>
+                <AppBarSeparator/>
                 <Button x:Name="RestartOBCButton"
                         x:Uid="Mission_RestartOBC"
                         Margin="8,0,0,0"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.OBCConnected, Mode=OneWay}"/>
-                <AppBarSeparator/>
+                        IsEnabled="{x:Bind ViewModel.OBCConnected, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.RestartOBCCommand}"/>
                 <Button x:Name="TestPayloadButton"
                         x:Uid="Mission_TestPayload"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.OBCCanBeTested, Mode=OneWay}"/>
+                        IsEnabled="{x:Bind ViewModel.OBCCanBeTested, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.TestPayloadCommand}"
+                        Margin="8,0,0,0"/>
                 <Button x:Name="TestInterfaceButton"
                         x:Uid="Mission_TestInterface"
                         Margin="8,0,0,0"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.OBCCanBeTested, Mode=OneWay}"/>
+                        IsEnabled="{x:Bind ViewModel.OBCCanBeTested, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.TestInterfaceCommand}"/>
             </StackPanel>
         </Grid>
         <Grid
@@ -134,7 +153,13 @@
                         Style="{ThemeResource ACEComboBox}"
                         IsEnabled="{x:Bind ViewModel.MissionCanBeModified}"
                         ItemsSource="{x:Bind ViewModel.AvailablePayloads, Mode=OneWay}"
-                        SelectedIndex="{x:Bind ViewModel.SelectedPayload, Mode=OneWay}"/>
+                        SelectedIndex="{x:Bind ViewModel.SelectedPayload, Mode=OneWay}">
+                        <i:Interaction.Behaviors>
+                            <core:EventTriggerBehavior EventName="SelectionChanged">
+                                <core:InvokeCommandAction Command="{x:Bind ViewModel.PayloadSelectionCommand}"/>
+                            </core:EventTriggerBehavior>
+                        </i:Interaction.Behaviors>
+                    </ComboBox>
                 </StackPanel>
                 <StackPanel
                     Orientation="Vertical">
@@ -147,7 +172,8 @@
                         Margin="16,0,0,0"
                         IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
                         BorderBrush="{x:Bind ViewModel.TreatmentDurationBorderColour, Mode=OneWay}"
-                        Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                        Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                        helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"/>
                     <TextBlock Text="{x:Bind ViewModel.TreatmentDurationValidText, Mode=OneWay}"
                                Style="{ThemeResource CaptionTextBlockStyle}"
                                Foreground="{ThemeResource SystemErrorTextColor}"
@@ -159,6 +185,7 @@
                     <TextBox Text="{x:Bind ViewModel.EntryWaypoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              BorderBrush="{x:Bind ViewModel.EntryWaypointBorderColour, Mode=OneWay}"
                              IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                             helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.EntryChangedCommand}"
                              MaxWidth="100"
                              Margin="16,0,0,0"/>
                     <TextBlock Text="{x:Bind ViewModel.EntryWaypointValidText, Mode=OneWay}"
@@ -175,7 +202,8 @@
                         x:Uid="Mission_FlyThroughCheckbox"
                         Margin="16,0,0,0"
                         IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
-                        IsChecked="{x:Bind ViewModel.FlyThroughMode, Mode=OneWay}"/>
+                        IsChecked="{x:Bind ViewModel.FlyThroughMode, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.FlyThroughChangedCommand}"/>
                 </StackPanel>
             </StackPanel>
             <StackPanel
@@ -186,18 +214,21 @@
                 <Button x:Name="UploadButton"
                         x:Uid="Mission_UploadButton"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"/>
+                        IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.UploadCommand}"/>
                 <Button x:Name="ActivateButton"
                         x:Uid="Mission_ActivateButton"
                         Margin="8,0,0,0"
                         Style="{ThemeResource ACEButton}"
                         Content="{x:Bind ViewModel.MissionActivatedText, Mode=OneWay}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanToggleActivation, Mode=OneWay}"/>
+                        IsEnabled="{x:Bind ViewModel.MissionCanToggleActivation, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.ActivateCommand}"/>
                 <AppBarSeparator/>
                 <Button x:Name="ResetButton"
                         x:Uid="Mission_ResetButton"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanBeReset, Mode=OneWay}"/>
+                        IsEnabled="{x:Bind ViewModel.MissionCanBeReset, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.ResetCommand}"/>
             </StackPanel>
         </Grid>
 

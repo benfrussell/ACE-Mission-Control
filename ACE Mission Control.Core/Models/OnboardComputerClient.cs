@@ -9,6 +9,8 @@ using System.Runtime.CompilerServices;
 using static ACE_Mission_Control.Core.Models.ACEEnums;
 using System.Timers;
 using Pbdrone;
+using System.Security;
+using System.Runtime.InteropServices;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -21,6 +23,7 @@ namespace ACE_Mission_Control.Core.Models
         public MonitorClient PrimaryMonitorClient;
         public MonitorClient DebugMonitorClient;
         public CommanderClient PrimaryCommanderClient;
+        public SecureString Password;
         public double ConnectionTimeoutDelay;
         public double HeartbeatTimeoutDelay;
 
@@ -154,6 +157,7 @@ namespace ACE_Mission_Control.Core.Models
             AutoConnectDisabled = false;
             IsConnected = false;
             AttemptingConnection = false;
+            Password = new SecureString();
 
             ConnectionTimeoutDelay = 15000;
             connectionTimeout = new Timer(ConnectionTimeoutDelay);
@@ -190,11 +194,11 @@ namespace ACE_Mission_Control.Core.Models
             if (AttemptingConnection)
                 return;
 
-            if (!OnboardComputerController.KeyOpen)
-            {
-                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionKeyClosed), true);
-                return;
-            }
+            //if (!OnboardComputerController.KeyOpen)
+            //{
+            //    AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionKeyClosed), true);
+            //    return;
+            //}
 
             if (!IsConfigured)
             {
@@ -205,25 +209,40 @@ namespace ACE_Mission_Control.Core.Models
             IsConnected = false;
             AttemptingConnection = true;
 
-            connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
-                OnboardComputerController.PrivateKey));
+            //connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
+            //    OnboardComputerController.PrivateKey));
 
-            AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.MonitorConnecting));
-
-            AlertEntry monitorAlert;
-
-            bool successful = PrimaryMonitorClient.StartStream(out monitorAlert, connectionInfo);
-            if (!successful)
-                AttemptingConnection = false;
-            else
+            IntPtr valuePtr = IntPtr.Zero;
+            try
             {
-                connectionTimeout.Start();
-                Debug.WriteLine("CONNECT TIMEOUT RESTART PRIMARY MONITOR CONNECTED");
+                //connectionInfo = new ConnectionInfo(Hostname, Username, new PasswordAuthenticationMethod(Username, 
+                //    ));
+
+                valuePtr = Marshal.SecureStringToGlobalAllocUnicode(Password);
+                connectionInfo = new ConnectionInfo(Hostname, Username, new PasswordAuthenticationMethod(Username,
+                    Marshal.PtrToStringUni(valuePtr)));
+
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.MonitorConnecting));
+
+                AlertEntry monitorAlert;
+
+                bool successful = PrimaryMonitorClient.StartStream(out monitorAlert, connectionInfo);
+                if (!successful)
+                    AttemptingConnection = false;
+                else
+                {
+                    connectionTimeout.Start();
+                    Debug.WriteLine("CONNECT TIMEOUT RESTART PRIMARY MONITOR CONNECTED");
+                }
+
+                UpdateStatus();
+
+                AttachedDrone.AddAlert(monitorAlert);
             }
-
-            UpdateStatus();
-
-            AttachedDrone.AddAlert(monitorAlert);
+            finally
+            {
+                Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
+            }
         }
 
         private void PrimaryMonitorClient_PropertyChanged(object sender, PropertyChangedEventArgs e)

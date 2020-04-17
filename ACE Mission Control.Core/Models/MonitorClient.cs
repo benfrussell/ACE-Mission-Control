@@ -80,11 +80,11 @@ namespace ACE_Mission_Control.Core.Models
                     alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSocketError, e.Message);
                 return false;
             }
-            catch (SshAuthenticationException e)
-            {
-                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSSHError, e.Message);
-                return false;
-            }
+            //catch (SshAuthenticationException e)
+            //{
+            //    alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSSHError, e.Message);
+            //    return false;
+            //}
 
             if (client == null || !client.IsConnected)
             {

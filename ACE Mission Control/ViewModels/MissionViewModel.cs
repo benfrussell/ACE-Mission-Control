@@ -17,6 +17,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml;
+using System.Security;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -68,19 +69,6 @@ namespace ACE_Mission_Control.ViewModels
                     return;
                 _passDialogErrorText = value;
                 RaisePropertyChanged("PassDialogErrorText");
-            }
-        }
-
-        private string _passDialogInputText;
-        public string PassDialogInputText
-        {
-            get { return _passDialogInputText; }
-            set
-            {
-                if (_passDialogInputText == value)
-                    return;
-                _passDialogInputText = value;
-                RaisePropertyChanged("PassDialogInputText");
             }
         }
 
@@ -564,20 +552,32 @@ namespace ACE_Mission_Control.ViewModels
             PassDialogLoading = true;
             passDialogEntered();
         });
-        private async void passDialogEntered()
+        private void passDialogEntered()
         {
-            string response = await OnboardComputerController.OpenPrivateKeyAsync(PassDialogInputText);
-            PassDialogLoading = false;
-            if (response != null)
-            {
-                PassDialogErrorText = response;
-            }
-            else
-            {
-                Messenger.Default.Send(new HidePassphraseDialogMessage());
-                OnboardComputerController.StartTryingConnections();
-            }
-                
+            //string response = await OnboardComputerController.OpenPrivateKeyAsync(PassDialogInputText);
+            //PassDialogLoading = false;
+            //if (response != null)
+            //{
+            //    PassDialogErrorText = response;
+            //}
+            //else
+            //{
+            //    Messenger.Default.Send(new HidePassphraseDialogMessage());
+            //    OnboardComputerController.StartTryingConnections();
+            //}
+
+            Messenger.Default.Send(new HidePassphraseDialogMessage());
+            OnboardComputerController.StartTryingConnections();
+
+        }
+
+        public RelayCommand<PasswordBox> PassChangedCommand => new RelayCommand<PasswordBox>(pass => passChanged(pass));
+        private void passChanged(PasswordBox pass)
+        {
+            if (pass.Password.Length > 0)
+                AttachedDrone.OBCClient.Password.Clear();
+            foreach (char c in pass.Password.ToCharArray())
+                AttachedDrone.OBCClient.Password.AppendChar(c);
         }
 
         public RelayCommand SetupMissionDialogEnterCommand => new RelayCommand(() => setupMissionDialogEntered());

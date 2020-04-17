@@ -283,8 +283,15 @@
                 <TextBlock x:Uid="Mission_PassDialogText" />
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <PasswordBox x:Name="PassphraseDialogInput"
-                                 Password="{x:Bind ViewModel.PassDialogInputText, Mode=TwoWay}"
-                                 helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.PassDialogEnterCommand}" />
+                                 helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.PassDialogEnterCommand}">
+                        <i:Interaction.Behaviors>
+                            <core:EventTriggerBehavior EventName="PasswordChanged">
+                                <core:InvokeCommandAction
+                                    Command="{x:Bind ViewModel.PassChangedCommand}"
+                                    CommandParameter="{x:Bind PassphraseDialogInput}"/>
+                            </core:EventTriggerBehavior>
+                        </i:Interaction.Behaviors>
+                    </PasswordBox>
                     <ProgressRing Margin="8,0,0,12"
                                   IsActive="{x:Bind ViewModel.PassDialogLoading, Mode=OneWay}" />
                 </StackPanel>

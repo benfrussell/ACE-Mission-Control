@@ -32,12 +32,15 @@ namespace ACE_Mission_Control.Core.Models
             CommanderNotInitialized,
             CommanderNotWriteable,
             CommanderStreamError,
-            CommandError,
             ConnectionReady,
             ConnectionTimedOut,
             OBCStoppedResponding,
             OBCSlow,
-            OBCError
+            OBCError,
+            CommandResponse,
+            CommandError,
+            MonitorSSHTimeout,
+            CommanderSSHTimeout
         }
 
         public DateTime Timestamp;

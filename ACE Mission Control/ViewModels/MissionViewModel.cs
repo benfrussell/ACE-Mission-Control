@@ -18,6 +18,8 @@ using Windows.Storage;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml;
 using System.Security;
+using Microsoft.Toolkit.Uwp.UI.Controls;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -477,24 +479,24 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public RelayCommand PayloadSelectionCommand => new RelayCommand(() => payloadSelectionCommand());
-        private void payloadSelectionCommand()
+        public RelayCommand<ComboBox> PayloadSelectionCommand => new RelayCommand<ComboBox>((box) => payloadSelectionCommand(box));
+        private void payloadSelectionCommand(ComboBox box)
         {
-            AttachedDrone.SendCommand("set_payload " + SelectedPayload.ToString());
+            AttachedDrone.SendCommand("set_payload -index " + box.SelectedIndex.ToString());
         }
 
         public RelayCommand DurationChangedCommand => new RelayCommand(() => durationChangedCommand());
         private void durationChangedCommand()
         {
             if (isTreatmentDurationValid(TreatmentDuration))
-                AttachedDrone.SendCommand("set_duration " + TreatmentDuration.ToString());
+                AttachedDrone.SendCommand("set_duration -duration " + TreatmentDuration.ToString());
         }
 
         public RelayCommand EntryChangedCommand => new RelayCommand(() => entryChangedCommand());
         private void entryChangedCommand()
         {
             if (isEntryPointValid(TreatmentDuration))
-                AttachedDrone.SendCommand("set_entry " + AttachedDrone.MissionData.AreaScanRoutes[0].GetEntryVetexString());
+                AttachedDrone.SendCommand("set_entry -entry " + AttachedDrone.MissionData.AreaScanRoutes[0].GetEntryVetexString());
         }
 
         public RelayCommand FlyThroughChangedCommand => new RelayCommand(() => flyThroughChangedCommand());
@@ -525,6 +527,22 @@ namespace ACE_Mission_Control.ViewModels
         private void resetCommand()
         {
             AttachedDrone.SendCommand("reset_mission");
+        }
+
+        public RelayCommand<DataGrid> AlertCopyCommand => new RelayCommand<DataGrid>((grid) => alertCopyCommand(grid));
+        private void alertCopyCommand(DataGrid grid)
+        {
+            string copiedText = "";
+            AlertToString alertConverter = new AlertToString();
+            foreach (object item in grid.SelectedItems)
+            {
+                var entry = (AlertEntry)item;
+                copiedText += entry.Timestamp.ToLongTimeString() + " " + alertConverter.Convert(entry, typeof(string), null, null) + "\n";
+            }
+            DataPackage dataPackage = new DataPackage();
+            dataPackage.RequestedOperation = DataPackageOperation.Copy;
+            dataPackage.SetText(copiedText);
+            Clipboard.SetContent(dataPackage);
         }
 
         // --- Dialog Commands

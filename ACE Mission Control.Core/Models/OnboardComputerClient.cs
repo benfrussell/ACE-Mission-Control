@@ -163,7 +163,7 @@ namespace ACE_Mission_Control.Core.Models
             connectionTimeout = new Timer(ConnectionTimeoutDelay);
             connectionTimeout.Elapsed += ConnectionTimeout_Elapsed;
 
-            HeartbeatTimeoutDelay = 3000;
+            HeartbeatTimeoutDelay = 5000;
             heartbeatTimeout = new Timer(HeartbeatTimeoutDelay);
             heartbeatTimeout.Elapsed += HeartbeatTimeout_Elapsed;
 
@@ -209,15 +209,9 @@ namespace ACE_Mission_Control.Core.Models
             IsConnected = false;
             AttemptingConnection = true;
 
-            //connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
-            //    OnboardComputerController.PrivateKey));
-
             IntPtr valuePtr = IntPtr.Zero;
             try
             {
-                //connectionInfo = new ConnectionInfo(Hostname, Username, new PasswordAuthenticationMethod(Username, 
-                //    ));
-
                 valuePtr = Marshal.SecureStringToGlobalAllocUnicode(Password);
                 connectionInfo = new ConnectionInfo(Hostname, Username, new PasswordAuthenticationMethod(Username,
                     Marshal.PtrToStringUni(valuePtr)));

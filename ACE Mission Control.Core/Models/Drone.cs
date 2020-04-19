@@ -125,9 +125,9 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool MissionCanBeModified
         {
-            get { return (!MissionIsActivated && 
+            get { return OBCClient.IsConnected && ((!MissionIsActivated && 
                     MissionStage != MissionStatus.Types.Stage.NoMission) ||
-                    NewMission;  }
+                    NewMission);  }
         }
 
         public bool MissionCanToggleActivation
@@ -212,6 +212,7 @@ namespace ACE_Mission_Control.Core.Models
         public OnboardComputerClient OBCClient;
         public ObservableCollection<AlertEntry> AlertLog;
         private Queue<string> commandQueue;
+        private bool checkCommandsSent;
 
         public Drone(int id, string name, string clientHostname, string clientUsername)
         {
@@ -232,10 +233,29 @@ namespace ACE_Mission_Control.Core.Models
 
         private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ReadyForCommand" && OBCClient.PrimaryCommanderClient.ReadyForCommand && commandQueue.Count > 0)
-                SendCommand(commandQueue.Dequeue());
+            if (e.PropertyName == "ReadyForCommand" && OBCClient.PrimaryCommanderClient.ReadyForCommand)
+            {
+                if (!checkCommandsSent)
+                {
+                    SendCommand("check_interface");
+                    SendCommand("check_mission_status");
+                    SendCommand("check_mission_config");
+                    checkCommandsSent = true;
+                }
+                else if (commandQueue.Count > 0)
+                {
+                    SendCommand(commandQueue.Dequeue());
+                }
+            }
             else if (e.PropertyName == "Started" && OBCClient.PrimaryCommanderClient.Started)
+            {
                 OBCClient.PrimaryCommanderClient.Stream.ErrorOccurred += CommandStream_ErrorOccurred;
+            }
+            else if (e.PropertyName == "Initialized")
+            {
+                checkCommandsSent = false;
+            }
+                
         }
 
         private void CommandStream_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
@@ -270,15 +290,18 @@ namespace ACE_Mission_Control.Core.Models
 
         public void UploadMission()
         {
-            string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2}", 
+            string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -name {3} -radians", 
                 MissionData.AreaScanRoutes[0].GetVerticesString(),
                 TreatmentDuration,
-                MissionData.AreaScanRoutes[0].GetEntryVetexString());
+                MissionData.AreaScanRoutes[0].GetEntryVetexString(),
+                MissionData.AreaScanRoutes[0].Name);
             SendCommand(uploadCmd);
 
             if (MissionData.AreaScanRoutes.Count > 1)
                 for (int i = 1; i < MissionData.AreaScanRoutes.Count; i++)
-                    SendCommand("add_area -data " + MissionData.AreaScanRoutes[i].GetVerticesString());
+                    SendCommand(string.Format("add_area -data {0} -name {1} -radians", 
+                        MissionData.AreaScanRoutes[i].GetVerticesString(),
+                        MissionData.AreaScanRoutes[i].Name));
         }
 
         private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
@@ -308,13 +331,13 @@ namespace ACE_Mission_Control.Core.Models
                     break;
                 case ACEEnums.MessageType.CommandResponse:
                     var commandResponse = (CommandResponse)e.Message;
+                    if (commandResponse.Command == "ping")
+                        break;
                     var responseLevel = commandResponse.Successful ? AlertEntry.AlertLevel.Info : AlertEntry.AlertLevel.Medium;
-                    if (!commandResponse.Successful)
-                    {
-                        string alertInfo = "'" + commandResponse.Command + "' " + commandResponse.Response;
-                        var alert = new AlertEntry(responseLevel, AlertEntry.AlertType.CommandError);
-                        AddAlert(alert);
-                    }
+                    var alertType = commandResponse.Successful ? AlertEntry.AlertType.CommandResponse : AlertEntry.AlertType.CommandError;
+                    string alertInfo = "'" + commandResponse.Command + "': " + commandResponse.Response;
+                    var alert = new AlertEntry(responseLevel, alertType, alertInfo);
+                    AddAlert(alert);
                     break;
                 default:
                     break;
@@ -327,6 +350,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 NotifyPropertyChanged("OBCCanBeTested");
                 NotifyPropertyChanged("MissionCanBeReset");
+                NotifyPropertyChanged("MissionCanBeModified");
                 NotifyPropertyChanged("MissionCanToggleActivation");
             }
         }

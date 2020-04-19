@@ -7,6 +7,7 @@ using Windows.UI.Xaml.Data;
 using ACE_Mission_Control.Core.Models;
 using Windows.UI.Xaml.Media;
 using Windows.UI;
+using Windows.UI.Xaml;
 
 namespace ACE_Mission_Control.Helpers
 {
@@ -14,7 +15,7 @@ namespace ACE_Mission_Control.Helpers
     {
         public static SolidColorBrush RedAlert = new SolidColorBrush(Color.FromArgb(255, 115, 38, 38));
         public static SolidColorBrush YellowAlert = new SolidColorBrush(Color.FromArgb(255, 115, 96, 38));
-        public static SolidColorBrush BlueAlert = new SolidColorBrush(Color.FromArgb(255, 31, 31, 71));
+        public static SolidColorBrush StandardAlert = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseLowColor"]);
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value == null)
@@ -30,7 +31,7 @@ namespace ACE_Mission_Control.Helpers
                 case AlertEntry.AlertLevel.None:
                     return null;
                 case AlertEntry.AlertLevel.Info:
-                    return BlueAlert;
+                    return StandardAlert;
                 case AlertEntry.AlertLevel.Medium:
                     return YellowAlert;
                 case AlertEntry.AlertLevel.High:

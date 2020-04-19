@@ -80,11 +80,16 @@ namespace ACE_Mission_Control.Core.Models
                     alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSocketError, e.Message);
                 return false;
             }
-            //catch (SshAuthenticationException e)
-            //{
-            //    alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSSHError, e.Message);
-            //    return false;
-            //}
+            catch (SshAuthenticationException e)
+            {
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSSHError, e.Message);
+                return false;
+            }
+            catch (SshOperationTimeoutException e)
+            {
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.MonitorSSHTimeout, e.Message);
+                return false;
+            }
 
             if (client == null || !client.IsConnected)
             {
@@ -171,6 +176,9 @@ namespace ACE_Mission_Control.Core.Models
                         break;
                     case MessageType.MissionConfig:
                         message = MissionConfig.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.CommandResponse:
+                        message = CommandResponse.Parser.ParseFrom(message_data);
                         break;
                     default:
                         System.Diagnostics.Debug.WriteLine("Received unknown message type: " + message_type_id);

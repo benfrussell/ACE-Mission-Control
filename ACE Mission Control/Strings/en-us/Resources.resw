@@ -318,7 +318,7 @@
     <value>Can't connect: Connection is not configured.</value>
   </data>
   <data name="Alert_None" xml:space="preserve">
-    <value>Nothing to report.</value>
+    <value />
   </data>
   <data name="Alert_OBCError" xml:space="preserve">
     <value>Onboard Computer error:</value>
@@ -390,7 +390,7 @@
     <value>Failed to send command.  The command stream is unwriteable.</value>
   </data>
   <data name="Alert_CommandError" xml:space="preserve">
-    <value>Command error:</value>
+    <value>Command error</value>
   </data>
   <data name="Alert_CommanderStreamError" xml:space="preserve">
     <value>Commander stream error.</value>
@@ -400,5 +400,17 @@
   </data>
   <data name="Mission_ConnectDroneSwitch.OnContent" xml:space="preserve">
     <value>Connect to Drone</value>
+  </data>
+  <data name="Alert_CommanderSSHTimeout" xml:space="preserve">
+    <value>Connection failed (Commander timeout)</value>
+  </data>
+  <data name="Alert_CommandResponse" xml:space="preserve">
+    <value>Command</value>
+  </data>
+  <data name="Alert_MonitorSSHTimeout" xml:space="preserve">
+    <value>Connection failed (Monitor timeout)</value>
+  </data>
+  <data name="Mission_AlertGridCopy.Text" xml:space="preserve">
+    <value>Copy Text</value>
   </data>
 </root>

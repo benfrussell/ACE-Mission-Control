@@ -85,6 +85,11 @@ namespace ACE_Mission_Control.Core.Models
                 alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderSSHError, e.Message);
                 return false;
             }
+            catch (SshOperationTimeoutException e)
+            {
+                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderSSHTimeout, e.Message);
+                return false;
+            }
 
             if (client == null || !client.IsConnected)
             {
@@ -129,9 +134,9 @@ namespace ACE_Mission_Control.Core.Models
             string data_text = Encoding.UTF8.GetString(e.Data);
             if (data_text[0] == '>')
             {
-                ReadyForCommand = true;
                 if (!Initialized) 
                     Initialized = true;
+                ReadyForCommand = true;
             }
             else
             {

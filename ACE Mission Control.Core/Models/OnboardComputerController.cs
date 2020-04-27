@@ -84,17 +84,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 error = "Access to the key file was denied. Ensure the application and user have permission to read the file.";
             }
-            finally
-            {
-                UpdateAllStatus();
-            }
             return error;
-        }
-
-        private static void UpdateAllStatus()
-        {
-            foreach (Drone d in DroneController.Drones)
-                d.OBCClient.UpdateStatus();
         }
 
         public static async Task<string> OpenPrivateKeyAsync(string passphrase)

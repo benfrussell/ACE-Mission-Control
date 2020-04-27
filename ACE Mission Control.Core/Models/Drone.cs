@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using Pbdrone;
+using Windows.ApplicationModel.Core;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -221,7 +222,7 @@ namespace ACE_Mission_Control.Core.Models
             ID = id;
             Name = name;
 
-            OBCClient = new OnboardComputerClient(this, clientHostname, clientUsername);
+            OBCClient = new OnboardComputerClient(this, clientHostname);
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             OBCClient.PrimaryMonitorClient.MessageReceivedEvent += PrimaryMonitorClient_MessageReceivedEvent;
             OBCClient.PrimaryCommanderClient.PropertyChanged += PrimaryCommanderClient_PropertyChanged;
@@ -235,40 +236,38 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (e.PropertyName == "ReadyForCommand" && OBCClient.PrimaryCommanderClient.ReadyForCommand)
             {
-                if (!checkCommandsSent)
+                if (OBCClient.IsConnected)
                 {
-                    SendCommand("check_interface");
-                    SendCommand("check_mission_status");
-                    SendCommand("check_mission_config");
-                    checkCommandsSent = true;
-                }
-                else if (commandQueue.Count > 0)
-                {
-                    SendCommand(commandQueue.Dequeue());
+                    if (checkCommandsSent && commandQueue.Count > 0)
+                    {
+                        SendCommand(commandQueue.Dequeue());
+                    }
+                    else if (!checkCommandsSent)
+                    {
+                        SendCheckCommands();
+                    }
                 }
             }
-            else if (e.PropertyName == "Started" && OBCClient.PrimaryCommanderClient.Started)
-            {
-                OBCClient.PrimaryCommanderClient.Stream.ErrorOccurred += CommandStream_ErrorOccurred;
-            }
-            else if (e.PropertyName == "Initialized")
+            else if (e.PropertyName == "Connected")
             {
                 checkCommandsSent = false;
             }
                 
         }
 
-        private void CommandStream_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
+        private void SendCheckCommands()
         {
-            var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderStreamError, e.Exception.Message);
-            AddAlert(alert);
+            SendCommand("check_interface");
+            SendCommand("check_mission_status");
+            SendCommand("check_mission_config");
+            checkCommandsSent = true;
         }
 
         public void SendCommand(string command)
         {
-            if (!OBCClient.PrimaryCommanderClient.Initialized)
+            if (!OBCClient.PrimaryCommanderClient.Connected)
             {
-                var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderNotInitialized);
+                var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection);
                 AddAlert(alert);
                 return;
             }
@@ -278,13 +277,9 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             }
 
-            AlertEntry.AlertType alertError;
-            OBCClient.PrimaryCommanderClient.SendCommand(out alertError, command);
-
-            if (alertError != AlertEntry.AlertType.None)
+            if (!OBCClient.PrimaryCommanderClient.SendCommand(command))
             {
-                var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, alertError);
-                AddAlert(alert);
+                commandQueue.Enqueue(command);
             }
         }
 
@@ -352,14 +347,22 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged("MissionCanBeReset");
                 NotifyPropertyChanged("MissionCanBeModified");
                 NotifyPropertyChanged("MissionCanToggleActivation");
+
+                if (OBCClient.IsConnected && !checkCommandsSent && OBCClient.PrimaryCommanderClient.ReadyForCommand)
+                {
+                    SendCheckCommands();
+                }
             }
         }
 
-        public void AddAlert(AlertEntry entry, bool blockDuplicates = false)
+        public async void AddAlert(AlertEntry entry, bool blockDuplicates = false)
         {
-            if (blockDuplicates && entry.Type == LastAlertType)
-                return;
-            AlertLog.Add(entry);
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (blockDuplicates && entry.Type == LastAlertType)
+                    return;
+                AlertLog.Add(entry);
+            });
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

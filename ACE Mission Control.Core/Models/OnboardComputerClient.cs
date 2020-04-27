@@ -24,12 +24,6 @@ namespace ACE_Mission_Control.Core.Models
         public MonitorClient DebugMonitorClient;
         public CommanderClient PrimaryCommanderClient;
         public SecureString Password;
-        public double ConnectionTimeoutDelay;
-        public double HeartbeatTimeoutDelay;
-
-        private ConnectionInfo connectionInfo;
-        private Timer connectionTimeout;
-        private Timer heartbeatTimeout;
 
         private string _hostname = "";
         public string Hostname
@@ -41,45 +35,10 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 _hostname = value;
                 NotifyPropertyChanged();
-                if (Hostname.Length != 0 && Username.Length != 0)
+                if (Hostname.Length != 0)
                 {
                     IsConfigured = true;
-                    UpdateStatus();
                 }
-            }
-        }
-
-        private string _username = "";
-        public string Username
-        {
-            get { return _username; }
-            set
-            {
-                if (_username == value)
-                    return;
-                _username = value;
-                NotifyPropertyChanged();
-                if (Hostname.Length != 0 && Username.Length != 0)
-                {
-                    IsConfigured = true;
-                    UpdateStatus();
-                }
-            }
-        }
-
-        private StatusEnum _status;
-        public StatusEnum Status
-        {
-            get
-            {
-                return _status;
-            }
-            set
-            {
-                if (value == _status)
-                    return;
-                _status = value;
-                NotifyPropertyChanged();
             }
         }
 
@@ -148,24 +107,15 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public OnboardComputerClient(Drone parentDrone, string hostname, string username)
+        public OnboardComputerClient(Drone parentDrone, string hostname)
         {
             AttachedDrone = parentDrone;
-            Username = username;
             Hostname = hostname;
             AutomationDisabled = false;
             AutoConnectDisabled = false;
             IsConnected = false;
             AttemptingConnection = false;
             Password = new SecureString();
-
-            ConnectionTimeoutDelay = 15000;
-            connectionTimeout = new Timer(ConnectionTimeoutDelay);
-            connectionTimeout.Elapsed += ConnectionTimeout_Elapsed;
-
-            HeartbeatTimeoutDelay = 5000;
-            heartbeatTimeout = new Timer(HeartbeatTimeoutDelay);
-            heartbeatTimeout.Elapsed += HeartbeatTimeout_Elapsed;
 
             PrimaryMonitorClient = new MonitorClient();
             PrimaryMonitorClient.PropertyChanged += PrimaryMonitorClient_PropertyChanged;
@@ -176,12 +126,10 @@ namespace ACE_Mission_Control.Core.Models
             PrimaryCommanderClient = new CommanderClient();
             PrimaryCommanderClient.PropertyChanged += PrimaryCommanderClient_PropertyChanged;
 
-            if (hostname.Length == 0 || username.Length == 0)
+            if (hostname.Length == 0)
                 IsConfigured = false;
             else
                 IsConfigured = true;
-
-            UpdateStatus();
         }
 
         // Non-static methods
@@ -193,12 +141,6 @@ namespace ACE_Mission_Control.Core.Models
 
             if (AttemptingConnection)
                 return;
-
-            //if (!OnboardComputerController.KeyOpen)
-            //{
-            //    AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionKeyClosed), true);
-            //    return;
-            //}
 
             if (!IsConfigured)
             {
@@ -213,25 +155,11 @@ namespace ACE_Mission_Control.Core.Models
             try
             {
                 valuePtr = Marshal.SecureStringToGlobalAllocUnicode(Password);
-                connectionInfo = new ConnectionInfo(Hostname, Username, new PasswordAuthenticationMethod(Username,
-                    Marshal.PtrToStringUni(valuePtr)));
+                string decPassword = Marshal.PtrToStringUni(valuePtr);
 
-                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.MonitorConnecting));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionSearching));
 
-                AlertEntry monitorAlert;
-
-                bool successful = PrimaryMonitorClient.StartStream(out monitorAlert, connectionInfo);
-                if (!successful)
-                    AttemptingConnection = false;
-                else
-                {
-                    connectionTimeout.Start();
-                    Debug.WriteLine("CONNECT TIMEOUT RESTART PRIMARY MONITOR CONNECTED");
-                }
-
-                UpdateStatus();
-
-                AttachedDrone.AddAlert(monitorAlert);
+                PrimaryCommanderClient.StartStream(Hostname);
             }
             finally
             {
@@ -239,55 +167,35 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Connected" && PrimaryCommanderClient.Connected)
+            {
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionStarting));
+                PrimaryMonitorClient.StartStream(Hostname);
+                
+            }
+            else if (e.PropertyName == "ConnectionFailure" && PrimaryCommanderClient.ConnectionFailure)
+            {
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.ConnectionNoResponse));
+                Disconnect();
+            }
+        }
+
         private void PrimaryMonitorClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             // Start the primary command stream if the monitor is receiving successfully
-            if (e.PropertyName == "Receiving" && PrimaryMonitorClient.Receiving)
+            if (e.PropertyName == "Connected" && PrimaryMonitorClient.Connected)
             {
-                // Reset the timeout to 0
-                Debug.WriteLine("CONNECT TIMEOUT RESTART PRIMARY MONITOR STARTED");
-                connectionTimeout.Stop();
-                connectionTimeout.Start();
-
-                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommanderConnecting));
-                AlertEntry commanderAlert;
-
-                bool successful = PrimaryCommanderClient.StartStream(out commanderAlert, connectionInfo);
-                Debug.WriteLine("CONNECT TIMEOUT STOP PRIMARY COMMANDER CONNECTED");
-                connectionTimeout.Stop();
-                if (!successful)
-                    AttemptingConnection = false;
-                else
-                {
-                    connectionTimeout.Start();
-                    Debug.WriteLine("CONNECT TIMEOUT START PRIMARY COMMANDER CONNECTED");
-                }
-
-                AttachedDrone.AddAlert(commanderAlert);
-                UpdateStatus();
-            }
-        }
-
-        private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Initialized" && PrimaryCommanderClient.Initialized)
-            {
-                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionReady));
                 IsConnected = true;
                 AttemptingConnection = false;
-                Debug.WriteLine("CONNECT TIMEOUT STOP PRIMARY COMMANDER STARTED");
-                connectionTimeout.Stop();
-                heartbeatTimeout.Start();
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionReady));
             }
-            UpdateStatus();
-        }
-
-        private void ConnectionTimeout_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            if (IsConnected)
-                return;
-            Disconnect();
-            AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.ConnectionTimedOut, AttachedDrone.AlertLog[0].Type.ToString()));
+            else if (e.PropertyName == "Timedout" && PrimaryMonitorClient.Timedout)
+            {
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionTimedOut));
+                Disconnect();
+            }
         }
 
         private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
@@ -300,8 +208,6 @@ namespace ACE_Mission_Control.Core.Models
                 Heartbeat heartbeat = (Heartbeat)e.Message;
                 if (heartbeat.Arrhythmia > 0)
                     AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
-                heartbeatTimeout.Stop();
-                heartbeatTimeout.Start();
             }
             else if (e.MessageType == MessageType.ACEError)
             {
@@ -310,19 +216,9 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void HeartbeatTimeout_Elapsed(object sender, ElapsedEventArgs e)
+        public void OpenDebugConsole()
         {
-            if (!IsConnected)
-                return;
-            Disconnect();
-            AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCStoppedResponding));
-        }
-
-        public bool OpenDebugConsole(out AlertEntry alertResult)
-        {
-            bool successful;
-            successful = DebugMonitorClient.StartStream(out alertResult, connectionInfo, 2, false);
-            return successful;
+            DebugMonitorClient.StartStream(Hostname, 2, false);
         }
 
         public void Disconnect()
@@ -333,20 +229,6 @@ namespace ACE_Mission_Control.Core.Models
                 DebugMonitorClient.Disconnect();
             IsConnected = false;
             AttemptingConnection = false;
-        }
-
-        public void UpdateStatus()
-        {
-            if (!OnboardComputerController.KeyOpen)
-                Status = StatusEnum.PrivateKeyClosed;
-            else if (!IsConfigured)
-                Status = StatusEnum.NotConfigured;
-            else if (PrimaryMonitorClient.Connected == false)
-                Status = StatusEnum.SearchingPreMission;
-            else if (IsConnected)
-                Status = StatusEnum.ConnectedPreMission;
-            else
-                Status = StatusEnum.ConnectingPreMission;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

@@ -1,4 +1,6 @@
-﻿using Renci.SshNet;
+﻿using NetMQ;
+using NetMQ.Sockets;
+using Renci.SshNet;
 using Renci.SshNet.Common;
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Timers;
 using static ACE_Mission_Control.Core.Models.ACEEnums;
 
 namespace ACE_Mission_Control.Core.Models
@@ -20,133 +23,157 @@ namespace ACE_Mission_Control.Core.Models
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler<ResponseReceivedEventArgs> ResponseReceivedEvent;
 
-        private bool _initialized;
-        public bool Initialized
+        private bool _connected;
+        public bool Connected
         {
-            get { return _initialized; }
+            get { return _connected; }
             private set
             {
-                if (_initialized == value)
+                if (_connected == value)
                     return;
-                _initialized = value;
+                _connected = value;
                 NotifyPropertyChanged();
             }
         }
+
+        private bool _connectionFailure;
+        public bool ConnectionFailure
+        {
+            get { return _connectionFailure; }
+            private set
+            {
+                if (_connectionFailure == value)
+                    return;
+                _connectionFailure = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private readonly object readyForCommandLock = new object();
 
         private bool _readyForCommand;
         public bool ReadyForCommand
         {
-            get { return _readyForCommand; }
+            get 
+            {
+                lock (readyForCommandLock)
+                {
+                    return _readyForCommand;
+                }
+            }
             private set
             {
-                if (_readyForCommand == value)
-                    return;
-                _readyForCommand = value;
-                NotifyPropertyChanged();
+                lock (readyForCommandLock)
+                {
+                    if (_readyForCommand == value)
+                        return;
+                    _readyForCommand = value;
+                    NotifyPropertyChanged();
+                }
             }
         }
 
-        private bool _started;
-        public bool Started
-        {
-            get { return _started; }
-            private set
-            {
-                if (_started == value)
-                    return;
-                _started = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private SshClient client;
-        public ShellStream Stream;
+        private string address;
+        private RequestSocket socket;
+        private NetMQPoller poller;
+        private Timer failureTimer;
+        private bool commandSent;
 
         public CommanderClient()
         {
-            Initialized = false;
+            failureTimer = new Timer(5000);
+            failureTimer.Elapsed += FailureTimer_Elapsed;
+            failureTimer.AutoReset = true;
+
+            ConnectionFailure = false;
+            Connected = false;
             ReadyForCommand = false;
+            socket = new RequestSocket();
+            socket.SendReady += Socket_SendReady;
+            socket.ReceiveReady += Socket_ReceiveReady;
+            poller = new NetMQPoller();
+            poller.Add(socket);
         }
 
-        public bool StartStream(out AlertEntry alert, ConnectionInfo connectInfo)
+        private void FailureTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            if (!Connected)
+            {
+                ConnectionFailure = true;
+            }
+            else if (commandSent)
+            {
+                ConnectionFailure = true;
+                socket.Disconnect(address);
+            }
+        }
+
+        public void StartStream(string ip)
+        {
+            ConnectionFailure = false;
+            Connected = false;
+            address = "tcp://" + ip + ":5536";
+            failureTimer.Stop();
+            failureTimer.Start();
+            socket.Connect(address);
+            if (!poller.IsRunning)
+                poller.Run();
+        }
+
+        private void Socket_SendReady(object sender, NetMQSocketEventArgs e)
+        {
+            if (!Connected)
+            {
+                commandSent = true;
+                ReadyForCommand = false;
+                socket.TrySendFrame("ping");
+            }
+            else
+            {
+                ReadyForCommand = true;
+            }
+        }
+
+        public bool SendCommand(string command)
+        {
+            if (!ReadyForCommand || command == null)
+                return false;
+            ReadyForCommand = false;
+            failureTimer.Stop();
+            failureTimer.Start();
+            commandSent = true;
             try
             {
-                client = new SshClient(connectInfo);
-                client.Connect();
+                socket.SendFrame(command);
             }
-            catch (System.Net.Sockets.SocketException e)
+            catch (FiniteStateMachineException)
             {
-                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderSocketError, e.Message);
                 return false;
             }
-            catch (SshAuthenticationException e)
-            {
-                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderSSHError, e.Message);
-                return false;
-            }
-            catch (SshOperationTimeoutException e)
-            {
-                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderSSHTimeout, e.Message);
-                return false;
-            }
-
-            if (client == null || !client.IsConnected)
-            {
-                alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.CommanderCouldNotConnect);
-                return false;
-            }
-
-            Stream = client.CreateShellStream("Commander", 128, 64, 512, 256, 512);
-            Stream.DataReceived += Stream_DataReceived;
-            Stream.WriteLine("python3 ~/ACE-Onboard-Computer/build/bin/ace_commander.py");
-
-            alert = new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommanderStarting);
-            Started = true;
-            return true;
-        }
-
-        public bool SendCommand(out AlertEntry.AlertType error, string command)
-        {
-            if (!Stream.CanWrite)
-            {
-                error = AlertEntry.AlertType.CommanderNotWriteable;
-                return false;
-            }
-
-            Stream.WriteLine(command);
-            error = AlertEntry.AlertType.None;
             return true;
         }
 
         public void Disconnect()
         {
-            if (client == null || !client.IsConnected)
+            if (!Connected)
                 return;
 
-            client.Disconnect();
+            Connected = false;
             ReadyForCommand = false;
-            Initialized = false;
         }
 
-        private void Stream_DataReceived(object sender, Renci.SshNet.Common.ShellDataEventArgs e)
+        private void Socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            string data_text = Encoding.UTF8.GetString(e.Data);
-            if (data_text[0] == '>')
-            {
-                if (!Initialized) 
-                    Initialized = true;
-                ReadyForCommand = true;
-            }
-            else
-            {
-                ReadyForCommand = false;
-                if (!Initialized)
-                    return;
-                ResponseReceivedEventArgs response_e = new ResponseReceivedEventArgs();
-                response_e.Line = data_text;
-                ResponseReceivedEvent(this, response_e);
-            }
+            string data_text = e.Socket.ReceiveFrameString();
+
+            if (!Connected)
+                Connected = true;
+
+            commandSent = false;
+
+            ResponseReceivedEventArgs response_e = new ResponseReceivedEventArgs();
+            response_e.Line = data_text;
+            ResponseReceivedEvent(this, response_e);
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

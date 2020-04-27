@@ -152,7 +152,7 @@
                         x:Name="PayloadComboBox"
                         MinWidth="150"
                         Style="{ThemeResource ACEComboBox}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                        IsEnabled="False"
                         ItemsSource="{x:Bind ViewModel.AvailablePayloads, Mode=OneWay}"
                         SelectedIndex="{x:Bind ViewModel.SelectedPayload, Mode=OneWay}">
                         <i:Interaction.Behaviors>

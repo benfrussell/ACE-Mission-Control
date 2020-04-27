@@ -204,11 +204,8 @@
   <data name="Config_OBCConfigLabel.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Config_OBCHostnameLabel.Text" xml:space="preserve">
-    <value>Hostname</value>
-  </data>
-  <data name="Config_OBCUsernameLabel.Text" xml:space="preserve">
-    <value>Username</value>
+  <data name="Config_OBCIPLabel.Text" xml:space="preserve">
+    <value>IP Address</value>
   </data>
   <data name="Mission_RetrieveButton.Content" xml:space="preserve">
     <value>Retrieve Route</value>
@@ -275,47 +272,17 @@
   <data name="Main_OBCHeader.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Alert_CommanderConnecting" xml:space="preserve">
-    <value>Started! Connecting to Commander...</value>
-  </data>
-  <data name="Alert_CommanderCouldNotConnect" xml:space="preserve">
-    <value>Connecting to Commander failed for an unknown reason!</value>
-  </data>
-  <data name="Alert_CommanderSocketError" xml:space="preserve">
-    <value>Connection failed (Commander Socket):</value>
-  </data>
-  <data name="Alert_CommanderSSHError" xml:space="preserve">
-    <value>Connection failed (Commander SSH):</value>
-  </data>
-  <data name="Alert_CommanderStarting" xml:space="preserve">
-    <value>Connected! Starting Commander...</value>
-  </data>
   <data name="Alert_ConnectionReady" xml:space="preserve">
-    <value>Onboard Computer is ready!</value>
+    <value>Connection: Ready!</value>
   </data>
   <data name="Alert_ConnectionTimedOut" xml:space="preserve">
-    <value>Connection took to long. Stopped while</value>
+    <value>Connection: Onboard Computer stopped responding.</value>
   </data>
-  <data name="Alert_MonitorConnecting" xml:space="preserve">
-    <value>Searching for device...</value>
-  </data>
-  <data name="Alert_MonitorCouldNotConnect" xml:space="preserve">
-    <value>Connecting to Monitor failed for an unknown reason!</value>
-  </data>
-  <data name="Alert_MonitorSocketError" xml:space="preserve">
-    <value>Connection failed (Monitor Socket):</value>
-  </data>
-  <data name="Alert_MonitorSSHError" xml:space="preserve">
-    <value>Connection failed (Monitor SSH):</value>
-  </data>
-  <data name="Alert_MonitorStarting" xml:space="preserve">
-    <value>Connected! Starting Monitor...</value>
-  </data>
-  <data name="Alert_NoConnectionKeyClosed" xml:space="preserve">
-    <value>Can't connect: SSH key is locked.</value>
+  <data name="Alert_ConnectionSearching" xml:space="preserve">
+    <value>Connection: Searching for device...</value>
   </data>
   <data name="Alert_NoConnectionNotConfigured" xml:space="preserve">
-    <value>Can't connect: Connection is not configured.</value>
+    <value>Connection: Not configured.</value>
   </data>
   <data name="Alert_None" xml:space="preserve">
     <value />
@@ -325,9 +292,6 @@
   </data>
   <data name="Alert_OBCSlow" xml:space="preserve">
     <value>Onboard Computer working slow. Response delay</value>
-  </data>
-  <data name="Alert_OBCStoppedResponding" xml:space="preserve">
-    <value>Onboard Computer stopped responding.</value>
   </data>
   <data name="Config_AutoConnectCheck.Content" xml:space="preserve">
     <value>Disable Drone Auto-Connecting</value>
@@ -383,17 +347,8 @@
   <data name="Mission_AddFileButton.Content" xml:space="preserve">
     <value>Add From File</value>
   </data>
-  <data name="Alert_CommanderNotInitialized" xml:space="preserve">
-    <value>Could not send command. Commander not initialized.</value>
-  </data>
-  <data name="Alert_CommanderNotWriteable" xml:space="preserve">
-    <value>Failed to send command.  The command stream is unwriteable.</value>
-  </data>
   <data name="Alert_CommandError" xml:space="preserve">
     <value>Command error</value>
-  </data>
-  <data name="Alert_CommanderStreamError" xml:space="preserve">
-    <value>Commander stream error.</value>
   </data>
   <data name="Mission_ConnectDroneSwitch.OffContent" xml:space="preserve">
     <value>Connect to Drone</value>
@@ -401,16 +356,19 @@
   <data name="Mission_ConnectDroneSwitch.OnContent" xml:space="preserve">
     <value>Connect to Drone</value>
   </data>
-  <data name="Alert_CommanderSSHTimeout" xml:space="preserve">
-    <value>Connection failed (Commander timeout)</value>
-  </data>
   <data name="Alert_CommandResponse" xml:space="preserve">
     <value>Command</value>
   </data>
-  <data name="Alert_MonitorSSHTimeout" xml:space="preserve">
-    <value>Connection failed (Monitor timeout)</value>
-  </data>
   <data name="Mission_AlertGridCopy.Text" xml:space="preserve">
     <value>Copy Text</value>
+  </data>
+  <data name="Alert_ConnectionNoResponse" xml:space="preserve">
+    <value>Connection: No command response.</value>
+  </data>
+  <data name="Alert_ConnectionStarting" xml:space="preserve">
+    <value>Connection: Starting connection...</value>
+  </data>
+  <data name="Alert_NoConnection" xml:space="preserve">
+    <value>Onboard Computer is not connected.</value>
   </data>
 </root>

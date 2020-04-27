@@ -8,15 +8,6 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class ACEEnums
     {
-        public enum StatusEnum
-        {
-            PrivateKeyClosed,
-            NotConfigured,
-            SearchingPreMission,
-            ConnectingPreMission,
-            ConnectedPreMission
-        }
-
         public enum MessageType : int
         {
             Heartbeat = 0,

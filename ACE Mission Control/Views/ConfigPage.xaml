@@ -13,20 +13,13 @@
         <StackPanel Margin="8,8,8,8">
             <TextBlock x:Uid="Config_OBCConfigLabel" Margin="0,0,0,4" Style="{ThemeResource SubtitleTextBlockStyle}"/>
             <StackPanel>
-                <TextBlock x:Uid="Config_OBCHostnameLabel" />
+                <TextBlock x:Uid="Config_OBCIPLabel" />
                 <TextBox
                     Text="{x:Bind ViewModel.Hostname_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     x:Name="OBCHostnameBox"
                     IsSpellCheckEnabled="False"
                     helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.ApplyChangesCommand}" />
 
-                <TextBlock x:Uid="Config_OBCUsernameLabel"/>
-                <TextBox
-                    Text="{x:Bind ViewModel.Username_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    x:Name="OBCUsernameBox"
-                    IsSpellCheckEnabled="False"
-                    helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.ApplyChangesCommand}" />
-                
                 <StackPanel
                     Margin="{StaticResource XSmallTopMargin}"
                     Orientation="Horizontal"

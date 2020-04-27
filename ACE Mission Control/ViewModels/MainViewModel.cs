@@ -99,14 +99,25 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged += Alerts_CollectionChanged;
-            OBCStatusText = AttachedDrone.OBCClient.Status.ToString();
+            AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
+            OBCStatusText = AttachedDrone.MissionStage.ToString();
             OBCConnectedText = AttachedDrone.OBCClient.IsConnected ? "Connected" : "Not Connected";
+        }
+
+        private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (e.PropertyName == "MissionStage")
+                    OBCStatusText = AttachedDrone.MissionStage.ToString();
+            });
         }
 
         protected override void DroneUnattaching()
         {
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged -= Alerts_CollectionChanged;
+            AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -118,9 +129,6 @@ namespace ACE_Mission_Control.ViewModels
 
                 if (client.AttachedDrone.ID != DroneID)
                     return;
-
-                if (e.PropertyName == "Status")
-                    OBCStatusText = client.Status.ToString();
 
                 if (e.PropertyName == "IsConnected")
                     OBCConnectedText = AttachedDrone.OBCClient.IsConnected ? "Connected" : "Not Connected";

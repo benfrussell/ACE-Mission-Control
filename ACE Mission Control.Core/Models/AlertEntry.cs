@@ -17,30 +17,17 @@ namespace ACE_Mission_Control.Core.Models
         public enum AlertType
         {
             None,
-            NoConnectionKeyClosed,
+            NoConnection,
             NoConnectionNotConfigured,
-            MonitorSocketError,
-            MonitorSSHError,
-            MonitorCouldNotConnect,
-            MonitorStarting,
-            MonitorConnecting,
-            CommanderConnecting,
-            CommanderSocketError,
-            CommanderSSHError,
-            CommanderCouldNotConnect,
-            CommanderStarting,
-            CommanderNotInitialized,
-            CommanderNotWriteable,
-            CommanderStreamError,
+            ConnectionStarting,
             ConnectionReady,
             ConnectionTimedOut,
-            OBCStoppedResponding,
+            ConnectionNoResponse,
+            ConnectionSearching,
             OBCSlow,
             OBCError,
             CommandResponse,
-            CommandError,
-            MonitorSSHTimeout,
-            CommanderSSHTimeout
+            CommandError
         }
 
         public DateTime Timestamp;

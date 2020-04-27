@@ -34,7 +34,7 @@ namespace ACE_Mission_Control.Core.Models
             foreach (double[] vert in Area)
             {
                 if (vertString.Length != 0)
-                    vertString = vertString + ",";
+                    vertString = vertString + ";";
                 vertString = vertString + string.Format("{0},{1}", vert[0], vert[1]);
             }
             return vertString;

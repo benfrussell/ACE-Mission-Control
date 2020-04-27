@@ -20,23 +20,8 @@ namespace ACE_Mission_Control.ViewModels
             {
                 if (_hostname_text != value)
                 {
-                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text) | (AttachedDrone.OBCClient.Username != value);
+                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text);
                     _hostname_text = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        private string _username_text;
-        public string Username_Text
-        {
-            get { return _username_text; }
-            set
-            {
-                if (_username_text != value)
-                {
-                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text) | (AttachedDrone.OBCClient.Username != value);
-                    _username_text = value;
                     RaisePropertyChanged();
                 }
             }
@@ -108,7 +93,6 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneAttached(bool firstTime)
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
-            Username_Text = AttachedDrone.OBCClient.Username;
             DisableAutomationChecked = AttachedDrone.OBCClient.AutomationDisabled;
             DisableAutoConnectChecked = AttachedDrone.OBCClient.AutoConnectDisabled;
             ConnectButtonEnabled = !AttachedDrone.OBCClient.IsConnected &&
@@ -144,7 +128,6 @@ namespace ACE_Mission_Control.ViewModels
 
         private void applyButtonClicked()
         {
-            AttachedDrone.OBCClient.Username = Username_Text;
             AttachedDrone.OBCClient.Hostname = Hostname_Text;
             UnsavedChanges = false;
         }
@@ -152,7 +135,6 @@ namespace ACE_Mission_Control.ViewModels
         private void resetButtonClicked()
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
-            Username_Text = AttachedDrone.OBCClient.Username;
         }
 
         private void disableAutomationChecked()

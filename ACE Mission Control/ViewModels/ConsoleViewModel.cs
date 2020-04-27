@@ -85,11 +85,10 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand ConsoleCommandEnteredCommand => new RelayCommand(() => {
             if (CommandText != "" && AttachedDrone.OBCClient.PrimaryCommanderClient.ReadyForCommand)
             {
-                AlertEntry.AlertType error;
-                if (!AttachedDrone.OBCClient.PrimaryCommanderClient.SendCommand(out error, CommandText))
+                if (!AttachedDrone.OBCClient.PrimaryCommanderClient.SendCommand(CommandText))
                 {
                     var converter = new AlertToString();
-                    CMDResponseText = (string)converter.Convert(new AlertEntry(AlertEntry.AlertLevel.Medium, error), typeof(string), null, null);
+                    CMDResponseText = (string)converter.Convert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection), typeof(string), null, null);
                 }
                 else
                 {
@@ -126,7 +125,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                if (e.PropertyName == "Receiving" && AttachedDrone.OBCClient.DebugMonitorClient.Receiving)
+                if (e.PropertyName == "Connected" && AttachedDrone.OBCClient.DebugMonitorClient.Connected)
                     CanWriteCommand = true;
             });
         }
@@ -164,13 +163,7 @@ namespace ACE_Mission_Control.ViewModels
 
         private void activateDebugCommand()
         {
-            AlertEntry entry;
-            CanOpenDebug = !AttachedDrone.OBCClient.OpenDebugConsole(out entry);
-            if (!CanOpenDebug)
-            {
-                Helpers.AlertToString converter = new Helpers.AlertToString();
-                CMDResponseText = (string)converter.Convert(entry, typeof(string), null, null);
-            }
+            AttachedDrone.OBCClient.OpenDebugConsole();
         }
     }
 }

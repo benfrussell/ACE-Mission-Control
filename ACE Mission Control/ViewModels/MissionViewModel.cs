@@ -292,6 +292,7 @@ namespace ACE_Mission_Control.ViewModels
         }
 
         private bool setupMissionDialogOpen;
+        private bool suppressPayloadCommand;
 
         public MissionViewModel()
         {
@@ -301,6 +302,7 @@ namespace ACE_Mission_Control.ViewModels
             TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
 
             setupMissionDialogOpen = false;
+            suppressPayloadCommand = false;
             Messenger.Default.Register<SetupMissionDialogClosedMessage>(this,  (msg) => { setupMissionDialogOpen = false; });
         }
 
@@ -357,6 +359,7 @@ namespace ACE_Mission_Control.ViewModels
                         TreatmentDuration = AttachedDrone.TreatmentDuration.ToString();
                         break;
                     case "SelectedPayload":
+                        suppressPayloadCommand = true;
                         SelectedPayload = AttachedDrone.SelectedPayload;
                         break;
                     case "AvailablePayloads":
@@ -482,7 +485,11 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand<ComboBox> PayloadSelectionCommand => new RelayCommand<ComboBox>((box) => payloadSelectionCommand(box));
         private void payloadSelectionCommand(ComboBox box)
         {
-            AttachedDrone.SendCommand("set_payload -index " + box.SelectedIndex.ToString());
+            if (!suppressPayloadCommand)
+            {
+                //AttachedDrone.SendCommand("set_payload -index " + box.SelectedIndex.ToString());
+                suppressPayloadCommand = false;
+            }       
         }
 
         public RelayCommand DurationChangedCommand => new RelayCommand(() => durationChangedCommand());
@@ -572,18 +579,6 @@ namespace ACE_Mission_Control.ViewModels
         });
         private void passDialogEntered()
         {
-            //string response = await OnboardComputerController.OpenPrivateKeyAsync(PassDialogInputText);
-            //PassDialogLoading = false;
-            //if (response != null)
-            //{
-            //    PassDialogErrorText = response;
-            //}
-            //else
-            //{
-            //    Messenger.Default.Send(new HidePassphraseDialogMessage());
-            //    OnboardComputerController.StartTryingConnections();
-            //}
-
             Messenger.Default.Send(new HidePassphraseDialogMessage());
             OnboardComputerController.StartTryingConnections();
 

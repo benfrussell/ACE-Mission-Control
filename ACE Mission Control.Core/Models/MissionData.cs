@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using UGCS.Sdk.Protocol.Encoding;
 using System.Numerics;
 using System.Collections.ObjectModel;
+using Windows.Devices.Geolocation;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -72,17 +73,18 @@ namespace ACE_Mission_Control.Core.Models
                 if (segmentToken["type"].ToObject<string>() == "AreaScan")
                 {
                     var pointsToken = segmentToken["polygon"]["points"].Children();
-                    List<double[]> routeArea = new List<double[]>();
+                    List<BasicGeoposition> routeArea = new List<BasicGeoposition>();
 
                     foreach (JToken pointToken in pointsToken)
                     {
-                        double lat = pointToken["latitude"].ToObject<double>();
-                        double lon = pointToken["longitude"].ToObject<double>();
+                        var geop = new BasicGeoposition();
+                        geop.Latitude = (180 / Math.PI) * pointToken["latitude"].ToObject<double>();
+                        geop.Longitude = (180 / Math.PI) * pointToken["longitude"].ToObject<double>();
 
-                        routeArea.Add(new double[2] { lat, lon });
+                        routeArea.Add(geop);
                     }
 
-                    routes.Add(new AreaScanRoute(routeName, routeArea));
+                    routes.Add(new AreaScanRoute(routeName, new Geopath(routeArea)));
                 }
             }
 

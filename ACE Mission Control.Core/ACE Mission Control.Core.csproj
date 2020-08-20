@@ -20,10 +20,6 @@
    </ItemGroup>
 
    <ItemGroup>
-     <ProjectReference Include="..\..\SSH.NET-develop\src\Renci.SshNet.NETCore\Renci.SshNet.NETCore.csproj" />
-   </ItemGroup>
-
-   <ItemGroup>
      <Reference Include="Windows.Foundation.UniversalApiContract">
        <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Windows Kits\10\References\10.0.18362.0\Windows.Foundation.UniversalApiContract\8.0.0.0\Windows.Foundation.UniversalApiContract.winmd</HintPath>
      </Reference>

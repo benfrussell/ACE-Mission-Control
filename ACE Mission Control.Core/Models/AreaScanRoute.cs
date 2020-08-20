@@ -2,47 +2,48 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Windows.Devices.Geolocation;
 
 namespace ACE_Mission_Control.Core.Models
 {
     public class AreaScanRoute
     {
         public string Name;
-        public List<double[]> Area;
-        public List<int> Vertices;
+        public Geopath Area;
         public int EntryVertex;
 
-        public AreaScanRoute(string name, List<double[]> area)
+        public AreaScanRoute(string name, Geopath area)
         {
             Name = name;
             Area = area;
-            Vertices = Enumerable.Range(1, area.Count).ToList();
             EntryVertex = 0;
         }
 
         public AreaScanRoute()
         {
             Name = "";
-            Area = new List<double[]>();
-            Vertices = new List<int>();
+            Area = null;
             EntryVertex = 0;
         }
 
         public string GetVerticesString()
         {
             string vertString = "";
-            foreach (double[] vert in Area)
+            foreach (BasicGeoposition position in Area.Positions)
             {
                 if (vertString.Length != 0)
                     vertString = vertString + ";";
-                vertString = vertString + string.Format("{0},{1}", vert[0], vert[1]);
+                vertString = vertString + string.Format("{0},{1}", (Math.PI / 180) * position.Latitude, (Math.PI / 180) * position.Longitude);
             }
             return vertString;
         }
 
         public string GetEntryVetexString()
         {
-            string entryString = string.Format("{0},{1}", Area[EntryVertex][0], Area[EntryVertex][1]);
+            string entryString = string.Format(
+                "{0},{1}",
+                (Math.PI / 180) * Area.Positions[EntryVertex].Latitude,
+                (Math.PI / 180) * Area.Positions[EntryVertex].Longitude);
             return entryString;
         }
     }

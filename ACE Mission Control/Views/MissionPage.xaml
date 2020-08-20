@@ -10,6 +10,7 @@
     xmlns:ace="using:ACE_Mission_Control.Core.Models"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <local:DroneBasePage.Resources>
@@ -181,7 +182,7 @@
                                Foreground="{ThemeResource SystemErrorTextColor}"
                                Margin="16,0,0,0"/>
                 </StackPanel>
-                <StackPanel Orientation="Vertical">
+                <!--<StackPanel Orientation="Vertical">
                     <TextBlock x:Uid="Mission_AreaScanEntry"
                                Margin="16,0,0,4"/>
                     <TextBox Text="{x:Bind ViewModel.EntryWaypoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -194,7 +195,13 @@
                                Style="{ThemeResource CaptionTextBlockStyle}"
                                Foreground="{ThemeResource SystemErrorTextColor}"
                                Margin="16,0,0,0"/>
-                </StackPanel>
+                </StackPanel>-->
+                <Button x:Name="SetEntryButton"
+                        x:Uid="Mission_SetEntryButton"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                        Margin="8,0,0,0"
+                        Command="{x:Bind ViewModel.ShowSelectEntryCommand}"/>
                 <StackPanel
                     Orientation="Vertical">
                     <TextBlock
@@ -335,16 +342,16 @@
                 <Border Grid.Row="2"
                         Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}">
                     <ListView x:Name="SetupMissionRoutesList"
-                                  ItemsSource="{x:Bind ViewModel.AreaScanRoutes, Mode=TwoWay}"
-                                  CanReorderItems="True"
-                                  CanDragItems="True"
-                                  AllowDrop="True">
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="ace:AreaScanRoute">
-                                    <TextBlock Text="{x:Bind Name}"/>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                                ItemsSource="{x:Bind ViewModel.AreaScanRoutes, Mode=TwoWay}"
+                                CanReorderItems="True"
+                                CanDragItems="True"
+                                AllowDrop="True">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="ace:AreaScanRoute">
+                                <TextBlock Text="{x:Bind Name}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </Border>
                 <Button x:Uid="Mission_AddFileButton"
                         Margin="0,8,0,0"
@@ -352,6 +359,54 @@
                         Style="{ThemeResource ACEButton}"
                         Command="{x:Bind ViewModel.AddFileCommand}"
                         Grid.Row="3"/>
+            </Grid>
+        </ContentDialog>
+
+        <ContentDialog x:Name="SelectEntryDialog"
+                       x:Uid="Mission_SelectEntryDialog"
+                       PrimaryButtonText="Finish"
+                       SecondaryButtonText="Cancel"
+                       PrimaryButtonCommand="{x:Bind ViewModel.SetupMissionDialogEnterCommand}"
+                       Closed="SetupMissionDialog_Closed">
+            <Grid Width="500">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="45"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="400" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock x:Uid="Mission_SelectEntryTitle"
+                           Grid.Row="0"
+                           Style="{ThemeResource SubheaderTextBlockStyle}"/>
+                <TextBlock x:Uid="Mission_SelectEntrySubtitle"
+                           Grid.Row="1"
+                           Style="{ThemeResource BodyTextStyle}"
+                           Margin="0,0,0,8"/>
+                <maps:MapControl x:Name="EntryMapControl"
+                                 Grid.Row="2"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch"
+                                 TiltInteractionMode="GestureAndControl"
+                                 ZoomInteractionMode="GestureAndControl"
+                                 ZoomLevel="14"
+                                 MapElementClick="EntryMapControl_MapElementClick">
+                </maps:MapControl>
+                <StackPanel Orientation="Vertical"
+                            Grid.Row="3">
+                    <TextBlock x:Uid="Mission_SelectEntryLatLongHeader"
+                               Style="{ThemeResource BodyTextStyle}"
+                               Margin="0,8,0,4"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Uid="Mission_SelectEntryLat"
+                                   Margin="0,0,20,0"/>
+                        <TextBlock Text="{x:Bind ViewModel.SelectedEntryGeopoint.Latitude, Mode=OneWay}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Uid="Mission_SelectEntryLong"
+                                   Margin="0,0,7,0"/>
+                        <TextBlock Text="{x:Bind ViewModel.SelectedEntryGeopoint.Longitude, Mode=OneWay}"/>
+                    </StackPanel>
+                </StackPanel>
             </Grid>
         </ContentDialog>
     </Grid>

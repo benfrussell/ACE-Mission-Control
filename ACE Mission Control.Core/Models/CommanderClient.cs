@@ -1,7 +1,5 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
-using Renci.SshNet;
-using Renci.SshNet.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

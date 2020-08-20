@@ -20,6 +20,7 @@ using Windows.UI.Xaml;
 using System.Security;
 using Microsoft.Toolkit.Uwp.UI.Controls;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Devices.Geolocation;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -28,8 +29,11 @@ namespace ACE_Mission_Control.ViewModels
     public class ShowPassphraseDialogMessage : MessageBase { }
     public class HidePassphraseDialogMessage : MessageBase { }
     public class ShowSetupMissionDialogMessage : MessageBase { }
+    public class ShowSelectEntryDialogMessage : MessageBase { }
     public class SetupMissionDialogClosedMessage : MessageBase { }
     public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
+    public class AddEntryMapAreasMessage : MessageBase { public List<AreaScanRoute> areas { get; set; } }
+    public class AddEntryMapPointSelected : MessageBase { public int index { get; set; } }
 
     // --- Properties
 
@@ -190,36 +194,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private string _entryWaypoint;
-        public string EntryWaypoint
-        {
-            get { return _entryWaypoint; }
-            set
-            {
-                if (_entryWaypoint == value)
-                    return;
-                _entryWaypoint = value;
-                int parseOut = -1;
-                if (_entryWaypoint.Length > 0 && !int.TryParse(_entryWaypoint, out parseOut))
-                {
-                    EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
-                    EntryWaypointValidText = "Mission_InvalidInteger".GetLocalized();
-                }
-                else if (_entryWaypoint.Length > 0 && !AttachedDrone.MissionData.AreaScanRoutes[0].Vertices.Contains(parseOut))
-                {
-                    EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
-                    EntryWaypointValidText = "Mission_InvalidEntryWaypoint".GetLocalized();
-                }
-                else
-                {
-                    AttachedDrone.MissionData.AreaScanRoutes[0].EntryVertex = parseOut;
-                    EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
-                    EntryWaypointValidText = "";
-                }
-                RaisePropertyChanged("EntryWaypoint");
-            }
-        }
-
         private SolidColorBrush _entryWaypointBorderColour;
         public SolidColorBrush EntryWaypointBorderColour
         {
@@ -288,6 +262,28 @@ namespace ACE_Mission_Control.ViewModels
                     return;
                 _areaScanRoutes = value;
                 RaisePropertyChanged("AreaScanRoutes");
+                RaisePropertyChanged("SelectedEntryGeopoint");
+            }
+        }
+
+        public BasicGeoposition SelectedEntryGeopoint
+        {
+            get
+            {
+                if (AreaScanRoutes.Count == 0)
+                {
+                    return new BasicGeoposition()
+                    {
+                        Altitude = 0,
+                        Longitude = 0,
+                        Latitude = 0
+                    };
+                }
+                else
+                {
+                    return AreaScanRoutes[0].Area.Positions[AreaScanRoutes[0].EntryVertex];
+                }
+                    
             }
         }
 
@@ -304,6 +300,7 @@ namespace ACE_Mission_Control.ViewModels
             setupMissionDialogOpen = false;
             suppressPayloadCommand = false;
             Messenger.Default.Register<SetupMissionDialogClosedMessage>(this,  (msg) => { setupMissionDialogOpen = false; });
+            Messenger.Default.Register<AddEntryMapPointSelected>(this, (msg) => { AreaScanRoutes[0].EntryVertex = msg.index; RaisePropertyChanged("SelectedEntryGeopoint"); });
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -366,7 +363,11 @@ namespace ACE_Mission_Control.ViewModels
                         RaisePropertyChanged("AvailablePayloads");
                         break;
                     case "MissionData":
+                        // New mission data received in the model
                         AreaScanRoutes = AttachedDrone.MissionData.AreaScanRoutes;
+                        if (AttachedDrone.MissionData.AreaScanRoutes.Count > 0)
+                            Messenger.Default.Send(new AddEntryMapAreasMessage() { areas = AreaScanRoutes.ToList() });
+                        // Open setup if it's not open
                         if (!setupMissionDialogOpen)
                         {
                             Messenger.Default.Send(new ShowSetupMissionDialogMessage());
@@ -413,12 +414,6 @@ namespace ACE_Mission_Control.ViewModels
         {
             int parseOut;
             return durationString.Length == 0 || int.TryParse(durationString, out parseOut);
-        }
-
-        private bool isEntryPointValid(string entryString)
-        {
-            int parseOut;
-            return entryString.Length > 0 && !int.TryParse(entryString, out parseOut) && !AttachedDrone.MissionData.AreaScanRoutes[0].Vertices.Contains(parseOut);
         }
 
         // --- OBC Commands
@@ -499,13 +494,6 @@ namespace ACE_Mission_Control.ViewModels
                 AttachedDrone.SendCommand("set_duration -duration " + TreatmentDuration.ToString());
         }
 
-        public RelayCommand EntryChangedCommand => new RelayCommand(() => entryChangedCommand());
-        private void entryChangedCommand()
-        {
-            if (isEntryPointValid(TreatmentDuration))
-                AttachedDrone.SendCommand("set_entry -entry " + AttachedDrone.MissionData.AreaScanRoutes[0].GetEntryVetexString());
-        }
-
         public RelayCommand FlyThroughChangedCommand => new RelayCommand(() => flyThroughChangedCommand());
         private void flyThroughChangedCommand()
         {
@@ -550,6 +538,12 @@ namespace ACE_Mission_Control.ViewModels
             dataPackage.RequestedOperation = DataPackageOperation.Copy;
             dataPackage.SetText(copiedText);
             Clipboard.SetContent(dataPackage);
+        }
+
+        public RelayCommand ShowSelectEntryCommand => new RelayCommand(() => showSelectEntryCommand());
+        private void showSelectEntryCommand()
+        {
+            Messenger.Default.Send(new ShowSelectEntryDialogMessage());
         }
 
         // --- Dialog Commands

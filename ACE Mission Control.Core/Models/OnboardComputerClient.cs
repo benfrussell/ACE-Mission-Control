@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.IO;
-using Renci.SshNet;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using static ACE_Mission_Control.Core.Models.ACEEnums;

@@ -42,8 +42,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             string entryString = string.Format(
                 "{0},{1}",
-                (Math.PI / 180) * Area.Positions[EntryVertex].Latitude,
-                (Math.PI / 180) * Area.Positions[EntryVertex].Longitude);
+                Area.Positions[EntryVertex].Latitude,
+                Area.Positions[EntryVertex].Longitude);
             return entryString;
         }
     }

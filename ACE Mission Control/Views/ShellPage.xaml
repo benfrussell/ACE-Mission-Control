@@ -25,33 +25,8 @@
         IsSettingsVisible="True"
         IsPaneOpen="False"
         Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
-        MenuItemsSource="{x:Bind ViewModel.Drones}">
-        <winui:NavigationView.MenuItemTemplate>
-            <DataTemplate x:DataType="model:Drone">
-                <Grid HorizontalAlignment="Left"
-                      Height="40"
-                      Margin="-20,0,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="48" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Viewbox Grid.Column="0"
-                             Margin="16,12">
-                        <SymbolIcon Symbol="Send" />
-                    </Viewbox>
-                    <ContentPresenter Content="{x:Bind Name}"
-                                      Grid.Column="1"
-                                      VerticalAlignment="Center"/>
-                </Grid>
-            </DataTemplate>
-        </winui:NavigationView.MenuItemTemplate>
-        <!--
-            TODO WTS: Change the symbols for each item as appropriate for your app
-            More on Segoe UI Symbol icons: https://docs.microsoft.com/windows/uwp/style/segoe-ui-symbol-font
-            Or to use an IconElement instead of a Symbol see https://github.com/Microsoft/WindowsTemplateStudio/blob/master/docs/projectTypes/navigationpane.md
-            Edit String/en-US/Resources.resw: Add a menu item title for each page
-            -->
-            <!--<winui:NavigationViewItem x:Uid="Shell_Main" Icon="Document" helpers:NavHelper.NavigateTo="ACE_Mission_Control.ViewModels.MainViewModel" />-->
+        MenuItemsSource="{x:Bind ViewModel.MenuItems, Mode=OneWay}">
+
         <i:Interaction.Behaviors>
             <behaviors:NavigationViewHeaderBehavior
                 DefaultHeader="{x:Bind ViewModel.Header, Mode=OneWay}">
@@ -70,8 +45,6 @@
                 <ic:InvokeCommandAction Command="{x:Bind ViewModel.ItemInvokedCommand}" />
             </ic:EventTriggerBehavior>
         </i:Interaction.Behaviors>
-        <Grid>
-            <Frame x:Name="shellFrame" />
-        </Grid>
+        <Frame x:Name="ContentFrame"></Frame>
     </winui:NavigationView>
 </Page>

@@ -122,9 +122,6 @@
                 Grid.Row="1"
                 Grid.ColumnSpan="1"
                 Margin="10,0,0,0">
-                <Button x:Name="ConnectUGCSButton"
-                        x:Uid="Mission_ConnectUGCSButton"
-                        Style="{ThemeResource ACEButton}"/>
                 <ComboBox Style="{ThemeResource ACEComboBox}"
                                 IsEnabled="{x:Bind ViewModel.UGCSConnected, Mode=OneWay}"
                                 Margin="8,10,0,0"/>

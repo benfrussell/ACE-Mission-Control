@@ -389,4 +389,10 @@
   <data name="Mission_SelectEntryLong.Text" xml:space="preserve">
     <value>Longitude: </value>
   </data>
+  <data name="Welcome_FirstText.Text" xml:space="preserve">
+    <value>Welcome</value>
+  </data>
+  <data name="Welcome_SecondText.Text" xml:space="preserve">
+    <value>Select a drone to view on the left</value>
+  </data>
 </root>

@@ -289,6 +289,7 @@ namespace ACE_Mission_Control.ViewModels
 
         private bool setupMissionDialogOpen;
         private bool suppressPayloadCommand;
+        private UGCSClient ugcsclient;
 
         public MissionViewModel()
         {

@@ -91,8 +91,6 @@ namespace ACE_Mission_Control.ViewModels
 
         public MainViewModel()
         {
-            OBCAlertSymbol = Symbol.Message;
-            UGCSMissionRetrieveText = "Never!";
         }
 
         protected override void DroneAttached(bool firstTime)

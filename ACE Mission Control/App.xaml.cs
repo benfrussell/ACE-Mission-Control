@@ -29,7 +29,7 @@ namespace ACE_Mission_Control
         protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
             // Do pre-load here.. I think
-            DroneController.LoadDroneConfig();
+            DroneController.LoadUGCSDrones();
 
             if (!args.PrelaunchActivated)
             {
@@ -44,7 +44,7 @@ namespace ACE_Mission_Control
 
         private ActivationService CreateActivationService()
         {
-            return new ActivationService(this, typeof(ViewModels.MainViewModel), new Lazy<UIElement>(CreateShell));
+            return new ActivationService(this, typeof(ViewModels.WelcomeViewModel), new Lazy<UIElement>(CreateShell));
         }
 
         private UIElement CreateShell()

@@ -129,6 +129,8 @@ namespace ACE_Mission_Control.Core.Models
                 IsConfigured = false;
             else
                 IsConfigured = true;
+
+
         }
 
         // Non-static methods

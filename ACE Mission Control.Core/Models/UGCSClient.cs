@@ -79,6 +79,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private static List<Route> _availableRoutes;
+        public static List<Route> AvailableRoutes
+        {
+            get { return _availableRoutes; }
+            private set
+            {
+                if (value == _availableRoutes)
+                    return;
+                _availableRoutes = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
         static UGCSClient()
         {
             IsConnected = false;
@@ -163,19 +176,12 @@ namespace ACE_Mission_Control.Core.Models
             return new ConnectionResult() { Success = true, Message = "Connected to UGCS" };
         }
 
-        public static async void RequestVehicleList()
+        public static void RequestVehicleList()
         {
-            GetObjectListRequest vehiclesRequest = new GetObjectListRequest();
-            vehiclesRequest.ClientId = clientID;
-            vehiclesRequest.ObjectType = "Vehicle";
-            var vehiclesResponse = await Task.Run(() => RequestAndWait<GetObjectListResponse>(vehiclesRequest));
-
-            syncContext.Post(
-                new SendOrPostCallback((_) => ReceivedVehicleListEvent(
-                    null, 
-                    new ReceivedVehicleListEventArgs() { Vehicles = new List<Vehicle>(from v in vehiclesResponse.Objects select v.Vehicle) }
-                )),
-                null
+            RetrieveAndProcessObjectList("Vehicle", (objects) => ReceivedVehicleListEvent(
+                    null,
+                    new ReceivedVehicleListEventArgs() { Vehicles = new List<Vehicle>(from obj in objects select obj.Vehicle) }
+                )
             );
         }
 
@@ -191,6 +197,62 @@ namespace ACE_Mission_Control.Core.Models
             System.Diagnostics.Debug.WriteLine($"Client ID: {logRequest.ClientId}");
             System.Diagnostics.Debug.WriteLine($"From time: {logRequest.FromTime}");
             System.Diagnostics.Debug.WriteLine($"Logs received: {logResponse.VehicleLogEntries.Count}");
+        }
+
+        public static void RequestAvailableRoutes()
+        {
+            RetrieveAndProcessObjectList(
+                "Route", 
+                (objects) =>
+                {
+                    IEnumerable<Route> routes = from obj in objects select obj.Route;
+                    Route mostRecentRoute = routes.Aggregate((r1, r2) =>
+                        r1.LastModificationTimeSpecified &&
+                        r2.LastModificationTimeSpecified &&
+                        r1.LastModificationTime > r1.LastModificationTime ? r1 : r2);
+
+                    RetrieveAndProcessObject(
+                        "Mission",
+                        mostRecentRoute.Mission.Id,
+                        (missionObj) => AvailableRoutes = missionObj.Mission.Routes);
+                });
+        }
+
+        private static async void RetrieveAndProcessObjectList(string objectType, Action<List<DomainObjectWrapper>> processCallback)
+        {
+            if (!IsConnected)
+                throw new Exception($"Trying to retrieve {objectType} object list from UGCS but UGCS is not connected.");
+
+            GetObjectListRequest request = new GetObjectListRequest
+            {
+                ClientId = clientID,
+                ObjectType = objectType
+            };
+            var response = await Task.Run(() => RequestAndWait<GetObjectListResponse>(request));
+
+            syncContext.Post(
+                new SendOrPostCallback((_) => processCallback(response.Objects)),
+                null
+            );
+        }
+
+        private static async void RetrieveAndProcessObject(string objectType, int objectID, Action<DomainObjectWrapper> processCallback)
+        {
+            if (!IsConnected)
+                throw new Exception($"Trying to retrieve {objectType} object from UGCS but UGCS is not connected.");
+
+            GetObjectRequest request = new GetObjectRequest
+            {
+                ClientId = clientID,
+                ObjectId = objectID,
+                ObjectType = objectType
+            };
+            var response = await Task.Run(() => RequestAndWait<GetObjectResponse>(request));
+
+            syncContext.Post(
+                new SendOrPostCallback((_) => processCallback(response.Object)),
+                null
+            );
         }
 
         private static T RequestAndWait<T>(IExtensible request) where T : IExtensible

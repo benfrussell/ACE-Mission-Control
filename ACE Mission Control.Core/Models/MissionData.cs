@@ -15,6 +15,7 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class MissionData
     {
+        // TODO: Change entry point method to calculate based on the intersection of AreaScanRoutes and WaypointRoutes
         public ObservableCollection<AreaScanRoute> AreaScanRoutes;
         public MissionData(ObservableCollection<AreaScanRoute> areaScanRoutes)
         {

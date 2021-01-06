@@ -203,13 +203,28 @@ namespace ACE_Mission_Control.Core.Models
             get { return _missionData; }
             set
             {
+                if (_missionData == value)
+                    return;
                 _missionData = value;
                 NotifyPropertyChanged();
             }
         }
 
+        private string _name;
+        public string Name 
+        {
+            get { return _name; }
+            set
+            {
+                if (_name == value)
+                    return;
+                _name = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public int ID;
-        public string Name;
+        
         public OnboardComputerClient OBCClient;
         public ObservableCollection<AlertEntry> AlertLog;
         private Queue<string> commandQueue;
@@ -221,15 +236,14 @@ namespace ACE_Mission_Control.Core.Models
 
             ID = id;
             Name = name;
+            AlertLog = new ObservableCollection<AlertEntry>();
+            MissionData = new MissionData();
+            NewMission = false;
 
             OBCClient = new OnboardComputerClient(this, clientHostname);
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             OBCClient.PrimaryMonitorClient.MessageReceivedEvent += PrimaryMonitorClient_MessageReceivedEvent;
             OBCClient.PrimaryCommanderClient.PropertyChanged += PrimaryCommanderClient_PropertyChanged;
-
-            AlertLog = new ObservableCollection<AlertEntry>();
-            MissionData = new MissionData();
-            NewMission = false;
         }
 
         private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)

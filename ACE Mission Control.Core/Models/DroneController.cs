@@ -23,7 +23,7 @@ namespace ACE_Mission_Control.Core.Models
             droneIDs = new List<int>();
             drones = new ObservableCollection<Drone>();
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
-            UGCSClient.VehicleModificationEvent += UGCSClient_VehicleModificationEvent;
+            UGCSClient.ReceivedVehicleListEvent += UGCSClient_ReceivedVehicleListEvent;
         }
 
         public static void LoadDroneConfig()
@@ -45,20 +45,29 @@ namespace ACE_Mission_Control.Core.Models
 
         private static void UGCSClient_StaticPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "IsConnected")
+            if (e.PropertyName == "IsConnected" && UGCSClient.IsConnected)
             {
                 UGCSClient.RequestVehicleList();
             }
         }
 
-        private static void UGCSClient_VehicleModificationEvent(object sender, VehicleModificationEventArgs e)
+        private static void UGCSClient_ReceivedVehicleListEvent(object sender, ReceivedVehicleListEventArgs e)
         {
-            if (e.Modification == ModificationType.MT_CREATE && !Drones.Any(item => item.ID == e.Vehicle.Id))
+            foreach (Vehicle v in e.Vehicles)
             {
-                if (e.Vehicle.NameSpecified)
-                    Drones.Add(new Drone(e.Vehicle.Id, e.Vehicle.Name, "", ""));
+                var matchedDrone = Drones.Where(drone => drone.ID == v.Id).FirstOrDefault();
+                if (matchedDrone == null)
+                {
+                    if (v.NameSpecified)
+                        Drones.Add(new Drone(v.Id, v.Name, "", ""));
+                    else
+                        Drones.Add(new Drone(v.Id, "Drone " + v.Id.ToString(), "", ""));
+                } 
                 else
-                    Drones.Add(new Drone(e.Vehicle.Id, "Drone " + e.Vehicle.Id.ToString(), "", ""));
+                {
+                    // Update all properties of the ACE Drone which are related to the UGCS Vehicle
+                    matchedDrone.Name = v.Name;
+                }
             }
         }
     }

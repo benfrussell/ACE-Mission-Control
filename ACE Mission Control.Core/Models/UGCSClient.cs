@@ -10,13 +10,13 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Linq;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class VehicleModificationEventArgs : EventArgs
+    public class ReceivedVehicleListEventArgs : EventArgs
     {
-        public ModificationType Modification { get; set; }
-        public Vehicle Vehicle { get; set; }
+        public List<Vehicle> Vehicles { get; set; }
     }
 
     public class UGCSClient : INotifyPropertyChanged
@@ -30,7 +30,7 @@ namespace ACE_Mission_Control.Core.Models
         public static event PropertyChangedEventHandler StaticPropertyChanged;
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public static event EventHandler<VehicleModificationEventArgs> VehicleModificationEvent;
+        public static event EventHandler<ReceivedVehicleListEventArgs> ReceivedVehicleListEvent;
 
         private static System.Timers.Timer connectTimer;
         private static TcpClient tcpClient;
@@ -38,7 +38,6 @@ namespace ACE_Mission_Control.Core.Models
         private static MessageReceiver messageReceiver;
         private static MessageExecutor messageExecutor;
         private static int clientID;
-        private static UGCSVehicleListener vehicleListener;
         private static SynchronizationContext syncContext;
 
         private static bool _isConnected;
@@ -109,18 +108,9 @@ namespace ACE_Mission_Control.Core.Models
             connectTimer.Stop();
             ConnectionMessage = "Attempting connection to UGCS";
 
-            try
-            {
-                ConnectionResult result = await Task.Run(Connect);
-                IsConnected = result.Success;
-                ConnectionMessage = result.Message;
-            }
-            catch (Exception e)
-            {
-                IsConnected = false;
-                ConnectionMessage = e.Message;
-                System.Diagnostics.Debug.WriteLine(e);
-            }
+            ConnectionResult result = await Task.Run(Connect);
+            IsConnected = result.Success;
+            ConnectionMessage = result.Message;
 
             if (!IsConnected)
                 connectTimer.Start();
@@ -131,14 +121,20 @@ namespace ACE_Mission_Control.Core.Models
         public static ConnectionResult Connect()
         {
             tcpClient = new TcpClient();
-            tcpClient.Connect("localhost", 3334);
+            try
+            {
+                tcpClient.Connect("localhost", 3334);
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                return new ConnectionResult() { Success = false, Message = $"Couldn't connect to UGCS ({e.Message})" };
+            }
+            
 
             messageSender = new MessageSender(tcpClient.Session);
             messageReceiver = new MessageReceiver(tcpClient.Session);
             messageExecutor = new MessageExecutor(messageSender, messageReceiver, new InstantTaskScheduler());
-            messageExecutor.Configuration.DefaultTimeout = 10000;
-            //var notificationListener = new NotificationListener();
-            //messageReceiver.AddListener(-1, notificationListener);
+            messageExecutor.Configuration.DefaultTimeout = 5000;
 
             AuthorizeHciRequest authorizeRequest = new AuthorizeHciRequest
             {
@@ -167,56 +163,36 @@ namespace ACE_Mission_Control.Core.Models
             return new ConnectionResult() { Success = true, Message = "Connected to UGCS" };
         }
 
-        public static void RequestVehicleList()
+        public static async void RequestVehicleList()
         {
             GetObjectListRequest vehiclesRequest = new GetObjectListRequest();
             vehiclesRequest.ClientId = clientID;
             vehiclesRequest.ObjectType = "Vehicle";
-            var vehiclesResponse = RequestAndWait<GetObjectListResponse>(vehiclesRequest);
+            var vehiclesResponse = await Task.Run(() => RequestAndWait<GetObjectListResponse>(vehiclesRequest));
 
-            foreach (var v in vehiclesResponse.Objects)
-            {
-                syncContext.Post(new SendOrPostCallback((_) => 
-                    VehicleModificationEvent(null, new VehicleModificationEventArgs()
-                        {
-                            Modification = ModificationType.MT_CREATE,
-                            Vehicle = v.Vehicle
-                        }
-                    )),
-                    null
-                );
-            }
+            syncContext.Post(
+                new SendOrPostCallback((_) => ReceivedVehicleListEvent(
+                    null, 
+                    new ReceivedVehicleListEventArgs() { Vehicles = new List<Vehicle>(from v in vehiclesResponse.Objects select v.Vehicle) }
+                )),
+                null
+            );
         }
 
-        private static void StartReceivingVehicleUpdates()
+        public static void GetLogsForPastHour()
         {
-            GetObjectListRequest vehiclesRequest = new GetObjectListRequest();
-            vehiclesRequest.ClientId = clientID;
-            vehiclesRequest.ObjectType = "Vehicle";
-            var vehiclesResponse = RequestAndWait<GetObjectListResponse>(vehiclesRequest);
-
-            vehicleListener = new UGCSVehicleListener(new EventSubscriptionWrapper(), clientID, messageExecutor, new NotificationListener());
-
-            foreach (var v in vehiclesResponse.Objects)
-            {
-                VehicleModificationEvent(null, new VehicleModificationEventArgs()
-                {
-                    Modification = ModificationType.MT_CREATE,
-                    Vehicle = v.Vehicle
-                }
-                );
-                var objModSubs = new ObjectModificationSubscription();
-                objModSubs.ObjectId = v.Vehicle.Id;
-                vehicleListener.SubscribeVehicle(objModSubs, vehicleCallback);
-            }
+            System.Diagnostics.Debug.WriteLine("Requesting up to 10 logs from the past hour.");
+            GetVehicleLogRequest logRequest = new GetVehicleLogRequest();
+            logRequest.ClientId = clientID;
+            logRequest.Limit = 10;
+            logRequest.FromTime = (new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 3600) * 1000;
+            logRequest.ReverseOrder = true;
+            var logResponse = RequestAndWait<GetVehicleLogResponse>(logRequest);
+            System.Diagnostics.Debug.WriteLine($"Client ID: {logRequest.ClientId}");
+            System.Diagnostics.Debug.WriteLine($"From time: {logRequest.FromTime}");
+            System.Diagnostics.Debug.WriteLine($"Logs received: {logResponse.VehicleLogEntries.Count}");
         }
 
-        private static void vehicleCallback(ModificationType modification, Vehicle vehicle)
-        {
-            System.Diagnostics.Debug.WriteLine("Vehicle change!");
-        }
-
-        // Make a request expecting a response of type T
         private static T RequestAndWait<T>(IExtensible request) where T : IExtensible
         {
             var execution = messageExecutor.Submit<T>(request);

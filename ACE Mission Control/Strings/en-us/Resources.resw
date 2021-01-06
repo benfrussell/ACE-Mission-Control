@@ -395,4 +395,7 @@
   <data name="Welcome_SecondText.Text" xml:space="preserve">
     <value>Select a drone to view on the left</value>
   </data>
+  <data name="Shell_RefreshDroneList.Text" xml:space="preserve">
+    <value>Refresh Drone List</value>
+  </data>
 </root>

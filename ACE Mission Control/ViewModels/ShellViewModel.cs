@@ -95,12 +95,31 @@ namespace ACE_Mission_Control.ViewModels
             NavigationService.NavigationFailed += Frame_NavigationFailed;
             NavigationService.Navigated += Frame_Navigated;
             _navigationView.BackRequested += OnBackRequested;
+            MenuItems = GetMenuItems().ToList();
             DroneController.Drones.CollectionChanged += Drones_CollectionChanged;
         }
 
         private void Drones_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             MenuItems = GetMenuItems().ToList();
+            foreach (Drone d in e.NewItems)
+            {
+                d.PropertyChanged += Drone_PropertyChanged;
+            }
+        }
+
+        private void Drone_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Name")
+            {
+                MenuItems = GetMenuItems().ToList();    
+                if (NavigationService.Frame.Content is MainPage)
+                {
+                    Drone drone = sender as Drone;
+                    if ((NavigationService.Frame.Content as MainPage).DroneID == drone.ID)
+                        Header = drone.Name;
+                }
+            }
         }
 
         public IEnumerable<WinUI.NavigationViewItemBase> GetMenuItems()
@@ -141,9 +160,7 @@ namespace ACE_Mission_Control.ViewModels
                 return;
             }
 
-            var item = MenuItems
-                .OfType<WinUI.NavigationViewItem>()
-                .First(menuItem => (string)menuItem.Content == (string)args.InvokedItem);
+            var item = args.InvokedItemContainer as WinUI.NavigationViewItem;
 
             if (item.Tag is Drone)
             {
@@ -157,6 +174,11 @@ namespace ACE_Mission_Control.ViewModels
             {
                 NavigationService.Navigate(item.Tag as string);
             }
+        }
+        public RelayCommand RefreshDroneListCommand => new RelayCommand(() => refreshDroneListCommand());
+        private void refreshDroneListCommand()
+        {
+            DroneController.LoadUGCSDrones();
         }
 
         private void OnBackRequested(WinUI.NavigationView sender, WinUI.NavigationViewBackRequestedEventArgs args)
@@ -202,7 +224,6 @@ namespace ACE_Mission_Control.ViewModels
                                 break;
                             }
                         }
-                        
                     }
                     else
                     {
@@ -211,7 +232,6 @@ namespace ACE_Mission_Control.ViewModels
                             Header = DroneController.Drones[0].Name;
                         }
                     }
-                        
                 }
                 else
                 {

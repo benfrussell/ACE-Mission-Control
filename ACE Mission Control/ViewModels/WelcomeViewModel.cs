@@ -28,10 +28,13 @@ namespace ACE_Mission_Control.ViewModels
             UGCSConnectText = UGCSClient.ConnectionMessage;
         }
 
-        private void UGCSClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async void UGCSClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ConnectionMessage")
-                UGCSConnectText = UGCSClient.ConnectionMessage;
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (e.PropertyName == "ConnectionMessage")
+                    UGCSConnectText = UGCSClient.ConnectionMessage;
+            });
         }
     }
 }

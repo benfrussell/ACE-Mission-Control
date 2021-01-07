@@ -47,13 +47,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (e.PropertyName == "IsConnected" && UGCSClient.IsConnected)
             {
-                UGCSClient.RequestAvailableRoutes();
                 UGCSClient.RequestVehicleList();
-            }
-            else if (e.PropertyName == "AvailableRoutes")
-            {
-                var routes = UGCSClient.AvailableRoutes;
-                System.Diagnostics.Debug.WriteLine("Routes received");
             }
         }
 

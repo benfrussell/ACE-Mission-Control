@@ -110,6 +110,12 @@
                 </Grid>
             </PivotItem>
 
+            <PivotItem x:Uid="Main_PlannerPivotItem" x:Name="PlannerItem">
+                <Grid>
+                    <Frame x:Name="PlannerFrame" Style="{ThemeResource ACEFrame}"/>
+                </Grid>
+            </PivotItem>
+
             <PivotItem x:Uid="Main_ConfigPivotItem" x:Name="ConfigItem">
                 <Grid>
                     <Frame x:Name="ConfigFrame" Style="{ThemeResource ACEFrame}"/>

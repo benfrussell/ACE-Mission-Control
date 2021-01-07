@@ -19,6 +19,11 @@ namespace ACE_Mission_Control.Core.Models
         public List<Vehicle> Vehicles { get; set; }
     }
 
+    public class ReceivedRecentRoutesEventArgs : EventArgs
+    {
+        public List<Route> Routes { get; set; }
+    }
+
     public class UGCSClient : INotifyPropertyChanged
     {
         public struct ConnectionResult
@@ -31,6 +36,7 @@ namespace ACE_Mission_Control.Core.Models
         public event PropertyChangedEventHandler PropertyChanged;
 
         public static event EventHandler<ReceivedVehicleListEventArgs> ReceivedVehicleListEvent;
+        public static event EventHandler<ReceivedRecentRoutesEventArgs> ReceivedRecentRoutesEvent;
 
         private static System.Timers.Timer connectTimer;
         private static TcpClient tcpClient;
@@ -75,19 +81,6 @@ namespace ACE_Mission_Control.Core.Models
                 if (value == _connectionMessage)
                     return;
                 _connectionMessage = value;
-                NotifyStaticPropertyChanged();
-            }
-        }
-
-        private static List<Route> _availableRoutes;
-        public static List<Route> AvailableRoutes
-        {
-            get { return _availableRoutes; }
-            private set
-            {
-                if (value == _availableRoutes)
-                    return;
-                _availableRoutes = value;
                 NotifyStaticPropertyChanged();
             }
         }
@@ -185,13 +178,14 @@ namespace ACE_Mission_Control.Core.Models
             );
         }
 
-        public static void GetLogsForPastHour()
+        public static void GetLogs()
         {
             System.Diagnostics.Debug.WriteLine("Requesting up to 10 logs from the past hour.");
             GetVehicleLogRequest logRequest = new GetVehicleLogRequest();
             logRequest.ClientId = clientID;
             logRequest.Limit = 10;
-            logRequest.FromTime = (new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 3600) * 1000;
+            logRequest.FromTime = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() * 1000;
+            logRequest.FromTimeSpecified = true;
             logRequest.ReverseOrder = true;
             var logResponse = RequestAndWait<GetVehicleLogResponse>(logRequest);
             System.Diagnostics.Debug.WriteLine($"Client ID: {logRequest.ClientId}");
@@ -199,7 +193,7 @@ namespace ACE_Mission_Control.Core.Models
             System.Diagnostics.Debug.WriteLine($"Logs received: {logResponse.VehicleLogEntries.Count}");
         }
 
-        public static void RequestAvailableRoutes()
+        public static void RequestRecentMissionRoutes()
         {
             RetrieveAndProcessObjectList(
                 "Route", 
@@ -214,7 +208,9 @@ namespace ACE_Mission_Control.Core.Models
                     RetrieveAndProcessObject(
                         "Mission",
                         mostRecentRoute.Mission.Id,
-                        (missionObj) => AvailableRoutes = missionObj.Mission.Routes);
+                        (missionObj) => ReceivedRecentRoutesEvent(
+                            null, 
+                            new ReceivedRecentRoutesEventArgs() { Routes = missionObj.Mission.Routes }));
                 });
         }
 

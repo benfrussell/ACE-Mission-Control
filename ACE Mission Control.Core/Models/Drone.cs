@@ -299,18 +299,18 @@ namespace ACE_Mission_Control.Core.Models
 
         public void UploadMission()
         {
-            string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -name {3} -radians", 
-                MissionData.AreaScanRoutes[0].GetVerticesString(),
-                TreatmentDuration,
-                MissionData.AreaScanRoutes[0].GetEntryVetexString(),
-                MissionData.AreaScanRoutes[0].Name);
-            SendCommand(uploadCmd);
+            //string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -name {3} -radians", 
+            //    MissionData.AreaScanRoutes[0].GetVerticesString(),
+            //    TreatmentDuration,
+            //    MissionData.AreaScanRoutes[0].GetEntryVetexString(),
+            //    MissionData.AreaScanRoutes[0].Name);
+            //SendCommand(uploadCmd);
 
-            if (MissionData.AreaScanRoutes.Count > 1)
-                for (int i = 1; i < MissionData.AreaScanRoutes.Count; i++)
-                    SendCommand(string.Format("add_area -data {0} -name {1} -radians", 
-                        MissionData.AreaScanRoutes[i].GetVerticesString(),
-                        MissionData.AreaScanRoutes[i].Name));
+            //if (MissionData.AreaScanRoutes.Count > 1)
+            //    for (int i = 1; i < MissionData.AreaScanRoutes.Count; i++)
+            //        SendCommand(string.Format("add_area -data {0} -name {1} -radians", 
+            //            MissionData.AreaScanRoutes[i].GetVerticesString(),
+            //            MissionData.AreaScanRoutes[i].Name));
         }
 
         private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)

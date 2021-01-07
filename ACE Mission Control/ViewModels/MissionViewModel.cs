@@ -28,12 +28,8 @@ namespace ACE_Mission_Control.ViewModels
 
     public class ShowPassphraseDialogMessage : MessageBase { }
     public class HidePassphraseDialogMessage : MessageBase { }
-    public class ShowSetupMissionDialogMessage : MessageBase { }
-    public class ShowSelectEntryDialogMessage : MessageBase { }
-    public class SetupMissionDialogClosedMessage : MessageBase { }
     public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
-    public class AddEntryMapAreasMessage : MessageBase { public List<AreaScanRoute> areas { get; set; } }
-    public class AddEntryMapPointSelected : MessageBase { public int index { get; set; } }
+    
 
     // --- Properties
 
@@ -194,32 +190,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private SolidColorBrush _entryWaypointBorderColour;
-        public SolidColorBrush EntryWaypointBorderColour
-        {
-            get { return _entryWaypointBorderColour; }
-            set
-            {
-                if (_entryWaypointBorderColour == value)
-                    return;
-                _entryWaypointBorderColour = value;
-                RaisePropertyChanged("EntryWaypointBorderColour");
-            }
-        }
-
-        private string _entryWaypointValidText;
-        public string EntryWaypointValidText
-        {
-            get { return _entryWaypointValidText; }
-            set
-            {
-                if (_entryWaypointValidText == value)
-                    return;
-                _entryWaypointValidText = value;
-                RaisePropertyChanged("EntryWaypointValidText");
-            }
-        }
-
         public List<string> AvailablePayloads
         {
             get { return AttachedDrone.AvailablePayloads; }
@@ -252,41 +222,6 @@ namespace ACE_Mission_Control.ViewModels
             get { return _alerts; }
         }
 
-        private ObservableCollection<AreaScanRoute> _areaScanRoutes;
-        public ObservableCollection<AreaScanRoute> AreaScanRoutes
-        {
-            get { return _areaScanRoutes; }
-            set
-            {
-                if (_areaScanRoutes == value)
-                    return;
-                _areaScanRoutes = value;
-                RaisePropertyChanged("AreaScanRoutes");
-                RaisePropertyChanged("SelectedEntryGeopoint");
-            }
-        }
-
-        public BasicGeoposition SelectedEntryGeopoint
-        {
-            get
-            {
-                if (AreaScanRoutes.Count == 0)
-                {
-                    return new BasicGeoposition()
-                    {
-                        Altitude = 0,
-                        Longitude = 0,
-                        Latitude = 0
-                    };
-                }
-                else
-                {
-                    return AreaScanRoutes[0].Area.Positions[AreaScanRoutes[0].EntryVertex];
-                }
-                    
-            }
-        }
-
         private bool setupMissionDialogOpen;
         private bool suppressPayloadCommand;
         private UGCSClient ugcsclient;
@@ -294,14 +229,10 @@ namespace ACE_Mission_Control.ViewModels
         public MissionViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();
-            AreaScanRoutes = new ObservableCollection<AreaScanRoute>();
-            EntryWaypointBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
             TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
 
             setupMissionDialogOpen = false;
             suppressPayloadCommand = false;
-            Messenger.Default.Register<SetupMissionDialogClosedMessage>(this,  (msg) => { setupMissionDialogOpen = false; });
-            Messenger.Default.Register<AddEntryMapPointSelected>(this, (msg) => { AreaScanRoutes[0].EntryVertex = msg.index; RaisePropertyChanged("SelectedEntryGeopoint"); });
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -362,18 +293,6 @@ namespace ACE_Mission_Control.ViewModels
                         break;
                     case "AvailablePayloads":
                         RaisePropertyChanged("AvailablePayloads");
-                        break;
-                    case "MissionData":
-                        // New mission data received in the model
-                        AreaScanRoutes = AttachedDrone.MissionData.AreaScanRoutes;
-                        if (AttachedDrone.MissionData.AreaScanRoutes.Count > 0)
-                            Messenger.Default.Send(new AddEntryMapAreasMessage() { areas = AreaScanRoutes.ToList() });
-                        // Open setup if it's not open
-                        if (!setupMissionDialogOpen)
-                        {
-                            Messenger.Default.Send(new ShowSetupMissionDialogMessage());
-                            setupMissionDialogOpen = true;
-                        }
                         break;
                 }
             });
@@ -451,33 +370,6 @@ namespace ACE_Mission_Control.ViewModels
 
         // --- Mission Commands
 
-        public RelayCommand ImportFileCommand => new RelayCommand(() => importFileDialog());
-        private async void importFileDialog()
-        {
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".json");
-            picker.ViewMode = PickerViewMode.Thumbnail;
-            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-
-            var result = await picker.PickMultipleFilesAsync();
-            if (result != null)
-            {
-                bool firstFile = true;
-                foreach (StorageFile file in result)
-                {
-                    if (firstFile)
-                    {
-                        AttachedDrone.MissionData = await MissionData.CreateMissionDataFromFile(file);
-                        firstFile = false;
-                    }
-                    else
-                    {
-                        AttachedDrone.MissionData.AddRoutesFromFile(file);
-                    }
-                }
-            }
-        }
-
         public RelayCommand<ComboBox> PayloadSelectionCommand => new RelayCommand<ComboBox>((box) => payloadSelectionCommand(box));
         private void payloadSelectionCommand(ComboBox box)
         {
@@ -541,37 +433,14 @@ namespace ACE_Mission_Control.ViewModels
             Clipboard.SetContent(dataPackage);
         }
 
-        public RelayCommand ShowSelectEntryCommand => new RelayCommand(() => showSelectEntryCommand());
-        private void showSelectEntryCommand()
-        {
-            Messenger.Default.Send(new ShowSelectEntryDialogMessage());
-        }
-
         // --- Dialog Commands
-
-        public RelayCommand AddFileCommand => new RelayCommand(() => addFileDialog());
-        private async void addFileDialog()
-        {
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".json");
-            picker.ViewMode = PickerViewMode.Thumbnail;
-            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-
-            var result = await picker.PickMultipleFilesAsync();
-            if (result != null)
-            {
-                foreach (StorageFile file in result)
-                {
-                    AttachedDrone.MissionData.AddRoutesFromFile(file);
-                }
-            }
-        }
 
         public RelayCommand PassDialogEnterCommand => new RelayCommand(() => {
             PassDialogErrorText = "";
             PassDialogLoading = true;
             passDialogEntered();
         });
+
         private void passDialogEntered()
         {
             Messenger.Default.Send(new HidePassphraseDialogMessage());
@@ -586,13 +455,6 @@ namespace ACE_Mission_Control.ViewModels
                 AttachedDrone.OBCClient.Password.Clear();
             foreach (char c in pass.Password.ToCharArray())
                 AttachedDrone.OBCClient.Password.AppendChar(c);
-        }
-
-        public RelayCommand SetupMissionDialogEnterCommand => new RelayCommand(() => setupMissionDialogEntered());
-        private void setupMissionDialogEntered()
-        {
-            AttachedDrone.MissionData.AreaScanRoutes = AreaScanRoutes;
-            AttachedDrone.NewMission = true;
         }
     }
 }

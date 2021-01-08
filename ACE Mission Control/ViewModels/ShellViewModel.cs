@@ -39,9 +39,17 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public ObservableCollection<Drone> Drones
+        private List<WinUI.NavigationViewItemBase> _menuItems;
+        public List<WinUI.NavigationViewItemBase> MenuItems
         {
-            get { return DroneController.Drones; }
+            get { return _menuItems; }
+            set
+            {
+                if (_menuItems == value)
+                    return;
+                _menuItems = value;
+                RaisePropertyChanged("MenuItems");
+            }
         }
 
         // Generated Code
@@ -87,12 +95,55 @@ namespace ACE_Mission_Control.ViewModels
             NavigationService.NavigationFailed += Frame_NavigationFailed;
             NavigationService.Navigated += Frame_Navigated;
             _navigationView.BackRequested += OnBackRequested;
+            MenuItems = GetMenuItems().ToList();
+            DroneController.Drones.CollectionChanged += Drones_CollectionChanged;
+        }
+
+        private void Drones_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            MenuItems = GetMenuItems().ToList();
+            foreach (Drone d in e.NewItems)
+            {
+                d.PropertyChanged += Drone_PropertyChanged;
+            }
+        }
+
+        private void Drone_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Name")
+            {
+                MenuItems = GetMenuItems().ToList();    
+                if (NavigationService.Frame.Content is MainPage)
+                {
+                    Drone drone = sender as Drone;
+                    if ((NavigationService.Frame.Content as MainPage).DroneID == drone.ID)
+                        Header = drone.Name;
+                }
+            }
+        }
+
+        public IEnumerable<WinUI.NavigationViewItemBase> GetMenuItems()
+        {
+            yield return new WinUI.NavigationViewItem()
+            {
+                Content = "Home",
+                Icon = new SymbolIcon(Symbol.Home),
+                Tag = typeof(WelcomeViewModel).FullName
+            };
+
+            foreach (Drone d in DroneController.Drones)
+            {
+                yield return new WinUI.NavigationViewItem()
+                {
+                    Content = d.Name,
+                    Icon = new SymbolIcon(Symbol.Send),
+                    Tag = d
+                };
+            }
         }
 
         private async void OnLoaded()
         {
-            //UGCSClient.StartTryingConnections();
-
             // Generated code
             // Keyboard accelerators are added here to avoid showing 'Alt + left' tooltip on the page.
             // More info on tracking issue https://github.com/Microsoft/microsoft-ui-xaml/issues/8
@@ -109,23 +160,25 @@ namespace ACE_Mission_Control.ViewModels
                 return;
             }
 
-            if (args.InvokedItem.GetType() == typeof(Drone))
+            var item = args.InvokedItemContainer as WinUI.NavigationViewItem;
+
+            if (item.Tag is Drone)
             {
                 // Suppress the transition if navigating from the same type of page
                 if (NavigationService.Frame.CurrentSourcePageType == typeof(MainPage))
-                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (args.InvokedItem as Drone).ID, new SuppressNavigationTransitionInfo());
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (item.Tag as Drone).ID, new SuppressNavigationTransitionInfo());
                 else
-                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (args.InvokedItem as Drone).ID);
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (item.Tag as Drone).ID);
             }
             else
             {
-                // Generated code
-                var item = _navigationView.MenuItems
-                            .OfType<WinUI.NavigationViewItem>()
-                            .First(menuItem => (string)menuItem.Content == (string)args.InvokedItem);
-                var pageKey = item.GetValue(NavHelper.NavigateToProperty) as string;
-                NavigationService.Navigate(pageKey, null, new SuppressNavigationTransitionInfo());
+                NavigationService.Navigate(item.Tag as string);
             }
+        }
+        public RelayCommand RefreshDroneListCommand => new RelayCommand(() => refreshDroneListCommand());
+        private void refreshDroneListCommand()
+        {
+            DroneController.LoadUGCSDrones();
         }
 
         private void OnBackRequested(WinUI.NavigationView sender, WinUI.NavigationViewBackRequestedEventArgs args)
@@ -146,6 +199,13 @@ namespace ACE_Mission_Control.ViewModels
                 Selected = _navigationView.SettingsItem as WinUI.NavigationViewItem;
                 Header = "Settings";
             }
+            else if (e.SourcePageType == typeof(WelcomePage))
+            {
+                Selected = _navigationView.MenuItems
+                            .OfType<WinUI.NavigationViewItem>()
+                            .FirstOrDefault(menuItem => IsMenuItemForPageType(menuItem, e.SourcePageType));
+                Header = " ";
+            }
             else
             {
                 Selected = _navigationView.MenuItems
@@ -164,13 +224,14 @@ namespace ACE_Mission_Control.ViewModels
                                 break;
                             }
                         }
-                        
                     }
                     else
                     {
-                        Header = DroneController.Drones[0].Name;
+                        if (DroneController.Drones.Count > 0)
+                        {
+                            Header = DroneController.Drones[0].Name;
+                        }
                     }
-                        
                 }
                 else
                 {

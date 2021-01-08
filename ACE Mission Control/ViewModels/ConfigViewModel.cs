@@ -20,23 +20,8 @@ namespace ACE_Mission_Control.ViewModels
             {
                 if (_hostname_text != value)
                 {
-                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text) | (AttachedDrone.OBCClient.Username != value);
+                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text);
                     _hostname_text = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        private string _username_text;
-        public string Username_Text
-        {
-            get { return _username_text; }
-            set
-            {
-                if (_username_text != value)
-                {
-                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text) | (AttachedDrone.OBCClient.Username != value);
-                    _username_text = value;
                     RaisePropertyChanged();
                 }
             }
@@ -57,7 +42,7 @@ namespace ACE_Mission_Control.ViewModels
         }
 
         private bool _automation_checked;
-        public bool AutomationChecked
+        public bool DisableAutomationChecked
         {
             get { return _automation_checked; }
             set
@@ -65,14 +50,41 @@ namespace ACE_Mission_Control.ViewModels
                 if (_automation_checked == value)
                     return;
                 _automation_checked = value;
-                RaisePropertyChanged("AutomationChecked");
+                RaisePropertyChanged("DisableAutomationChecked");
+            }
+        }
+
+        private bool _disable_auto_connect_checked;
+        public bool DisableAutoConnectChecked
+        {
+            get { return _disable_auto_connect_checked; }
+            set
+            {
+                if (_disable_auto_connect_checked == value)
+                    return;
+                _disable_auto_connect_checked = value;
+                RaisePropertyChanged("DisableAutoConnectChecked");
+            }
+        }
+
+        private bool _connect_button_enabled;
+        public bool ConnectButtonEnabled
+        {
+            get { return _connect_button_enabled; }
+            set
+            {
+                if (value == _connect_button_enabled)
+                    return;
+                _connect_button_enabled = value;
+                RaisePropertyChanged("ConnectButtonEnabled");
             }
         }
 
         public RelayCommand ApplyChangesCommand => new RelayCommand(() => applyButtonClicked());
         public RelayCommand ResetChangesCommand => new RelayCommand(() => resetButtonClicked());
-        public RelayCommand AutomationCheckCommand => new RelayCommand(() => automationChecked());
-
+        public RelayCommand DisableAutomationCheckCommand => new RelayCommand(() => disableAutomationChecked());
+        public RelayCommand ConnectCommand => new RelayCommand(() => connectClicked());
+        public RelayCommand DisableAutoConnectCheckCommand => new RelayCommand(() => disableAutoConnectChecked());
         public ConfigViewModel()
         {
             
@@ -81,14 +93,17 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneAttached(bool firstTime)
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
-            Username_Text = AttachedDrone.OBCClient.Username;
-            AutomationChecked = AttachedDrone.OBCClient.AutomationDisabled;
+            DisableAutomationChecked = AttachedDrone.OBCClient.AutomationDisabled;
+            DisableAutoConnectChecked = AttachedDrone.OBCClient.AutoConnectDisabled;
+            ConnectButtonEnabled = !AttachedDrone.OBCClient.IsConnected &&
+                !AttachedDrone.OBCClient.AttemptingConnection &&
+                AttachedDrone.OBCClient.AutoConnectDisabled;
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
         }
 
         protected override void DroneUnattaching()
         {
-            
+            AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
         }
 
         private async void OBCClient_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -100,12 +115,19 @@ namespace ACE_Mission_Control.ViewModels
 
                 if (client.AttachedDrone.ID != DroneID)
                     return;
+
+                if (e.PropertyName == "IsConnected" || e.PropertyName == "AttemptingConnection" || e.PropertyName == "AutoConnectDisabled")
+                {
+                    ConnectButtonEnabled = !AttachedDrone.OBCClient.IsConnected &&
+                        !AttachedDrone.OBCClient.AttemptingConnection &&
+                        AttachedDrone.OBCClient.AutoConnectDisabled;
+                }
+
             });
         }
 
         private void applyButtonClicked()
         {
-            AttachedDrone.OBCClient.Username = Username_Text;
             AttachedDrone.OBCClient.Hostname = Hostname_Text;
             UnsavedChanges = false;
         }
@@ -113,12 +135,21 @@ namespace ACE_Mission_Control.ViewModels
         private void resetButtonClicked()
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
-            Username_Text = AttachedDrone.OBCClient.Username;
         }
 
-        private void automationChecked()
+        private void disableAutomationChecked()
         {
-            AttachedDrone.OBCClient.AutomationDisabled = AutomationChecked;
+            AttachedDrone.OBCClient.AutomationDisabled = DisableAutomationChecked;
+        }
+
+        private void connectClicked()
+        {
+            AttachedDrone.OBCClient.TryConnect();
+        }
+
+        private void disableAutoConnectChecked()
+        {
+            AttachedDrone.OBCClient.AutoConnectDisabled = DisableAutoConnectChecked;
         }
     }
 }

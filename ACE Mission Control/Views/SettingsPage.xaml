@@ -26,14 +26,6 @@
                 <TextBlock Text="{x:Bind ViewModel.SSHKeyGenerationText}" Style="{ThemeResource SubNoteTextStyle}"/>
             </StackPanel>
 
-            <TextBlock x:Uid="Settings_Drones" Style="{ThemeResource SubtitleTextBlockStyle}" />
-
-            <StackPanel Margin="{StaticResource SmallTopBottomMargin}">
-                <ComboBox x:Uid="Settings_NumDrones"
-                          ItemsSource="{x:Bind ViewModel.NumDronesItems}"
-                          SelectedValue="{x:Bind ViewModel.NumDronesValue, Mode=TwoWay}"/>
-            </StackPanel>
-            
             <TextBlock x:Uid="Settings_Personalization" Style="{ThemeResource SubtitleTextBlockStyle}" />
             <StackPanel Margin="{StaticResource SmallTopBottomMargin}">
 

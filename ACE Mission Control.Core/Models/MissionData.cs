@@ -13,6 +13,7 @@ using Windows.Devices.Geolocation;
 using NetTopologySuite.Geometries;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Timers;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -48,6 +49,21 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private static bool isUGCSPollerRunning;
+        public static bool IsUGCSPollerRunning
+        {
+            get { return isUGCSPollerRunning; }
+            private set
+            {
+                if (value == isUGCSPollerRunning)
+                    return;
+                isUGCSPollerRunning = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
+        private static Timer ugcsPoller;
+
         static MissionData()
         {
             AreaScanPolygons = new List<AreaScanPolygon>();
@@ -55,10 +71,33 @@ namespace ACE_Mission_Control.Core.Models
             UGCSClient.ReceivedRecentRoutesEvent += UGCSClient_ReceivedRecentRoutesEvent;
         }
 
-        public static void RequestUGCSRoutes()
+        public static void StartUGCSPoller()
+        {
+            // Prepare the poller but start one request attempt right away if we're connected
+            ugcsPoller = new Timer(3000);
+            ugcsPoller.Elapsed += RequestUGCSRoutes;
+            ugcsPoller.AutoReset = false;
+            IsUGCSPollerRunning = true;
+
+            if (UGCSClient.IsConnected)
+            {
+                RequestUGCSRoutes();
+            }
+            else
+            {
+                if (UGCSClient.TryingConnections)
+                    ugcsPoller.Start();
+                else
+                    UGCSClient.StartTryingConnections();
+            }
+        }
+
+        private static void RequestUGCSRoutes(Object source = null, ElapsedEventArgs args = null)
         {
             if (UGCSClient.IsConnected)
                 UGCSClient.RequestRecentMissionRoutes();
+            else if (IsUGCSPollerRunning)
+                ugcsPoller.Start();
         }
 
         private static void UGCSClient_ReceivedRecentRoutesEvent(object sender, ReceivedRecentRoutesEventArgs e)
@@ -75,7 +114,11 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             AreaScanPolygons = areaScans;
+            // This update needs to happen last to properly trigger the update
             WaypointRoutes = waypointRoutes;
+
+            if (IsUGCSPollerRunning)
+                ugcsPoller.Start();
         }
 
         private static void NotifyStaticPropertyChanged([CallerMemberName] string propertyName = "")
@@ -104,8 +147,8 @@ namespace ACE_Mission_Control.Core.Models
             foreach (var removed in removedInstructions)
                 TreatmentInstructions.Remove(removed);
 
-            var treatmentAreaIDs = (from a in AreaScanPolygons select a.ID).ToList();
-            // Select and add all AreaScanPolygons where the treatment ID doesn't already exist among the treatment instruction area IDs
+            var treatmentAreaIDs = (from i in TreatmentInstructions select i.ID).ToList();
+            // Select and add all AreaScanPolygons where the ID doesn't already exist among the treatment instruction area IDs
             var addedAreas = AreaScanPolygons.Where(a => !treatmentAreaIDs.Contains(a.ID));
             foreach (var addedArea in addedAreas)
             {

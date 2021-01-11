@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 /* How to attach a Drone to a ViewModel
- * ShellPage.xaml           The MenuItems in the navigation bar have tags that are the Drone objects.
+ * ShellPage.xaml           The MenuItems in the navigation bar in the shell page are the Drone objects.
  * 
- * ShellViewModel.cs:       If the invoked item has a tag that is a Drone object, navigate to the MainView page with the drone ID as a parameter.
+ * ShellViewModel.cs:       If the invoked item is a Drone object, navigate to the MainView page with the drone ID as a parameter.
  *                          OnFrameNavigate parses the drone ID parameter to get the drone name for the header.
  *                          
  * MainPage.xaml.cs:        OnNavigate parses the drone ID parameter or set it 0.

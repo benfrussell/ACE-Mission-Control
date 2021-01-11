@@ -27,23 +27,31 @@ namespace ACE_Mission_Control.Views
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class PlannerPage : Page
+    public sealed partial class PlannerPage : DroneBasePage
     {
         private PlannerViewModel ViewModel
         {
             get { return ViewModelLocator.Current.PlannerViewModel; }
         }
 
-        public PlannerPage()
+        public PlannerPage() : base()
         {
             this.InitializeComponent();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            Messenger.Default.Register<AddMapAreasMessage>(this, (msg) => SetMapPolygons(msg.areas));
+            if (isInit)
+            {
+                // Things to do on every navigation
+            }
+            else
+            {
+                Messenger.Default.Register<AddMapAreasMessage>(this, (msg) => SetMapPolygons(msg.areas));
+                EntryMapControl.MapServiceToken = "Av_Cfm7_8qnq4khKZCRO5ywWQD0h2NDiuRVYZ1l2ArUEmrOM3ttdXQv6R_Wck_Lj";
+            }
 
-            EntryMapControl.MapServiceToken = "Av_Cfm7_8qnq4khKZCRO5ywWQD0h2NDiuRVYZ1l2ArUEmrOM3ttdXQv6R_Wck_Lj";
+            base.OnNavigatedTo(e);
         }
 
         private void SetMapPolygons(object areaMsg)

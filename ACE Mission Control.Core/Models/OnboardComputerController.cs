@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Renci.SshNet;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -15,6 +16,7 @@ namespace ACE_Mission_Control.Core.Models
         public static event PropertyChangedEventHandler StaticPropertyChanged;
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public static volatile PrivateKeyFile PrivateKey;
         private static Timer connectTimer;
 
         private static bool _keyOpen;
@@ -38,7 +40,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public static void StartTryingConnections()
         {
-            connectTimer = new Timer(3000);
+            connectTimer = new Timer(5000);
             // Hook up the Elapsed event for the timer.
             connectTimer.Elapsed += StartConnectionEvent;
             connectTimer.AutoReset = true;
@@ -49,41 +51,59 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (Drone d in DroneController.Drones)
             {
-                if (!d.OBCClient.AutoConnectDisabled && !d.OBCClient.AttemptingConnection && !d.OBCClient.IsConnected)
-                    d.OBCClient.TryConnect();
+                string result;
+                bool success = d.OBCClient.TryConnect(out result);
+                if (!success)
+                    continue;
             }
         }
 
-        //public static string OpenPrivateKey(string passphrase)
-        //{
-        //    string error = null;
-        //    try
-        //    {
-        //        if (passphrase == null || passphrase.Length == 0)
-        //        {
-        //            error = "Passphrase cannot be empty.";
-        //        }
-        //        else
-        //        {
-        //            string app_dir = Environment.CurrentDirectory.Substring(0, Environment.CurrentDirectory.LastIndexOf("\\"));
-        //            PrivateKey = new PrivateKeyFile(app_dir + @"\Scripts\key_gen\keys\id_rsa", passphrase);
-        //            KeyOpen = true;
-        //        }
-        //    }
-        //    catch (InvalidOperationException)
-        //    {
-        //        error = "Incorrect passphrase.";
-        //    }
-        //    catch (FileNotFoundException)
-        //    {
-        //        error = "Could not find the key file. Make sure to generate a key and configure the onboard computer.";
-        //    }
-        //    catch (UnauthorizedAccessException)
-        //    {
-        //        error = "Access to the key file was denied. Ensure the application and user have permission to read the file.";
-        //    }
-        //    return error;
-        //}
+        public static string OpenPrivateKey(string passphrase)
+        {
+            string error = null;
+            try
+            {
+                if (passphrase == null || passphrase.Length == 0)
+                {
+                    error = "Passphrase cannot be empty.";
+                }
+                else
+                {
+                    string app_dir = Environment.CurrentDirectory.Substring(0, Environment.CurrentDirectory.LastIndexOf("\\"));
+                    PrivateKey = new PrivateKeyFile(app_dir + @"\Scripts\key_gen\keys\id_rsa", passphrase);
+                    KeyOpen = true;
+                    StartTryingConnections();
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                error = "Incorrect passphrase.";
+            }
+            catch (FileNotFoundException)
+            {
+                error = "Could not find the key file. Make sure to generate a key and configure the onboard computer.";
+            }
+            catch (UnauthorizedAccessException)
+            {
+                error = "Access to the key file was denied. Ensure the application and user have permission to read the file.";
+            }
+            finally
+            {
+                UpdateAllStatus();
+            }
+            return error;
+        }
+
+        private static void UpdateAllStatus()
+        {
+            foreach (Drone d in DroneController.Drones)
+                d.OBCClient.UpdateStatus();
+        }
+
+        public static async Task<string> OpenPrivateKeyAsync(string passphrase)
+        {
+            return await Task.Run(() => OpenPrivateKey(passphrase));
+        }
 
         public static void GenerateSSHKeyFiles(string password)
         {

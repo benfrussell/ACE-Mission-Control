@@ -1,14 +1,11 @@
-﻿using System;
+﻿using Renci.SshNet;
+using Renci.SshNet.Common;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Google.Protobuf;
-using static ACE_Mission_Control.Core.Models.ACEEnums;
-using Pbdrone;
-using NetMQ.Sockets;
-using NetMQ;
-using System.Collections.Generic;
-using System.Timers;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -17,17 +14,23 @@ namespace ACE_Mission_Control.Core.Models
         public string Line { get; set; }
     }
 
-    public class MessageReceivedEventArgs : EventArgs
-    {
-        public MessageType MessageType;
-        public IMessage Message;
-    }
-
     public class MonitorClient : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler<LineReceivedEventArgs> LineReceivedEvent;
-        public event EventHandler<MessageReceivedEventArgs> MessageReceivedEvent;
+
+        private bool _receiving;
+        public bool Receiving
+        {
+            get { return _receiving; }
+            private set
+            {
+                if (_receiving == value)
+                    return;
+                _receiving = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private string _allReceived;
         public string AllReceived
@@ -42,190 +45,76 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool _connected;
-        public bool Connected
-        {
-            get { return _connected; }
-            private set
-            {
-                if (_connected == value)
-                    return;
-                _connected = value;
-                NotifyPropertyChanged();
-            }
-        }
+        public bool Started = false;
 
-        private bool _timedout;
-        public bool Timedout
-        {
-            get { return _timedout; }
-            private set
-            {
-                if (_timedout == value)
-                    return;
-                _timedout = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private SubscriberSocket socket;
-        private NetMQPoller poller;
-        private bool byteMode;
-        private string address;
-        private Timer failureTimer;
+        private SshClient client;
+        private ShellStream stream;
+        private bool byte_mode;
 
         public MonitorClient()
         {
-            failureTimer = new Timer(5000);
-            failureTimer.Elapsed += FailureTimer_Elapsed;
-            failureTimer.AutoReset = true;
-
-            Connected = false;
+            Receiving = false;
             AllReceived = "";
-            socket = new SubscriberSocket();
-            socket.ReceiveReady += Socket_ReceiveReady;
-
-            poller = new NetMQPoller();
-            poller.Add(socket);
         }
 
-        private void FailureTimer_Elapsed(object sender, ElapsedEventArgs e)
+        public bool StartStream(out string result, ConnectionInfo connectionInfo, int debug_level = 0, bool heartbeat = true)
         {
-            if (Connected)
-                socket.Disconnect(address);
-            Connected = false;
-            Timedout = true;
-        }
+            try
+            {
+                client = new SshClient(connectionInfo);
+                client.Connect();
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                result = e.Message;
+                return false;
+            }
+            catch (SshAuthenticationException e)
+            {
+                result = e.Message;
+                return false;
+            }
 
-        public void StartStream(string ip, int debug_level = 0, bool heartbeat = true)
-        {
-            Connected = false;
-            Timedout = false;
-            address = "tcp://" + ip + ":5535";
-            socket.Connect(address);
-            socket.SubscribeToAnyTopic();
-
-            if (!poller.IsRunning)
-                poller.RunAsync();
-
-            failureTimer.Start();
+            if (client == null || !client.IsConnected)
+            {
+                result = "Client did not connect.";
+                return false;
+            }
 
             AllReceived = "";
-            byteMode = debug_level == 0;
+            byte_mode = debug_level == 0;
 
             string debug_arg = "-d " + debug_level.ToString();
             string heartbeat_arg = heartbeat ? " -h" : "";
+
+            stream = client.CreateShellStream("Monitor", 128, 64, 512, 256, 512);
+            stream.DataReceived += Stream_DataReceived;
+            stream.WriteLine("python3 ~/Drone/build/bin/ace_monitor.py " + debug_arg + heartbeat_arg);
+
+            result = "Success.";
+            Started = true;
+            return true;
         }
 
-        public void Disconnect()
+        private void Stream_DataReceived(object sender, Renci.SshNet.Common.ShellDataEventArgs e)
         {
-            if (!Connected)
-                return;
+            string data_text = Encoding.UTF8.GetString(e.Data);
+            AllReceived += data_text;
 
-            Connected = false;
-        }
+            LineReceivedEventArgs line_e = new LineReceivedEventArgs();
+            line_e.Line = data_text;
 
-        private void Socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
-        {
-            if (!Connected)
-                Connected = true;
-            List<byte[]> data = e.Socket.ReceiveMultipartBytes(2);
-
-            //if (!byteMode)
-            //{
-            //    AllReceived += data_text;
-
-            //    LineReceivedEventArgs line_e = new LineReceivedEventArgs();
-            //    line_e.Line = data_text;
-
-            //    LineReceivedEvent(this, line_e);
-            //}
-
-            if (data.Count != 2)
-                return;
-
-            int message_type_id = (byte)data[0][0];
-
-            byte[] message_data = data[1];
-            IMessage message = null;
-
-            switch ((MessageType)message_type_id)
+            if (!Receiving && data_text == "Ready to receive updates.")
             {
-                case MessageType.Heartbeat:
-                    failureTimer.Stop();
-                    failureTimer.Start();
-                    message = Heartbeat.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.InterfaceStatus:
-                    message = InterfaceStatus.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.FlightStatus:
-                    message = FlightStatus.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.ControlDevice:
-                    message = ControlDevice.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.Telemetry:
-                    message = Telemetry.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.FlightAnomaly:
-                    message = FlightAnomaly.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.ACEError:
-                    message = ACEError.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.MissionStatus:
-                    message = MissionStatus.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.MissionConfig:
-                    message = MissionConfig.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.CommandResponse:
-                    message = CommandResponse.Parser.ParseFrom(message_data);
-                    break;
-                default:
-                    System.Diagnostics.Debug.WriteLine("Received unknown message type: " + message_type_id);
-                    break;
+                Receiving = true;
             }
 
-            if (message != null)
-            {
-                MessageReceivedEventArgs messageEventArgs = new MessageReceivedEventArgs();
-                messageEventArgs.MessageType = (MessageType)message_type_id;
-                messageEventArgs.Message = message;
-                MessageReceivedEvent(this, messageEventArgs);
-            }
+            LineReceivedEvent(this, line_e);
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private static byte[] StringToByteArray(string hex)
-        {
-            if (hex.Length % 2 == 1)
-                throw new Exception("The binary key cannot have an odd number of digits");
-
-            byte[] arr = new byte[hex.Length >> 1];
-
-            for (int i = 0; i < hex.Length >> 1; ++i)
-            {
-                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
-            }
-
-            return arr;
-        }
-
-        private static int GetHexVal(char hex)
-        {
-            int val = (int)hex;
-            //For uppercase A-F letters:
-            //return val - (val < 58 ? 48 : 55);
-            //For lowercase a-f letters:
-            return val - (val < 58 ? 48 : 87);
-            //Or the two combined, but a bit slower:
-            //return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
     }
 }

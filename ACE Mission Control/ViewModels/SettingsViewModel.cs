@@ -37,6 +37,20 @@ namespace ACE_Mission_Control.ViewModels
             get { return _numDronesItems; }
         }
 
+        private string _numDronesValue;
+        public string NumDronesValue
+        {
+            get { return _numDronesValue; }
+            set
+            {
+                if (value == _numDronesValue)
+                    return;
+                _numDronesValue = value;
+                DroneController.SetDroneNum(int.Parse(value));
+                RaisePropertyChanged("NumDronesValue");
+            }
+        }
+
         private ElementTheme _elementTheme = ThemeSelectorService.Theme;
 
         public ElementTheme ElementTheme
@@ -82,6 +96,8 @@ namespace ACE_Mission_Control.ViewModels
             {
                 _numDronesItems.Add(i.ToString());
             }
+
+            NumDronesValue = NumDronesItems[0];
 
             SSHKeyGenerationText = "Last key generated whenever.";
         }

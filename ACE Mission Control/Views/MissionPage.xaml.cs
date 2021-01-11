@@ -37,7 +37,7 @@ namespace ACE_Mission_Control.Views
         {
             if (isInit)
             {
-                // Things to do on every navigation
+                base.OnNavigatedTo(e);
             }
             else
             {
@@ -48,10 +48,8 @@ namespace ACE_Mission_Control.Views
                     diagCanClose = true;
                     PassphraseDialog.Hide();
                 });
-
-                Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
+                base.OnNavigatedTo(e);
             }
-            base.OnNavigatedTo(e);
         }
 
         public MissionPage() : base()
@@ -59,11 +57,6 @@ namespace ACE_Mission_Control.Views
             this.InitializeComponent();
 
             Loaded += MissionPage_Loaded;
-        }
-
-        private void AlertGridScrollToBottom(object newItem)
-        {
-            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
         }
 
         private void MissionPage_Loaded(object sender, RoutedEventArgs e)

@@ -24,7 +24,7 @@ namespace ACE_Mission_Control.Views
     /// </summary>
     public partial class DroneBasePage : Page
     {
-        public int DroneID;
+        protected int droneID;
         protected bool isInit;
 
         protected DroneViewModelBase BaseViewModel
@@ -47,12 +47,12 @@ namespace ACE_Mission_Control.Views
             base.OnNavigatedTo(e);
 
             if (e.Parameter.GetType() == typeof(int))
-                DroneID = (int)e.Parameter;
+                droneID = (int)e.Parameter;
             else
-                DroneID = 0;
+                droneID = 0;
 
-            System.Diagnostics.Debug.WriteLine("Setting Drone ID to " + DroneID + " for " + this.GetType().Name);
-            BaseViewModel.SetDroneID(DroneID);
+            System.Diagnostics.Debug.WriteLine("Setting Drone ID to " + droneID + " for " + this.GetType().Name);
+            BaseViewModel.SetDroneID(droneID);
 
             isInit = true;
         }

@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
-using System.Linq;
-using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class DroneController
+    public class DroneController : ObservableCollection<Drone>
     {
-        public const int MAX_DRONES = 10;
+        public const int MAX_DRONES = 5;
         private static List<int> droneIDs;
 
         private static ObservableCollection<Drone> drones;
@@ -22,53 +20,70 @@ namespace ACE_Mission_Control.Core.Models
         {
             droneIDs = new List<int>();
             drones = new ObservableCollection<Drone>();
-            UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
-            UGCSClient.ReceivedVehicleListEvent += UGCSClient_ReceivedVehicleListEvent;
         }
 
         public static void LoadDroneConfig()
         {
-            throw new NotImplementedException();
+            AddDrone("Drone 0");
         }
 
-        public static void LoadUGCSDrones()
+        public static void AddDrone()
         {
-            if (!UGCSClient.IsConnected && !UGCSClient.TryingConnections)
+            if (drones.Count < MAX_DRONES)
             {
-                UGCSClient.StartTryingConnections();
-            } 
-            else if (UGCSClient.IsConnected)
-            {
-                UGCSClient.RequestVehicleList();
+                var id = getNewDroneID();
+                drones.Add(new Drone(id, "Drone " + id.ToString(), "", ""));
             }
         }
 
-        private static void UGCSClient_StaticPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        public static void AddDrone(string name)
         {
-            if (e.PropertyName == "IsConnected" && UGCSClient.IsConnected)
+            if (drones.Count < MAX_DRONES)
             {
-                UGCSClient.RequestVehicleList();
+                drones.Add(new Drone(getNewDroneID(), name, "", ""));
             }
         }
 
-        private static void UGCSClient_ReceivedVehicleListEvent(object sender, ReceivedVehicleListEventArgs e)
+        // Set the number of drones available
+        public static void SetDroneNum(int number)
         {
-            foreach (Vehicle v in e.Vehicles)
+            if (number < drones.Count)
             {
-                var matchedDrone = Drones.Where(drone => drone.ID == v.Id).FirstOrDefault();
-                if (matchedDrone == null)
+                // Remove drones
+                int end_val = number - 1;
+                for (int i = drones.Count - 1; i > end_val; i--)
                 {
-                    if (v.NameSpecified)
-                        Drones.Add(new Drone(v.Id, v.Name, "", ""));
-                    else
-                        Drones.Add(new Drone(v.Id, "Drone " + v.Id.ToString(), "", ""));
-                } 
-                else
-                {
-                    // Update all properties of the ACE Drone which are related to the UGCS Vehicle
-                    matchedDrone.Name = v.Name;
+                    drones.RemoveAt(i);
                 }
             }
+            else if (number > drones.Count && number <= MAX_DRONES)
+            {
+                // Add drones
+                int end_val = number - drones.Count;
+                for (int i = 0; i < end_val; i++)
+                {
+                    AddDrone();
+                }
+            }
+        }
+
+        private static int getNewDroneID()
+        {
+            bool found = false;
+            int id = 0;
+            while (found == false)
+            {
+                if (!droneIDs.Contains(id))
+                {
+                    found = true;
+                    droneIDs.Add(id);
+                }
+                else
+                {
+                    id++;
+                }
+            }
+            return id;
         }
     }
 }

@@ -11,13 +11,6 @@
     xmlns:behaviors="using:ACE_Mission_Control.Behaviors"
     mc:Ignorable="d">
 
-    <Page.Resources>
-        <Style x:Key="SymbolTextBlockStyle" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="FontSize" Value="16"/>
-        </Style>
-    </Page.Resources>
-
     <i:Interaction.Behaviors>
         <ic:EventTriggerBehavior EventName="Loaded">
             <ic:InvokeCommandAction Command="{x:Bind ViewModel.LoadedCommand}" />
@@ -32,40 +25,33 @@
         IsSettingsVisible="True"
         IsPaneOpen="False"
         Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
-        MenuItemsSource="{x:Bind ViewModel.MenuItems, Mode=OneWay}"
-        OpenPaneLength="225">
-
-        <winui:NavigationView.PaneFooter>
-            <Button Command="{x:Bind ViewModel.RefreshDroneListCommand}"
-                    Background="{ThemeResource NavigationViewExpandedPaneBackground}"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Margin="0,0,0,0"
-                    HorizontalContentAlignment="Left"
-                    Height="40"
-                    CornerRadius="0">
-                <Button.Resources>
-                    <ResourceDictionary>
-                        <ResourceDictionary.ThemeDictionaries>
-                            <ResourceDictionary x:Key="Dark">
-                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemBaseLowColor}"/>
-                            </ResourceDictionary>
-                            <ResourceDictionary x:Key="Light">
-                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemBaseHighColor}"/>
-                            </ResourceDictionary>
-                        </ResourceDictionary.ThemeDictionaries>
-                    </ResourceDictionary>
-                </Button.Resources>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Style="{StaticResource SymbolTextBlockStyle}"
-                               Text="&#xE149;"
-                               Margin="2,0,0,0"/>
-                    <TextBlock x:Uid="Shell_RefreshDroneList"
-                               Margin="12,0,0,0"/>
-                </StackPanel>
-            </Button>
-        </winui:NavigationView.PaneFooter>
-        
+        MenuItemsSource="{x:Bind ViewModel.Drones}">
+        <winui:NavigationView.MenuItemTemplate>
+            <DataTemplate x:DataType="model:Drone">
+                <Grid HorizontalAlignment="Left"
+                      Height="40"
+                      Margin="-20,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Viewbox Grid.Column="0"
+                             Margin="16,12">
+                        <SymbolIcon Symbol="Send" />
+                    </Viewbox>
+                    <ContentPresenter Content="{x:Bind Name}"
+                                      Grid.Column="1"
+                                      VerticalAlignment="Center"/>
+                </Grid>
+            </DataTemplate>
+        </winui:NavigationView.MenuItemTemplate>
+        <!--
+            TODO WTS: Change the symbols for each item as appropriate for your app
+            More on Segoe UI Symbol icons: https://docs.microsoft.com/windows/uwp/style/segoe-ui-symbol-font
+            Or to use an IconElement instead of a Symbol see https://github.com/Microsoft/WindowsTemplateStudio/blob/master/docs/projectTypes/navigationpane.md
+            Edit String/en-US/Resources.resw: Add a menu item title for each page
+            -->
+            <!--<winui:NavigationViewItem x:Uid="Shell_Main" Icon="Document" helpers:NavHelper.NavigateTo="ACE_Mission_Control.ViewModels.MainViewModel" />-->
         <i:Interaction.Behaviors>
             <behaviors:NavigationViewHeaderBehavior
                 DefaultHeader="{x:Bind ViewModel.Header, Mode=OneWay}">
@@ -84,6 +70,8 @@
                 <ic:InvokeCommandAction Command="{x:Bind ViewModel.ItemInvokedCommand}" />
             </ic:EventTriggerBehavior>
         </i:Interaction.Behaviors>
-        <Frame x:Name="ContentFrame"></Frame>
+        <Grid>
+            <Frame x:Name="shellFrame" />
+        </Grid>
     </winui:NavigationView>
 </Page>

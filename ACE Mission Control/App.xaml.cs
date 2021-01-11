@@ -3,8 +3,6 @@ using ACE_Mission_Control.Core.Models;
 using ACE_Mission_Control.Services;
 
 using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 
 namespace ACE_Mission_Control
@@ -29,8 +27,7 @@ namespace ACE_Mission_Control
         protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
             // Do pre-load here.. I think
-            DroneController.LoadUGCSDrones();
-            MissionData.StartUGCSPoller();
+            DroneController.LoadDroneConfig();
 
             if (!args.PrelaunchActivated)
             {
@@ -45,7 +42,7 @@ namespace ACE_Mission_Control
 
         private ActivationService CreateActivationService()
         {
-            return new ActivationService(this, typeof(ViewModels.WelcomeViewModel), new Lazy<UIElement>(CreateShell));
+            return new ActivationService(this, typeof(ViewModels.MainViewModel), new Lazy<UIElement>(CreateShell));
         }
 
         private UIElement CreateShell()

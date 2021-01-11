@@ -204,15 +204,8 @@
   <data name="Config_OBCConfigLabel.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Config_OBCHostnameLabel.Text" xml:space="preserve">
-    <value>Hostname</value>
-  </data>
-  <data name="Config_OBCUsernameLabel.Text" xml:space="preserve">
-    <value>Username</value>
-  </data>
-  <data name="Mission_RetrieveButton.Content" xml:space="preserve">
-    <value>Retrieve Route</value>
-    <comment>Mission retrieve button text</comment>
+  <data name="Config_OBCIPLabel.Text" xml:space="preserve">
+    <value>IP Address</value>
   </data>
   <data name="Mission_UploadButton.Content" xml:space="preserve">
     <value>Upload Mission</value>
@@ -245,14 +238,8 @@
   <data name="Mission_OBCHeader.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Mission_RetrievalHeader.Text" xml:space="preserve">
-    <value>Mission Retrieval</value>
-  </data>
-  <data name="Mission_ConnectUGCSButton.Content" xml:space="preserve">
-    <value>Connect UgCS</value>
-  </data>
-  <data name="Mission_ImportFileButton.Content" xml:space="preserve">
-    <value>Import Route XML</value>
+  <data name="Mission_MissionControlHeader.Text" xml:space="preserve">
+    <value>Mission Controls</value>
   </data>
   <data name="Config_AutomationCheck.Content" xml:space="preserve">
     <value>Disable Drone Automation</value>
@@ -265,5 +252,134 @@
   </data>
   <data name="Main_ConsolePivotItem.Header" xml:space="preserve">
     <value>Console</value>
+  </data>
+  <data name="Main_MissionPlannerHeader.Text" xml:space="preserve">
+    <value>Mission Planner</value>
+  </data>
+  <data name="Main_MissionStatusHeader.Text" xml:space="preserve">
+    <value>Mission Status</value>
+  </data>
+  <data name="Main_OBCHeader.Text" xml:space="preserve">
+    <value>Onboard Computer</value>
+  </data>
+  <data name="Alert_ConnectionReady" xml:space="preserve">
+    <value>Connection: Ready!</value>
+  </data>
+  <data name="Alert_ConnectionTimedOut" xml:space="preserve">
+    <value>Connection: Onboard Computer stopped responding.</value>
+  </data>
+  <data name="Alert_ConnectionSearching" xml:space="preserve">
+    <value>Connection: Searching for device...</value>
+  </data>
+  <data name="Alert_NoConnectionNotConfigured" xml:space="preserve">
+    <value>Connection: Not configured.</value>
+  </data>
+  <data name="Alert_None" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Alert_OBCError" xml:space="preserve">
+    <value>Onboard Computer error:</value>
+  </data>
+  <data name="Alert_OBCSlow" xml:space="preserve">
+    <value>Onboard Computer working slow. Response delay</value>
+  </data>
+  <data name="Config_AutoConnectCheck.Content" xml:space="preserve">
+    <value>Disable Drone Auto-Connecting</value>
+  </data>
+  <data name="Config_ConnectButton.Content" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Mission_FlyThroughCheckbox.Content" xml:space="preserve">
+    <value>Activated</value>
+  </data>
+  <data name="Mission_ResetButton.Content" xml:space="preserve">
+    <value>Reset Mission Progress</value>
+  </data>
+  <data name="Mission_RestartOBC.Content" xml:space="preserve">
+    <value>Restart Director</value>
+  </data>
+  <data name="Mission_SetDuration.Text" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Mission_SetFlyThrough.Text" xml:space="preserve">
+    <value>Fly-Through Mode</value>
+  </data>
+  <data name="Mission_SetPayload.Text" xml:space="preserve">
+    <value>Payload</value>
+  </data>
+  <data name="Mission_TestInterface.Content" xml:space="preserve">
+    <value>Test Drone Interface</value>
+  </data>
+  <data name="Mission_TestPayload.Content" xml:space="preserve">
+    <value>Test Payload</value>
+  </data>
+  <data name="Mission_ActivateButton" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="Mission_DeactivateButton" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="Mission_SetupMissionSubtitle.Text" xml:space="preserve">
+    <value>Drag the routes into the order that they will be treated.</value>
+  </data>
+  <data name="Mission_SetupMissionTitle.Text" xml:space="preserve">
+    <value>Setup Mission</value>
+  </data>
+  <data name="Alert_CommandError" xml:space="preserve">
+    <value>Command error</value>
+  </data>
+  <data name="Mission_ConnectDroneSwitch.OffContent" xml:space="preserve">
+    <value>Connect to Drone</value>
+  </data>
+  <data name="Mission_ConnectDroneSwitch.OnContent" xml:space="preserve">
+    <value>Connect to Drone</value>
+  </data>
+  <data name="Alert_CommandResponse" xml:space="preserve">
+    <value>Command</value>
+  </data>
+  <data name="Mission_AlertGridCopy.Text" xml:space="preserve">
+    <value>Copy Text</value>
+  </data>
+  <data name="Alert_ConnectionNoResponse" xml:space="preserve">
+    <value>Connection: No command response.</value>
+  </data>
+  <data name="Alert_ConnectionStarting" xml:space="preserve">
+    <value>Connection: Starting connection...</value>
+  </data>
+  <data name="Alert_NoConnection" xml:space="preserve">
+    <value>Onboard Computer is not connected.</value>
+  </data>
+  <data name="Welcome_FirstText.Text" xml:space="preserve">
+    <value>Welcome</value>
+  </data>
+  <data name="Welcome_SecondText.Text" xml:space="preserve">
+    <value>Select a drone to view on the left</value>
+  </data>
+  <data name="Shell_RefreshDroneList.Text" xml:space="preserve">
+    <value>Refresh Drone List</value>
+  </data>
+  <data name="Main_PlannerPivotItem.Header" xml:space="preserve">
+    <value>Planner</value>
+  </data>
+  <data name="Planner_SetupAreaNameHeader.Text" xml:space="preserve">
+    <value>Treatment Area</value>
+  </data>
+  <data name="Planner_SetupTreatmentEnabledHeader.Text" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Planner_SetupWaypointRouteHeader.Text" xml:space="preserve">
+    <value>Waypoint Route</value>
+  </data>
+  <data name="Planner_Subtitle.Text" xml:space="preserve">
+    <value>Set treatment order</value>
+  </data>
+  <data name="Planner_Title.Text" xml:space="preserve">
+    <value>Mission Planner</value>
+  </data>
+  <data name="Planner_TreatmentEnabledCheckboxTooltip.Text" xml:space="preserve">
+    <value>Enables/disables this area for treatment</value>
+  </data>
+  <data name="Planner_WaypointRouteComboboxTooltip.Text" xml:space="preserve">
+    <value>Selects the waypoint route that the drone will follow</value>
   </data>
 </root>

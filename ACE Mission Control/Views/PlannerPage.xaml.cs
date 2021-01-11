@@ -69,31 +69,31 @@ namespace ACE_Mission_Control.Views
                 ((MapElementsLayer)EntryMapControl.Layers[0]).MapElements.Clear();
             }
 
-            // Make the area polygons
-            foreach (AreaScanPolygon area in areaScanRoutes)
-            {
-                MapPolygon polygon = new MapPolygon();
-                polygon.Path = area.Area;
-                polygon.ZIndex = 1;
-                polygon.StrokeColor = Colors.Orange;
-                polygon.StrokeThickness = 4;
-                polygon.StrokeDashed = false;
-                var color = Colors.Orange;
-                color.A = 100;
-                polygon.FillColor = color;
-                ((MapElementsLayer)EntryMapControl.Layers[0]).MapElements.Add(polygon);
-            }
+            //// Make the area polygons
+            //foreach (AreaScanPolygon area in areaScanRoutes)
+            //{
+            //    MapPolygon polygon = new MapPolygon();
+            //    polygon.Path = area.Area;
+            //    polygon.ZIndex = 1;
+            //    polygon.StrokeColor = Colors.Orange;
+            //    polygon.StrokeThickness = 4;
+            //    polygon.StrokeDashed = false;
+            //    var color = Colors.Orange;
+            //    color.A = 100;
+            //    polygon.FillColor = color;
+            //    ((MapElementsLayer)EntryMapControl.Layers[0]).MapElements.Add(polygon);
+            //}
 
-            // Add point icons around the first area scan
-            for (int i = 0; i < areaScanRoutes[0].Area.Positions.Count; i++)
-            {
-                MapIcon icon = new MapIcon();
-                icon.Location = new Geopoint(areaScanRoutes[0].Area.Positions[i]);
-                icon.Tag = i;
-                if (i == areaScanRoutes[0].EntryVertex)
-                    icon.Title = "Selected";
-                ((MapElementsLayer)EntryMapControl.Layers[0]).MapElements.Add(icon);
-            }
+            //// Add point icons around the first area scan
+            //for (int i = 0; i < areaScanRoutes[0].Area.Positions.Count; i++)
+            //{
+            //    MapIcon icon = new MapIcon();
+            //    icon.Location = new Geopoint(areaScanRoutes[0].Area.Positions[i]);
+            //    icon.Tag = i;
+            //    if (i == areaScanRoutes[0].EntryVertex)
+            //        icon.Title = "Selected";
+            //    ((MapElementsLayer)EntryMapControl.Layers[0]).MapElements.Add(icon);
+            //}
 
             // Centre the map
             var areaLayerElements = ((MapElementsLayer)EntryMapControl.Layers[0]).MapElements;

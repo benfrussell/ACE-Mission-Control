@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Windows.Devices.Geolocation;
 using NetTopologySuite.Geometries;
 using UGCS.Sdk.Protocol.Encoding;
 

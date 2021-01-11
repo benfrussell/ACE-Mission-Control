@@ -20,6 +20,7 @@
                 <ResourceDictionary Source="/Styles/TextBox.xaml"/>
                 <ResourceDictionary Source="/Styles/PasswordBox.xaml"/>
                 <ResourceDictionary Source="/Styles/Frame.xaml"/>
+                <ResourceDictionary Source="/Styles/ComboBox.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

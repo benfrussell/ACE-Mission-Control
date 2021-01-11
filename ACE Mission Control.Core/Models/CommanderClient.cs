@@ -1,11 +1,13 @@
-﻿using Renci.SshNet;
-using Renci.SshNet.Common;
+﻿using NetMQ;
+using NetMQ.Sockets;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Timers;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -19,107 +21,157 @@ namespace ACE_Mission_Control.Core.Models
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler<ResponseReceivedEventArgs> ResponseReceivedEvent;
 
-        private bool _initialized;
-        public bool Initialized
+        private bool _connected;
+        public bool Connected
         {
-            get { return _initialized; }
+            get { return _connected; }
             private set
             {
-                if (_initialized == value)
+                if (_connected == value)
                     return;
-                _initialized = value;
+                _connected = value;
                 NotifyPropertyChanged();
             }
         }
+
+        private bool _connectionFailure;
+        public bool ConnectionFailure
+        {
+            get { return _connectionFailure; }
+            private set
+            {
+                if (_connectionFailure == value)
+                    return;
+                _connectionFailure = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private readonly object readyForCommandLock = new object();
 
         private bool _readyForCommand;
         public bool ReadyForCommand
         {
-            get { return _readyForCommand; }
+            get
+            {
+                lock (readyForCommandLock)
+                {
+                    return _readyForCommand;
+                }
+            }
             private set
             {
-                if (_readyForCommand == value)
-                    return;
-                _readyForCommand = value;
-                NotifyPropertyChanged();
+                lock (readyForCommandLock)
+                {
+                    if (_readyForCommand == value)
+                        return;
+                    _readyForCommand = value;
+                    NotifyPropertyChanged();
+                }
             }
         }
 
-        public bool Started = false;
-
-        private SshClient client;
-        private ShellStream stream;
+        private string address;
+        private RequestSocket socket;
+        private NetMQPoller poller;
+        private Timer failureTimer;
+        private bool commandSent;
 
         public CommanderClient()
         {
-            Initialized = false;
+            failureTimer = new Timer(5000);
+            failureTimer.Elapsed += FailureTimer_Elapsed;
+            failureTimer.AutoReset = true;
+
+            ConnectionFailure = false;
+            Connected = false;
             ReadyForCommand = false;
+            socket = new RequestSocket();
+            socket.SendReady += Socket_SendReady;
+            socket.ReceiveReady += Socket_ReceiveReady;
+            poller = new NetMQPoller();
+            poller.Add(socket);
         }
 
-        public bool StartStream(out string result, ConnectionInfo connectInfo)
+        private void FailureTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            try
+            if (!Connected)
             {
-                client = new SshClient(connectInfo);
-                client.Connect();
+                ConnectionFailure = true;
             }
-            catch (System.Net.Sockets.SocketException e)
+            else if (commandSent)
             {
-                result = e.Message;
-                return false;
+                ConnectionFailure = true;
+                socket.Disconnect(address);
             }
-            catch (SshAuthenticationException e)
-            {
-                result = e.Message;
-                return false;
-            }
-
-            if (client == null || !client.IsConnected)
-            {
-                result = "Client did not connect.";
-                return false;
-            }
-
-            stream = client.CreateShellStream("Commander", 128, 64, 512, 256, 512);
-            stream.DataReceived += Stream_DataReceived;
-            stream.WriteLine("python3 ~/Drone/build/bin/ace_commander.py");
-
-            result = "Successful";
-            Started = true;
-            return true;
         }
 
-        public bool SendCommand(out string error, string command)
+        public void StartStream(string ip)
         {
-            if (!stream.CanWrite)
-            {
-                error = "The command stream is not currently writeable.";
-                return false;
-            }
-
-            stream.WriteLine(command);
-            error = "";
-            return true;
+            ConnectionFailure = false;
+            Connected = false;
+            address = "tcp://" + ip + ":5536";
+            failureTimer.Stop();
+            failureTimer.Start();
+            socket.Connect(address);
+            if (!poller.IsRunning)
+                poller.Run();
         }
 
-        private void Stream_DataReceived(object sender, Renci.SshNet.Common.ShellDataEventArgs e)
+        private void Socket_SendReady(object sender, NetMQSocketEventArgs e)
         {
-            string data_text = Encoding.UTF8.GetString(e.Data);
-            System.Diagnostics.Debug.WriteLine("RECEIVED: " + data_text);
-            if (data_text[0] == '>')
+            if (!Connected)
             {
-                ReadyForCommand = true;
-                if (!Initialized) { Initialized = true; }
+                commandSent = true;
+                ReadyForCommand = false;
+                socket.TrySendFrame("ping");
             }
             else
             {
-                ReadyForCommand = false;
-                if (!Initialized)
-                    return;
-                ResponseReceivedEventArgs response_e = new ResponseReceivedEventArgs();
-                response_e.Line = data_text;
-                ResponseReceivedEvent(this, response_e);
+                ReadyForCommand = true;
             }
+        }
+
+        public bool SendCommand(string command)
+        {
+            if (!ReadyForCommand || command == null)
+                return false;
+            ReadyForCommand = false;
+            failureTimer.Stop();
+            failureTimer.Start();
+            commandSent = true;
+            try
+            {
+                socket.SendFrame(command);
+            }
+            catch (FiniteStateMachineException)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void Disconnect()
+        {
+            if (!Connected)
+                return;
+
+            Connected = false;
+            ReadyForCommand = false;
+        }
+
+        private void Socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
+        {
+            string data_text = e.Socket.ReceiveFrameString();
+
+            if (!Connected)
+                Connected = true;
+
+            commandSent = false;
+
+            ResponseReceivedEventArgs response_e = new ResponseReceivedEventArgs();
+            response_e.Line = data_text;
+            ResponseReceivedEvent(this, response_e);
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

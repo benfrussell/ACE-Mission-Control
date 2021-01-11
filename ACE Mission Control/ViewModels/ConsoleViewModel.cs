@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ACE_Mission_Control.Core.Models;
+using ACE_Mission_Control.Helpers;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -84,22 +85,22 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand ConsoleCommandEnteredCommand => new RelayCommand(() => {
             if (CommandText != "" && AttachedDrone.OBCClient.PrimaryCommanderClient.ReadyForCommand)
             {
-                string error;
-                if (!AttachedDrone.OBCClient.PrimaryCommanderClient.SendCommand(out error, CommandText))
+                if (!AttachedDrone.OBCClient.PrimaryCommanderClient.SendCommand(CommandText))
                 {
-                    CMDResponseText = error;
+                    var converter = new AlertToString();
+                    CMDResponseText = (string)converter.Convert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection), typeof(string), null, null);
                 }
                 else
                 {
                     CommandText = "";
                     CMDResponseText = "";
-                }       
+                }
             }
         });
 
         public ConsoleViewModel()
         {
-            
+
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -124,7 +125,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                if (e.PropertyName == "Receiving" && AttachedDrone.OBCClient.DebugMonitorClient.Receiving)
+                if (e.PropertyName == "Connected" && AttachedDrone.OBCClient.DebugMonitorClient.Connected)
                     CanWriteCommand = true;
             });
         }
@@ -162,8 +163,7 @@ namespace ACE_Mission_Control.ViewModels
 
         private void activateDebugCommand()
         {
-            string error;
-            CanOpenDebug = !AttachedDrone.OBCClient.OpenDebugConsole(out error);
+            AttachedDrone.OBCClient.OpenDebugConsole();
         }
     }
 }

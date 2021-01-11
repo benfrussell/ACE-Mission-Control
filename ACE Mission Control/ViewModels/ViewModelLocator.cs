@@ -24,6 +24,8 @@ namespace ACE_Mission_Control.ViewModels
             Register<MissionViewModel, MissionPage>();
             Register<ConfigViewModel, ConfigPage>();
             Register<ConsoleViewModel, ConsolePage>();
+            Register<WelcomeViewModel, WelcomePage>();
+            Register<PlannerViewModel, PlannerPage>();
         }
 
         public SettingsViewModel SettingsViewModel => SimpleIoc.Default.GetInstance<SettingsViewModel>();
@@ -39,6 +41,10 @@ namespace ACE_Mission_Control.ViewModels
         public ConfigViewModel ConfigViewModel => SimpleIoc.Default.GetInstance<ConfigViewModel>();
 
         public ConsoleViewModel ConsoleViewModel => SimpleIoc.Default.GetInstance<ConsoleViewModel>();
+
+        public WelcomeViewModel WelcomeViewModel => SimpleIoc.Default.GetInstance<WelcomeViewModel>();
+
+        public PlannerViewModel PlannerViewModel => SimpleIoc.Default.GetInstance<PlannerViewModel>();
 
         public void Register<VM, V>()
             where VM : class

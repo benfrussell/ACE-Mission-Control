@@ -18,7 +18,7 @@ namespace ACE_Mission_Control.Views
         {
             InitializeComponent();
             DataContext = ViewModel;
-            ViewModel.Initialize(shellFrame, navigationView, KeyboardAccelerators);
+            ViewModel.Initialize(ContentFrame, navigationView, KeyboardAccelerators);
         }
     }
 }

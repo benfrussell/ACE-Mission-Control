@@ -110,7 +110,7 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         public string Name { get => TreatmentPolygon.Name; }
-        public int ID { get => TreatmentPolygon.ID; }
+        public int ID { get => TreatmentPolygon.Id; }
 
         public bool DoTreatment = true;
 
@@ -124,13 +124,13 @@ namespace ACE_Mission_Control.Core.Models
             if (TreatmentPolygon == null)
                 return;
 
-            ValidTreatmentRouteIDs = (from route in allRoutes where route.Intersects(TreatmentPolygon) select route.ID).ToList();
+            ValidTreatmentRouteIDs = (from route in allRoutes where route.Intersects(TreatmentPolygon) select route.Id).ToList();
 
             // Reconcile the current TreatmentRoute with the new valid treatment route information
-            if (TreatmentRoute == null || !ValidTreatmentRouteIDs.Contains(TreatmentRoute.ID))
+            if (TreatmentRoute == null || !ValidTreatmentRouteIDs.Contains(TreatmentRoute.Id))
             {
                 if (ValidTreatmentRouteIDs.Count > 0)
-                    TreatmentRoute = allRoutes.Where(r => r.ID == ValidTreatmentRouteIDs[0]).FirstOrDefault();
+                    TreatmentRoute = allRoutes.Where(r => r.Id == ValidTreatmentRouteIDs[0]).FirstOrDefault();
                 else
                     TreatmentRoute = null;
             }

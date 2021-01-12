@@ -3,20 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NetTopologySuite.Geometries;
+using UGCS.Sdk.Protocol;
 using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class AreaScanPolygon : Polygon
+    public class AreaScanPolygon : Polygon, IComparableRoute
     {
-        public int ID;
+        public int Id { get; protected set; }
+        public long LastModificationTime { get; protected set; }
+
         public string Name;
         public int EntryVertex;
 
-        public AreaScanPolygon(int id, string name, LinearRing polygonPoints) : base(polygonPoints)
+        public AreaScanPolygon(int id, string name, long modifiedTime, LinearRing polygonPoints) : base(polygonPoints)
         {
-            ID = id;
+            Id = id;
             Name = name;
+            LastModificationTime = modifiedTime;
         }
 
         public static AreaScanPolygon CreateFromUGCSRoute(Route route)
@@ -27,7 +31,7 @@ namespace ACE_Mission_Control.Core.Models
                 var coordinates = route.Segments[0].Figure.Points.ConvertAll(
                     point => new Coordinate(point.Longitude, point.Latitude));
                 LinearRing ring = new LinearRing(coordinates.ToArray());
-                return new AreaScanPolygon(route.Id, route.Name, ring);
+                return new AreaScanPolygon(route.Id, route.Name, route.LastModificationTime, ring);
             } 
             catch (Exception e)
             {
@@ -40,7 +44,9 @@ namespace ACE_Mission_Control.Core.Models
             if (route.Segments == null || route.Segments.Count == 0)
                 return false;
 
-            if (route.Segments[0].Figure.Type != FigureType.FT_POLYGON)
+            var firstSegment = route.Segments[0];
+
+            if (firstSegment.Figure.Type != FigureType.FT_POLYGON || firstSegment.Figure.Points.Count < 3)
                 return false;
 
             return true;

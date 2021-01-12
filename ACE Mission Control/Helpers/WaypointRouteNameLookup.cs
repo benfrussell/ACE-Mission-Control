@@ -27,12 +27,12 @@ namespace ACE_Mission_Control.Helpers
             try
             {
                 routeIDs = (List<int>)value;
-                return routeIDs.ConvertAll(id => MissionData.WaypointRoutes.First(i => i.ID == id).Name);
+                return routeIDs.ConvertAll(id => MissionData.WaypointRoutes.First(i => i.Id == id).Name);
             }
             catch (InvalidCastException)
             {
                 routeID = (int)value;
-                return MissionData.WaypointRoutes.First(i => i.ID == routeID).Name;
+                return MissionData.WaypointRoutes.First(i => i.Id == routeID).Name;
             }
         }
 

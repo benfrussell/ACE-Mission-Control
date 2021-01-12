@@ -3,20 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NetTopologySuite.Geometries;
+using UGCS.Sdk.Protocol;
 using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class WaypointRoute : LineString
+    public class WaypointRoute : LineString, IComparableRoute
     {
-        public int ID;
+        public int Id { get; protected set; }
+        public long LastModificationTime { get; protected set; }
         public string Name;
-        public int EntryVertex;
+        
 
-        public WaypointRoute(int id, string name, Coordinate[] points) : base(points)
+        public WaypointRoute(int id, string name, long modifiedTime, Coordinate[] points) : base(points)
         {
-            ID = id;
+            Id = id;
             Name = name;
+            LastModificationTime = modifiedTime;
         }
 
         public static WaypointRoute CreateFromUGCSRoute(Route route)
@@ -32,7 +35,7 @@ namespace ACE_Mission_Control.Core.Models
                     return new Coordinate(point.Longitude, point.Latitude);
                 });
 
-            return new WaypointRoute(route.Id, route.Name, coordinates.ToArray());
+            return new WaypointRoute(route.Id, route.Name, route.LastModificationTime, coordinates.ToArray());
         }
 
         public static bool IsUGCSRouteWaypointRoute(Route route)

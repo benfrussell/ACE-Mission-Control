@@ -223,12 +223,14 @@ namespace ACE_Mission_Control.Core.Models
                 ClientId = clientID,
                 ObjectType = objectType
             };
-            var response = await Task.Run(() => RequestAndWait<GetObjectListResponse>(request));
 
-            syncContext.Post(
-                new SendOrPostCallback((_) => processCallback(response.Objects)),
-                null
-            );
+            var response = await Task.Run(() => RequestAndWait<GetObjectListResponse>(request));
+            
+            if (response != null)
+                syncContext.Post(
+                    new SendOrPostCallback((_) => processCallback(response.Objects)),
+                    null
+                );
         }
 
         private static async void RetrieveAndProcessObject(string objectType, int objectID, Action<DomainObjectWrapper> processCallback)
@@ -242,20 +244,31 @@ namespace ACE_Mission_Control.Core.Models
                 ObjectId = objectID,
                 ObjectType = objectType
             };
+
             var response = await Task.Run(() => RequestAndWait<GetObjectResponse>(request));
 
-            syncContext.Post(
-                new SendOrPostCallback((_) => processCallback(response.Object)),
-                null
-            );
+            if (response != null)
+                syncContext.Post(
+                    new SendOrPostCallback((_) => processCallback(response.Object)),
+                    null
+                );
+        }
+
+        private static void HandleDisconnect()
+        {
+            IsConnected = false;
+            StartTryingConnections();
         }
 
         private static T RequestAndWait<T>(IExtensible request) where T : IExtensible
         {
             var execution = messageExecutor.Submit<T>(request);
             execution.Wait();
-            if (execution.Exception != null)
-                throw execution.Exception;
+            if (execution.Exception is SessionDisconnectedException)
+                syncContext.Post(
+                    new SendOrPostCallback((_) => HandleDisconnect()),
+                    null
+                );
             return execution.Value;
         }
 

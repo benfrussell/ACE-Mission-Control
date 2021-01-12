@@ -8,6 +8,13 @@ using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
+    public class WaypointRouteIntercept
+    {
+        public WaypointRoute WaypointRoute { get; set; }
+        public Coordinate EntryCoordinate { get; set; }
+        public Coordinate ExitCoordinate { get; set; }
+    }
+
     public class WaypointRoute : LineString, IComparableRoute
     {
         public int Id { get; protected set; }

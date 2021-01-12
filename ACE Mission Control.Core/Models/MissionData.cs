@@ -17,15 +17,7 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class RouteCollectionUpdates<T>
     {
-        public bool AnyUpdates 
-        {
-            get
-            {
-                return RemovedRouteIDs.Count > 0 ||
-                    AddedRoutes.Count > 0 ||
-                    ModifiedRoutes.Count > 0;
-            }
-        }
+        public bool AnyChanges { get => RemovedRouteIDs.Count + AddedRoutes.Count + ModifiedRoutes.Count > 0; }
         public List<int> RemovedRouteIDs { get; set; }
         public List<T> AddedRoutes { get; set; }
         public List<T> ModifiedRoutes { get; set; }
@@ -38,16 +30,9 @@ namespace ACE_Mission_Control.Core.Models
         }
     }
 
-    public class RoutesUpdatedEventArgs : EventArgs
+    public class AreaScanPolygonsUpdatedArgs
     {
-        public RouteCollectionUpdates<WaypointRoute> WaypointRouteChanges;
-        public RouteCollectionUpdates<AreaScanPolygon> AreaChanges;
-
-        public RoutesUpdatedEventArgs()
-        {
-            WaypointRouteChanges = new RouteCollectionUpdates<WaypointRoute>();
-            AreaChanges = new RouteCollectionUpdates<AreaScanPolygon>();
-        }
+        public RouteCollectionUpdates<AreaScanPolygon> updates { get; set; }
     }
 
     public class MissionData : INotifyPropertyChanged
@@ -57,7 +42,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public static event PropertyChangedEventHandler StaticPropertyChanged;
 
-        public static event EventHandler<RoutesUpdatedEventArgs> RoutesUpdatedEvent;
+        public static event EventHandler<AreaScanPolygonsUpdatedArgs> AreaScanPolygonsUpdated;
 
         private static List<WaypointRoute> waypointRoutes;
         public static List<WaypointRoute> WaypointRoutes 
@@ -146,8 +131,6 @@ namespace ACE_Mission_Control.Core.Models
 
         private static void UGCSClient_ReceivedRecentRoutesEvent(object sender, ReceivedRecentRoutesEventArgs e)
         {
-            // Update routes such that: Route conversions are minimized, all updates to the route lists are captured, and any unchanged routes are not reinstanced in the list
-            // This is probably completely unnecessary but I spent a day doing it anyway
             List<Route> newAreaRoutes = new List<Route>();
             List<Route> newWaypointRoutes = new List<Route>();
 
@@ -159,40 +142,66 @@ namespace ACE_Mission_Control.Core.Models
                     newWaypointRoutes.Add(r);
             }
 
-            RouteCollectionUpdates<AreaScanPolygon> areaChanges = RouteUpdatesToAreaScans(DetermineExisitngRouteUpdates(AreaScanPolygons, newAreaRoutes));
-            RouteCollectionUpdates<WaypointRoute> waypointRouteChanges = RouteUpdatesToWaypointRoutes(DetermineExisitngRouteUpdates(WaypointRoutes, newWaypointRoutes));
+            var areaChanges = DetermineExisitngRouteUpdates(AreaScanPolygons, newAreaRoutes);
+            var waypointRouteChanges = DetermineExisitngRouteUpdates(WaypointRoutes, newWaypointRoutes);
 
-            if (areaChanges.AnyUpdates)
+            if (areaChanges.AnyChanges)
             {
-                // Remove anything removed or modified, then add anything new or modified
-                AreaScanPolygons.RemoveAll(a => areaChanges.RemovedRouteIDs.Any(r => r == a.Id) || areaChanges.ModifiedRoutes.Any(m => m.Id == a.Id));
-                AreaScanPolygons.AddRange(areaChanges.ModifiedRoutes);
-                AreaScanPolygons.AddRange(areaChanges.AddedRoutes);
-            }
-            
-            if (waypointRouteChanges.AnyUpdates)
-            {
-                WaypointRoutes.RemoveAll(a => waypointRouteChanges.RemovedRouteIDs.Any(r => r == a.Id) || waypointRouteChanges.ModifiedRoutes.Any(m => m.Id == a.Id));
-                WaypointRoutes.AddRange(waypointRouteChanges.ModifiedRoutes);
-                WaypointRoutes.AddRange(waypointRouteChanges.AddedRoutes);
+                var areaIDsToRemove = new List<int>(areaChanges.RemovedRouteIDs);
+                areaIDsToRemove.AddRange(from r in areaChanges.ModifiedRoutes select r.Id);
+                AreaScanPolygons.RemoveAll(a => areaIDsToRemove.Contains(a.Id));
+                TreatmentInstruction.RemoveAreaScansByIDs(areaIDsToRemove);
             }
 
-            if (areaChanges.AnyUpdates || waypointRouteChanges.AnyUpdates)
+            if (waypointRouteChanges.AnyChanges)
             {
-                RoutesUpdatedEventArgs updateArgs = new RoutesUpdatedEventArgs()
+                var routeIDsToRemove = new List<int>(waypointRouteChanges.RemovedRouteIDs);
+                routeIDsToRemove.AddRange(from r in waypointRouteChanges.ModifiedRoutes select r.Id);
+                WaypointRoutes.RemoveAll(a => routeIDsToRemove.Contains(a.Id));
+                TreatmentInstruction.RemoveWaypointRoutesByIDs(routeIDsToRemove);
+
+                var routesToAdd = RoutesToWaypointRoutes(waypointRouteChanges.AddedRoutes).ToList();
+                routesToAdd.AddRange(RoutesToWaypointRoutes(waypointRouteChanges.ModifiedRoutes));
+                WaypointRoutes.AddRange(routesToAdd);
+
+                // Unmodified areas only need to check against new routes
+                foreach (AreaScanPolygon area in AreaScanPolygons)
+                    TreatmentInstruction.AddTreatmentRouteIntercepts(area, routesToAdd);
+
+                NotifyStaticPropertyChanged("WaypointRoutes");
+            }
+
+            if (areaChanges.AnyChanges)
+            {
+                var areasUpdate = new RouteCollectionUpdates<AreaScanPolygon>()
                 {
-                    AreaChanges = areaChanges,
-                    WaypointRouteChanges = waypointRouteChanges
+                    RemovedRouteIDs = areaChanges.RemovedRouteIDs,
+                    ModifiedRoutes = RoutesToAreaScans(areaChanges.ModifiedRoutes).ToList(),
+                    AddedRoutes = RoutesToAreaScans(areaChanges.AddedRoutes).ToList()
                 };
-                RoutesUpdatedEvent(null, updateArgs);
+
+                AreaScanPolygons.AddRange(areasUpdate.ModifiedRoutes);
+                AreaScanPolygons.AddRange(areasUpdate.AddedRoutes);
+
+                // New and modified areas need to check against every waypoint route
+                foreach (AreaScanPolygon area in areasUpdate.ModifiedRoutes)
+                    TreatmentInstruction.AddTreatmentRouteIntercepts(area, WaypointRoutes);
+                foreach (AreaScanPolygon area in areasUpdate.AddedRoutes)
+                    TreatmentInstruction.AddTreatmentRouteIntercepts(area, WaypointRoutes);
+
+                NotifyStaticPropertyChanged("AreaScanPolygons");
+
+                AreaScanPolygonsUpdated(null, new AreaScanPolygonsUpdatedArgs() { updates = areasUpdate });
             }
 
             if (IsUGCSPollerRunning)
                 ugcsPoller.Start();
         }
 
+        // TODO: New AreaScan name change and route to waypoints didn't sync!
+
         // Finds and returns all of the updates to match an exisiting route list to a new route list
-        private static RouteCollectionUpdates<Route> DetermineExisitngRouteUpdates<T>(List<T> existingRouteList, List<Route> newRouteList) where T : IComparableRoute
+        private static RouteCollectionUpdates<Route> DetermineExisitngRouteUpdates<T>(IEnumerable<T> existingRouteList, List<Route> newRouteList) where T : IComparableRoute
         {
             var changes = new RouteCollectionUpdates<Route>();
             // Start with a list of all IDs and remove them as we find matches in the new list
@@ -200,7 +209,7 @@ namespace ACE_Mission_Control.Core.Models
 
             foreach (Route newRoute in newRouteList)
             {
-                var matchInExistingRoutes = existingRouteList.First(existingRoute => existingRoute.Id == newRoute.Id);
+                var matchInExistingRoutes = existingRouteList.FirstOrDefault(existingRoute => existingRoute.Id == newRoute.Id);
                 if (matchInExistingRoutes == null)
                 {
                     changes.AddedRoutes.Add(newRoute);
@@ -216,22 +225,16 @@ namespace ACE_Mission_Control.Core.Models
             return changes;
         }
 
-        private static RouteCollectionUpdates<AreaScanPolygon> RouteUpdatesToAreaScans(RouteCollectionUpdates<Route> routeUpdates)
+        private static IEnumerable<AreaScanPolygon> RoutesToAreaScans(IEnumerable<Route> routes)
         {
-            var areaScanUpdates = new RouteCollectionUpdates<AreaScanPolygon>();
-            areaScanUpdates.RemovedRouteIDs = routeUpdates.RemovedRouteIDs;
-            areaScanUpdates.AddedRoutes = routeUpdates.AddedRoutes.ConvertAll(route => AreaScanPolygon.CreateFromUGCSRoute(route));
-            areaScanUpdates.ModifiedRoutes = routeUpdates.ModifiedRoutes.ConvertAll(route => AreaScanPolygon.CreateFromUGCSRoute(route));
-            return areaScanUpdates;
+            foreach (Route r in routes)
+                yield return AreaScanPolygon.CreateFromUGCSRoute(r);
         }
 
-        private static RouteCollectionUpdates<WaypointRoute> RouteUpdatesToWaypointRoutes(RouteCollectionUpdates<Route> routeUpdates)
+        private static IEnumerable<WaypointRoute> RoutesToWaypointRoutes(IEnumerable<Route> routes)
         {
-            var areaScanUpdates = new RouteCollectionUpdates<WaypointRoute>();
-            areaScanUpdates.RemovedRouteIDs = routeUpdates.RemovedRouteIDs;
-            areaScanUpdates.AddedRoutes = routeUpdates.AddedRoutes.ConvertAll(route => WaypointRoute.CreateFromUGCSRoute(route));
-            areaScanUpdates.ModifiedRoutes = routeUpdates.ModifiedRoutes.ConvertAll(route => WaypointRoute.CreateFromUGCSRoute(route));
-            return areaScanUpdates;
+            foreach (Route r in routes)
+                yield return WaypointRoute.CreateFromUGCSRoute(r);
         }
 
         private static void NotifyStaticPropertyChanged([CallerMemberName] string propertyName = "")
@@ -247,55 +250,29 @@ namespace ACE_Mission_Control.Core.Models
 
         public MissionData()
         {
-            StaticPropertyChanged += MissionData_StaticPropertyChanged;
-            RoutesUpdatedEvent += MissionData_RoutesUpdatedEvent;
+            AreaScanPolygonsUpdated += MissionData_AreaScanPolygonsUpdated;
             TreatmentInstructions = new ObservableCollection<TreatmentInstruction>();
-            UpdateTreatmentInstructions();
         }
 
-        private void MissionData_RoutesUpdatedEvent(object sender, RoutesUpdatedEventArgs e)
+        private void MissionData_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
         {
-            throw new NotImplementedException();
-        }
-
-        private void UpdateTreatmentInstructions(bool doTreatment = true)
-        {
-            var areaScanIDs = (from a in AreaScanPolygons select a.Id).ToList();
-            // Select and remove all TreatmentInstructions where the treatment area IDs are not among the new area scan IDs
-            var removedInstructions = TreatmentInstructions.Where(i => !areaScanIDs.Contains(i.ID));
-            foreach (var removed in removedInstructions)
+            foreach (int removedID in e.updates.RemovedRouteIDs)
             {
-                TreatmentInstructions.Remove(removed);
-                System.Diagnostics.Debug.WriteLine($"Removing instruction {removed.Name}");
-            }
-                
-
-            var treatmentAreaIDs = (from i in TreatmentInstructions select i.ID).ToList();
-            // Select and add all AreaScanPolygons where the ID doesn't already exist among the treatment instruction area IDs
-            var addedAreas = AreaScanPolygons.Where(a => !treatmentAreaIDs.Contains(a.Id));
-            foreach (var addedArea in addedAreas)
-            {
-                System.Diagnostics.Debug.WriteLine($"Adding instruction {addedArea.Name}");
-                TreatmentInstructions.Add(new TreatmentInstruction()
-                {
-                    TreatmentPolygon = addedArea,
-                    AutoCalcUnlock = true,
-                    AutoCalcLock = true,
-                    DoTreatment = doTreatment
-                });
+                var removedInstruction = TreatmentInstructions.FirstOrDefault(i => removedID == i.TreatmentPolygon.Id);
+                if (removedInstruction != null)
+                    TreatmentInstructions.Remove(removedInstruction);
             }
 
-            // Finally update the valid treatment routes for each instruction
-            foreach (var instruction in TreatmentInstructions)
-                instruction.UpdateValidTreatmentRoutes(WaypointRoutes);
-        }
+            foreach (TreatmentInstruction instruction in TreatmentInstructions)
+            {
+                if (instruction.TreatmentRoute == null)
+                    instruction.ResetTreatmentRoute();
+            }
 
-        private void MissionData_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            // Both AreaScanPolygons and WaypointRoutes will always update at the time
-            // WaypointRoutes is the last one to update, so we can do the mission update after that one
-            if (e.PropertyName == "WaypointRoutes")
-                UpdateTreatmentInstructions();
+            foreach (AreaScanPolygon addedArea in e.updates.AddedRoutes)
+            {
+                TreatmentInstructions.Add(new TreatmentInstruction(addedArea));
+            }
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

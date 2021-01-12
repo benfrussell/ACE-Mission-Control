@@ -12,10 +12,6 @@
     xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    
-    <local:DroneBasePage.Resources>
-        <helper:WaypointRouteNameLookup x:Key="WaypointRouteNameLookup" />
-    </local:DroneBasePage.Resources>
 
     <Grid Background="{ThemeResource SystemChromeLowColor}">
         <Grid.ColumnDefinitions>
@@ -42,7 +38,8 @@
                       ItemsSource="{x:Bind ViewModel.TreatmentInstructions, Mode=OneWay}"
                       CanReorderItems="True"
                       CanDragItems="True"
-                      AllowDrop="True">
+                      AllowDrop="True"
+                      DragStarting="SetupMissionRoutesList_DragStarting">
 
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
@@ -89,7 +86,7 @@
                 
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="ace:TreatmentInstruction">
-                        <Grid>
+                        <Grid Background="{ThemeResource SystemChromeMediumLowColor}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"/>
                                 <ColumnDefinition />
@@ -98,23 +95,39 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition MinHeight="60"/>
                             </Grid.RowDefinitions>
+                            
                             <CheckBox Grid.Column="0"
                                       Margin="20,0,0,0"
-                                      IsChecked="{x:Bind DoTreatment}">
+                                      IsChecked="{x:Bind DoTreatment, Mode=OneWay}">
                                 <ToolTipService.ToolTip>
                                     <TextBlock x:Uid="Planner_TreatmentEnabledCheckboxTooltip"/>
                                 </ToolTipService.ToolTip>
                             </CheckBox>
+                            
                             <TextBlock Grid.Column="1"
                                        Margin="4,0,0,0"
                                        VerticalAlignment="Center"
                                        Text="{x:Bind Name}"/>
+
                             <ComboBox Grid.Column="2"
                                       Margin="4,0,4,0"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Center"
-                                      SelectedItem="{x:Bind TreatmentRoute.Name}"
-                                      ItemsSource="{x:Bind ValidTreatmentRouteIDs, Converter={StaticResource WaypointRouteNameLookup}}">
+                                      SelectedItem="{x:Bind TreatmentRoute, Mode=TwoWay}"
+                                      ItemsSource="{x:Bind ValidTreatmentRoutes, Mode=OneWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="ace:WaypointRoute">
+                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                
+                                <!--<i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="SelectionChanged">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.PayloadSelectionCommand}"
+                                                          CommandParameter="{x:Bind PayloadComboBox}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>-->
+
                                 <ToolTipService.ToolTip>
                                     <TextBlock x:Uid="Planner_WaypointRouteComboboxTooltip"/>
                                 </ToolTipService.ToolTip>

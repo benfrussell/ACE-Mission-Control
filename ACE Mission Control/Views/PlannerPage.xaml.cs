@@ -126,5 +126,10 @@ namespace ACE_Mission_Control.Views
                 }
             }
         }
+
+        private void SetupMissionRoutesList_DragStarting(UIElement sender, DragStartingEventArgs args)
+        {
+            System.Diagnostics.Debug.WriteLine("Drag happening!");
+        }
     }
 }

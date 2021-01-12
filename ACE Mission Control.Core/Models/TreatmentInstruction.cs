@@ -10,49 +10,91 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class TreatmentInstruction : INotifyPropertyChanged
     {
+        // Static TreatmentInstruction members
+
+        // Precalculated list of all possible AreaScan / WaypointRoute intercepts
+        private static Dictionary<int, List<WaypointRouteIntercept>> AreaScanWaypointRouteIntercepts = new Dictionary<int, List<WaypointRouteIntercept>>();
+
+        public static void RemoveAreaScansByIDs(List<int> ids)
+        {
+            foreach (int id in ids)
+            {
+                AreaScanWaypointRouteIntercepts.Remove(id);
+            }
+        }
+
+        public static void RemoveWaypointRoutesByIDs(List<int> ids)
+        {
+            foreach (List<WaypointRouteIntercept> intercepts in AreaScanWaypointRouteIntercepts.Values)
+            {
+                var interceptToRemove = intercepts.First(i => ids.Contains(i.WaypointRoute.Id));
+                if (interceptToRemove != null)
+                    intercepts.Remove(interceptToRemove);
+            }
+        }
+
+        public static void AddTreatmentRouteIntercepts(AreaScanPolygon polygon, List<WaypointRoute> routesToCheck)
+        {
+            var validTreatmentRoutes = (from route in routesToCheck where route.Intersects(polygon) select route).ToList();
+            List<WaypointRouteIntercept> routesIntercepts = validTreatmentRoutes.ConvertAll(
+                r =>
+                {
+                    return new WaypointRouteIntercept()
+                    {
+                        WaypointRoute = r,
+                        EntryCoordinate = r.CalcIntersectWithArea(polygon),
+                        ExitCoordinate = r.CalcIntersectWithArea(polygon, reverse: true)
+                    };
+                });
+
+            if (!AreaScanWaypointRouteIntercepts.ContainsKey(polygon.Id))
+                AreaScanWaypointRouteIntercepts[polygon.Id] = new List<WaypointRouteIntercept>();
+            AreaScanWaypointRouteIntercepts[polygon.Id].AddRange(routesIntercepts);
+        }
+
+        // Dynamic TreatmentInstruction members
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private AreaScanPolygon treatmentPolygon;
         public AreaScanPolygon TreatmentPolygon 
         { 
             get => treatmentPolygon;
-            set
+            private set
             {
                 if (treatmentPolygon == value)
                     return;
                 treatmentPolygon = value;
-                RecalculateAutoLocks();
                 NotifyPropertyChanged();
                 NotifyPropertyChanged("Name");
                 NotifyPropertyChanged("ID");
             } 
         }
 
-        private WaypointRoute treatmentRoute;
+        private WaypointRouteIntercept selectedInterceptRoute;
         public WaypointRoute TreatmentRoute 
         { 
-            get => treatmentRoute;
+            get => selectedInterceptRoute != null ? selectedInterceptRoute.WaypointRoute : null;
             set
             {
-                if (treatmentRoute == value)
+                if (selectedInterceptRoute.WaypointRoute == value || value == null)
                     return;
-                treatmentRoute = value;
-                RecalculateAutoLocks();
+                selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
                 NotifyPropertyChanged();
             }
         }
-
-        private List<int> validTreatmentRouteIDs;
-        public List<int> ValidTreatmentRouteIDs
+        public Coordinate PayloadUnlockCoordinate
         {
-            get => validTreatmentRouteIDs;
-            private set
-            {
-                if (validTreatmentRouteIDs == value)
-                    return;
-                validTreatmentRouteIDs = value;
-                NotifyPropertyChanged();
-            }
+            get => selectedInterceptRoute.EntryCoordinate;
+        }
+        public Coordinate PayloadLockCoordinate
+        {
+            get => selectedInterceptRoute.ExitCoordinate;
+        }
+
+        public IEnumerable<WaypointRoute> ValidTreatmentRoutes
+        {
+            get => AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].Select(r => r.WaypointRoute);
         }
 
         private bool autoCalcUnlock = true;
@@ -64,7 +106,6 @@ namespace ACE_Mission_Control.Core.Models
                 if (autoCalcUnlock == value)
                     return;
                 autoCalcUnlock = value;
-                RecalculateAutoLocks();
                 NotifyPropertyChanged();
             }
         }
@@ -78,95 +119,36 @@ namespace ACE_Mission_Control.Core.Models
                 if (autoCalcLock == value)
                     return;
                 autoCalcLock = value;
-                RecalculateAutoLocks();
-                NotifyPropertyChanged();
-            }
-        }
-
-        private Coordinate payloadUnlockCoordinate;
-        public Coordinate PayloadUnlockCoordinate 
-        { 
-            get => payloadUnlockCoordinate;
-            set
-            {
-                if (payloadUnlockCoordinate == value)
-                    return;
-                payloadUnlockCoordinate = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private Coordinate payloadLockCoordinate;
-        public Coordinate PayloadLockCoordinate 
-        { 
-            get => payloadLockCoordinate;
-            set
-            {
-                if (payloadLockCoordinate == value)
-                    return;
-                payloadLockCoordinate = value;
                 NotifyPropertyChanged();
             }
         }
 
         public string Name { get => TreatmentPolygon.Name; }
-        public int ID { get => TreatmentPolygon.Id; }
 
-        public bool DoTreatment = true;
-
-        public TreatmentInstruction()
-        {
-
-        }
-
-        public void UpdateValidTreatmentRoutes(List<WaypointRoute> allRoutes)
-        {
-            if (TreatmentPolygon == null)
-                return;
-
-            ValidTreatmentRouteIDs = (from route in allRoutes where route.Intersects(TreatmentPolygon) select route.Id).ToList();
-
-            // Reconcile the current TreatmentRoute with the new valid treatment route information
-            if (TreatmentRoute == null || !ValidTreatmentRouteIDs.Contains(TreatmentRoute.Id))
+        private bool doTreatment;
+        public bool DoTreatment 
+        { 
+            get => doTreatment;
+            set
             {
-                if (ValidTreatmentRouteIDs.Count > 0)
-                    TreatmentRoute = allRoutes.Where(r => r.Id == ValidTreatmentRouteIDs[0]).FirstOrDefault();
-                else
-                    TreatmentRoute = null;
+                if (doTreatment == value)
+                    return;
+                doTreatment = value;
+                NotifyPropertyChanged();
             }
-                
         }
 
-        public void RecalculateAutoLocks()
+        public TreatmentInstruction(AreaScanPolygon treatmentArea)
         {
-            if (TreatmentPolygon == null || TreatmentRoute == null)
-                return;
-            if (AutoCalcLock)
-                CalcAndSetPayloadLock();
-            if (AutoCalcUnlock)
-                CalcAndSetPayloadUnlock();
+            TreatmentPolygon = treatmentArea;
+            DoTreatment = true;
+            ResetTreatmentRoute();
         }
 
-        public void CalcAndSetPayloadUnlock()
+        public void ResetTreatmentRoute()
         {
-            if (TreatmentPolygon == null || TreatmentRoute == null)
-                throw new Exception($"Tried to set the payload unlock coordinate for route {Name} but the treatment route or polygon does not exist.");
-            PayloadUnlockCoordinate = TreatmentRoute.CalcIntersectWithArea(TreatmentPolygon);
-        }
-
-        public void CalcAndSetPayloadLock()
-        {
-            if (TreatmentPolygon == null || TreatmentRoute == null)
-                throw new Exception($"Tried to set the payload lock coordinate for route {Name} but the treatment route or polygon does not exist.");
-            PayloadLockCoordinate = TreatmentRoute.CalcIntersectWithArea(TreatmentPolygon, true);
-        }
-
-        public bool DoesWaypointRouteIntersectArea(WaypointRoute waypointRoute)
-        {
-            if (TreatmentPolygon == null || waypointRoute == null)
-                throw new Exception("Tried to check a waypoint route and area intersection with an area scan or waypoint route that doesn't exist in the mission.");
-
-            return waypointRoute.Intersects(TreatmentPolygon);
+            selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault();
+            NotifyPropertyChanged("TreatmentRoute");
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

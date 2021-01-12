@@ -46,7 +46,10 @@ namespace ACE_Mission_Control.Core.Models
 
             var firstSegment = route.Segments[0];
 
-            if (firstSegment.Figure.Type != FigureType.FT_POLYGON || firstSegment.Figure.Points.Count < 3)
+            if (firstSegment.Figure.Type != FigureType.FT_POLYGON || 
+                firstSegment.Figure.Points.Count < 3 ||
+                firstSegment.Figure.Points.First().Longitude != firstSegment.Figure.Points.Last().Longitude ||
+                firstSegment.Figure.Points.First().Latitude != firstSegment.Figure.Points.Last().Latitude)
                 return false;
 
             return true;

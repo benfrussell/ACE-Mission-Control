@@ -14,7 +14,6 @@ namespace ACE_Mission_Control.Core.Models
         public long LastModificationTime { get; protected set; }
 
         public string Name;
-        public int EntryVertex;
 
         public AreaScanPolygon(int id, string name, long modifiedTime, LinearRing polygonPoints) : base(polygonPoints)
         {
@@ -64,6 +63,12 @@ namespace ACE_Mission_Control.Core.Models
                 var nextCoord = Coordinates[i + 1];
                 yield return new LineSegment(coord, nextCoord);
             }
+        }
+
+        public IEnumerable<Tuple<double, double>> GetBasicCoordinates()
+        {
+            foreach (Coordinate coord in Coordinates)
+                yield return new Tuple<double, double>(coord.X, coord.Y);
         }
 
         //public string GetVerticesString()

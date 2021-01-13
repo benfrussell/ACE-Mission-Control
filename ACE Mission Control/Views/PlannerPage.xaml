@@ -36,10 +36,10 @@
                 Background="{ThemeResource SystemChromeMediumLowColor}">
             <ListView x:Name="SetupMissionRoutesList"
                       ItemsSource="{x:Bind ViewModel.TreatmentInstructions, Mode=OneWay}"
+                      DataContext="{x:Bind ViewModel}"
                       CanReorderItems="True"
                       CanDragItems="True"
-                      AllowDrop="True"
-                      DragStarting="SetupMissionRoutesList_DragStarting">
+                      AllowDrop="True">
 
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
@@ -109,7 +109,7 @@
                                        VerticalAlignment="Center"
                                        Text="{x:Bind Name, Mode=OneWay}"/>
 
-                            <ComboBox Grid.Column="2"
+                            <ComboBox x:Name="WaypointRouteComboBox" Grid.Column="2"
                                       Margin="4,0,4,0"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Center"
@@ -120,13 +120,13 @@
                                         <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
-                                
-                                <!--<i:Interaction.Behaviors>
+
+                                <i:Interaction.Behaviors>
                                     <core:EventTriggerBehavior EventName="SelectionChanged">
-                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.PayloadSelectionCommand}"
-                                                          CommandParameter="{x:Bind PayloadComboBox}"/>
+                                        <core:InvokeCommandAction Command="{Binding ElementName=SetupMissionRoutesList, Path=DataContext.WaypointRouteComboBox_SelectionChangedCommand}"
+                                                                  CommandParameter="{Binding ElementName=WaypointRouteComboBox}"/>
                                     </core:EventTriggerBehavior>
-                                </i:Interaction.Behaviors>-->
+                                </i:Interaction.Behaviors>
 
                                 <ToolTipService.ToolTip>
                                     <TextBlock x:Uid="Planner_WaypointRouteComboboxTooltip"/>
@@ -148,8 +148,7 @@
                          VerticalAlignment="Stretch"
                          TiltInteractionMode="GestureAndControl"
                          ZoomInteractionMode="GestureAndControl"
-                         ZoomLevel="14"
-                         MapElementClick="EntryMapControl_MapElementClick">
+                         ZoomLevel="14">
         </maps:MapControl>
     </Grid>
 </local:DroneBasePage>

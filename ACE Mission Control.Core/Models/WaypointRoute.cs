@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
 using UGCS.Sdk.Protocol;
 using UGCS.Sdk.Protocol.Encoding;
@@ -70,23 +71,21 @@ namespace ACE_Mission_Control.Core.Models
         public Coordinate CalcIntersectWithArea(AreaScanPolygon area, bool reverse=false)
         {
             var areaScanSegments = area.GetLineSegments().ToList();
-            Coordinate intersect;
 
             var waypoints = GetLineSegments();
             if (reverse)
-            {
-                waypoints = waypoints.ToList();
-                waypoints.Reverse();
-            }
+                waypoints = waypoints.Reverse();
 
-            foreach (LineSegment waypointSegment in GetLineSegments())
+            var intersector = new RobustLineIntersector();
+
+            foreach (LineSegment waypointSegment in waypoints)
             {
                 foreach (LineSegment areaSegment in areaScanSegments)
                 {
-                    intersect = waypointSegment.LineIntersection(areaSegment);
-                    if (intersect != null)
+                    intersector.ComputeIntersection(waypointSegment.P0, waypointSegment.P1, areaSegment.P0, areaSegment.P1);
+                    if (intersector.IsProper)
                     {
-                        return intersect;
+                        return intersector.GetIntersection(0);
                     }
                 }
             }

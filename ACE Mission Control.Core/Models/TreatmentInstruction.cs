@@ -36,6 +36,8 @@ namespace ACE_Mission_Control.Core.Models
         public static void AddTreatmentRouteIntercepts(AreaScanPolygon polygon, List<WaypointRoute> routesToCheck)
         {
             var validTreatmentRoutes = (from route in routesToCheck where route.Intersects(polygon) select route).ToList();
+            System.Diagnostics.Debug.WriteLine($"{polygon.Name} finding entry and then exit coordinate");
+            // TODO: For some reason it can't get an entry and exit point on the same LineSegment
             List<WaypointRouteIntercept> routesIntercepts = validTreatmentRoutes.ConvertAll(
                 r =>
                 {
@@ -79,13 +81,27 @@ namespace ACE_Mission_Control.Core.Models
                 selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
             }
         }
-        public Coordinate PayloadUnlockCoordinate
+        public Tuple<double, double> PayloadUnlockCoordinate
         {
-            get => selectedInterceptRoute.EntryCoordinate;
+            get
+            {
+                if (selectedInterceptRoute != null)
+                    return new Tuple<double, double>(
+                        selectedInterceptRoute.EntryCoordinate.X,
+                        selectedInterceptRoute.EntryCoordinate.Y);
+                return null;
+            }
         }
-        public Coordinate PayloadLockCoordinate
+        public Tuple<double, double> PayloadLockCoordinate
         {
-            get => selectedInterceptRoute.ExitCoordinate;
+            get
+            {
+                if (selectedInterceptRoute != null)
+                    return new Tuple<double, double>(
+                        selectedInterceptRoute.ExitCoordinate.X,
+                        selectedInterceptRoute.ExitCoordinate.Y);
+                return null;
+            }
         }
 
         public IEnumerable<WaypointRoute> ValidTreatmentRoutes

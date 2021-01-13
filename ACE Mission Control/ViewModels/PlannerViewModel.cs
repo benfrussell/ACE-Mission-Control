@@ -11,10 +11,12 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Windows.ApplicationModel.Core;
+using Windows.UI.Xaml.Controls;
 
 namespace ACE_Mission_Control.ViewModels
 {
-    public class AddMapAreasMessage : MessageBase { public List<AreaScanPolygon> areas { get; set; } }
+    public class UpdatePlannerMapAreas : MessageBase { }
+    public class UpdatePlannerMapPoints : MessageBase { public TreatmentInstruction Instruction { get; set; } }
     public class MapPointSelected : MessageBase { public int index { get; set; } }
 
     public class PlannerViewModel : DroneViewModelBase
@@ -39,8 +41,8 @@ namespace ACE_Mission_Control.ViewModels
 
         protected override void DroneAttached(bool firstTime)
         {
-            AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
             TreatmentInstructions = AttachedDrone.MissionData.TreatmentInstructions;
+            Messenger.Default.Send(new UpdatePlannerMapAreas());
             AttachedDrone.MissionData.InstructionUpdated += MissionData_InstructionUpdated;
         }
 
@@ -53,33 +55,27 @@ namespace ACE_Mission_Control.ViewModels
                 var indexOf = TreatmentInstructions.IndexOf(instruction);
                 TreatmentInstructions.RemoveAt(indexOf);
                 TreatmentInstructions.Insert(indexOf, instruction);
+
+                // Update the map points to remove them for this instruction if it not longer has a treatment route
+                if (instruction.TreatmentRoute == null)
+                    Messenger.Default.Send(new UpdatePlannerMapPoints() { Instruction = instruction });
             }
+            Messenger.Default.Send(new UpdatePlannerMapAreas());
         }
 
-        private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                //switch (e.PropertyName)
-                //{
-                //    case "MissionData":
-                //        // New mission data received in the model
-                //        RaisePropertyChanged("TreatmentInstructions");
-                //        if (AttachedDrone.MissionData.TreatmentInstructions.Count > 0)
-                //        {
-                //            var treatmentPolygons = (from i in AttachedDrone.MissionData.TreatmentInstructions
-                //                                     select i.TreatmentPolygon).ToList();
-                //            Messenger.Default.Send(new AddMapAreasMessage() { areas = treatmentPolygons });
-                //        }
+        public RelayCommand<ComboBox> WaypointRouteComboBox_SelectionChangedCommand => new RelayCommand<ComboBox>(args => WaypointRouteComboBox_SelectionChanged(args));
 
-                //        break;
-                //}
-            });
+        // Not called when the selection changes to null
+        private void WaypointRouteComboBox_SelectionChanged(ComboBox args)
+        {
+            if (args.DataContext != null)
+            {
+                Messenger.Default.Send(new UpdatePlannerMapPoints() { Instruction = args.DataContext as TreatmentInstruction });
+            }
         }
 
         protected override void DroneUnattaching()
         {
-            AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
             AttachedDrone.MissionData.InstructionUpdated -= MissionData_InstructionUpdated;
         }
     }

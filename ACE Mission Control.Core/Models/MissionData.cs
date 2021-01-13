@@ -35,6 +35,13 @@ namespace ACE_Mission_Control.Core.Models
         public RouteCollectionUpdates<AreaScanPolygon> updates { get; set; }
     }
 
+    public class InstructionsUpdatedEventArgs
+    {
+        public List<TreatmentInstruction> Instructions { get; set; }
+
+        public InstructionsUpdatedEventArgs() { Instructions = new List<TreatmentInstruction>(); }
+    }
+
     public class MissionData : INotifyPropertyChanged
     {
 
@@ -217,6 +224,7 @@ namespace ACE_Mission_Control.Core.Models
                 else
                 {
                     changes.RemovedRouteIDs.Remove(matchInExistingRoutes.Id);
+                    // For some reason UGCS reports ALL routes as being modified whenever you add/remove/modify a single route
                     if (newRoute.LastModificationTime > matchInExistingRoutes.LastModificationTime)
                         changes.ModifiedRoutes.Add(newRoute);
                 }
@@ -246,6 +254,8 @@ namespace ACE_Mission_Control.Core.Models
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public event EventHandler<InstructionsUpdatedEventArgs> InstructionUpdated;
+
         public ObservableCollection<TreatmentInstruction> TreatmentInstructions;
 
         public MissionData()
@@ -256,6 +266,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private void MissionData_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
         {
+            // Remove all instructions that have removed polygons
             foreach (int removedID in e.updates.RemovedRouteIDs)
             {
                 var removedInstruction = TreatmentInstructions.FirstOrDefault(i => removedID == i.TreatmentPolygon.Id);
@@ -263,16 +274,31 @@ namespace ACE_Mission_Control.Core.Models
                     TreatmentInstructions.Remove(removedInstruction);
             }
 
+            InstructionsUpdatedEventArgs updatedInstructions = new InstructionsUpdatedEventArgs();
+
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
-                if (instruction.TreatmentRoute == null)
-                    instruction.ResetTreatmentRoute();
+                var newTreatmentArea = e.updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentPolygon.Id);
+                if (newTreatmentArea != null)
+                {
+                    // Update treatment areas if they were modified
+                    instruction.UpdateTreatmentArea(newTreatmentArea);
+                    updatedInstructions.Instructions.Add(instruction);
+                }
+                else
+                {
+                    var routeUpdated = instruction.RevalidateTreatmentRoute();
+                    if (routeUpdated)
+                        updatedInstructions.Instructions.Add(instruction);
+                }   
             }
 
+            // Add new treatment areas as instructions
             foreach (AreaScanPolygon addedArea in e.updates.AddedRoutes)
-            {
                 TreatmentInstructions.Add(new TreatmentInstruction(addedArea));
-            }
+
+            if (updatedInstructions.Instructions.Count > 0)
+                InstructionUpdated?.Invoke(this, updatedInstructions);
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

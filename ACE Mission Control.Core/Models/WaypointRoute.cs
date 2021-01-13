@@ -47,7 +47,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public static bool IsUGCSRouteWaypointRoute(Route route)
         {
-            if (route.Segments == null || route.Segments.Count == 0)
+            if (route.Segments == null || route.Segments.Count < 2)
                 return false;
 
             var firstFigure = route.Segments[0].Figure;

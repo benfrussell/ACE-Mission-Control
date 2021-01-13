@@ -107,13 +107,13 @@
                             <TextBlock Grid.Column="1"
                                        Margin="4,0,0,0"
                                        VerticalAlignment="Center"
-                                       Text="{x:Bind Name}"/>
+                                       Text="{x:Bind Name, Mode=OneWay}"/>
 
                             <ComboBox Grid.Column="2"
                                       Margin="4,0,4,0"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Center"
-                                      SelectedItem="{x:Bind TreatmentRoute, Mode=TwoWay}"
+                                      SelectedItem="{Binding TreatmentRoute, Mode=TwoWay}"
                                       ItemsSource="{x:Bind ValidTreatmentRoutes, Mode=OneWay}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate x:DataType="ace:WaypointRoute">

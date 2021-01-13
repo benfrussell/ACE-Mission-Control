@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class TreatmentInstruction : INotifyPropertyChanged
+    public class TreatmentInstruction
     {
         // Static TreatmentInstruction members
 
@@ -54,20 +54,17 @@ namespace ACE_Mission_Control.Core.Models
 
         // Dynamic TreatmentInstruction members
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private AreaScanPolygon treatmentPolygon;
         public AreaScanPolygon TreatmentPolygon 
         { 
             get => treatmentPolygon;
             private set
             {
-                if (treatmentPolygon == value)
+                if (treatmentPolygon != null && 
+                    treatmentPolygon.Id == value.Id && 
+                    treatmentPolygon.LastModificationTime == value.LastModificationTime)
                     return;
                 treatmentPolygon = value;
-                NotifyPropertyChanged();
-                NotifyPropertyChanged("Name");
-                NotifyPropertyChanged("ID");
             } 
         }
 
@@ -77,10 +74,9 @@ namespace ACE_Mission_Control.Core.Models
             get => selectedInterceptRoute != null ? selectedInterceptRoute.WaypointRoute : null;
             set
             {
-                if (selectedInterceptRoute.WaypointRoute == value || value == null)
+                if (selectedInterceptRoute != null && selectedInterceptRoute.WaypointRoute == value)
                     return;
                 selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
-                NotifyPropertyChanged();
             }
         }
         public Coordinate PayloadUnlockCoordinate
@@ -106,7 +102,6 @@ namespace ACE_Mission_Control.Core.Models
                 if (autoCalcUnlock == value)
                     return;
                 autoCalcUnlock = value;
-                NotifyPropertyChanged();
             }
         }
 
@@ -119,7 +114,6 @@ namespace ACE_Mission_Control.Core.Models
                 if (autoCalcLock == value)
                     return;
                 autoCalcLock = value;
-                NotifyPropertyChanged();
             }
         }
 
@@ -134,7 +128,6 @@ namespace ACE_Mission_Control.Core.Models
                 if (doTreatment == value)
                     return;
                 doTreatment = value;
-                NotifyPropertyChanged();
             }
         }
 
@@ -142,18 +135,28 @@ namespace ACE_Mission_Control.Core.Models
         {
             TreatmentPolygon = treatmentArea;
             DoTreatment = true;
-            ResetTreatmentRoute();
+            RevalidateTreatmentRoute();
         }
 
-        public void ResetTreatmentRoute()
+        public void UpdateTreatmentArea(AreaScanPolygon treatmentArea)
         {
-            selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault();
-            NotifyPropertyChanged("TreatmentRoute");
+            TreatmentPolygon = treatmentArea;
+            RevalidateTreatmentRoute();
         }
 
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        public bool IsTreatmentRouteValid()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].Contains(selectedInterceptRoute);
+        }
+
+        public bool RevalidateTreatmentRoute()
+        {
+            if (!IsTreatmentRouteValid())
+            {
+                selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault();
+                return true;
+            }
+            return false;
         }
     }
 }

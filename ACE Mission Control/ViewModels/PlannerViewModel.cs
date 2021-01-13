@@ -19,9 +19,17 @@ namespace ACE_Mission_Control.ViewModels
 
     public class PlannerViewModel : DroneViewModelBase
     {
+        private ObservableCollection<TreatmentInstruction> treatmentInstructions;
         public ObservableCollection<TreatmentInstruction> TreatmentInstructions
         {
-            get => IsDroneAttached ? AttachedDrone.MissionData.TreatmentInstructions : null;
+            get => treatmentInstructions;
+            set
+            {
+                if (treatmentInstructions == value)
+                    return;
+                treatmentInstructions = value;
+                RaisePropertyChanged();
+            }
         }
 
         public PlannerViewModel()
@@ -31,30 +39,21 @@ namespace ACE_Mission_Control.ViewModels
 
         protected override void DroneAttached(bool firstTime)
         {
-            RaisePropertyChanged("TreatmentInstructions");
-
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
-            AttachedDrone.MissionData.TreatmentInstructions.CollectionChanged += TreatmentInstructions_CollectionChanged;
+            TreatmentInstructions = AttachedDrone.MissionData.TreatmentInstructions;
+            AttachedDrone.MissionData.InstructionUpdated += MissionData_InstructionUpdated;
         }
 
-        private async void TreatmentInstructions_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void MissionData_InstructionUpdated(object sender, InstructionsUpdatedEventArgs e)
         {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            // Force the binding to update by removing and re-adding the instruction
+            // This is dumb but the alternative seems to be making my own ObservableCollection class which is also dumb
+            foreach (TreatmentInstruction instruction in e.Instructions)
             {
-                RaisePropertyChanged("TreatmentInstructions");
-                if (e.OldItems != null)
-                    foreach (TreatmentInstruction oldItem in e.OldItems)
-                        oldItem.PropertyChanged -= TreatmentInstruction_PropertyChanged;
-
-                if (e.NewItems != null)
-                    foreach (TreatmentInstruction newItem in e.NewItems)
-                        newItem.PropertyChanged += TreatmentInstruction_PropertyChanged;
-            });
-        }
-
-        private void TreatmentInstruction_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            RaisePropertyChanged("TreatmentInstructions");
+                var indexOf = TreatmentInstructions.IndexOf(instruction);
+                TreatmentInstructions.RemoveAt(indexOf);
+                TreatmentInstructions.Insert(indexOf, instruction);
+            }
         }
 
         private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -81,6 +80,7 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneUnattaching()
         {
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
+            AttachedDrone.MissionData.InstructionUpdated -= MissionData_InstructionUpdated;
         }
     }
 }

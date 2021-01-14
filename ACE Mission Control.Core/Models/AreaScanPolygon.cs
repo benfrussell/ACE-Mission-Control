@@ -70,26 +70,5 @@ namespace ACE_Mission_Control.Core.Models
             foreach (Coordinate coord in Coordinates)
                 yield return new Tuple<double, double>(coord.X, coord.Y);
         }
-
-        //public string GetVerticesString()
-        //{
-        //    string vertString = "";
-        //    foreach (BasicGeoposition position in Area.Positions)
-        //    {
-        //        if (vertString.Length != 0)
-        //            vertString = vertString + ";";
-        //        vertString = vertString + string.Format("{0},{1}", (Math.PI / 180) * position.Latitude, (Math.PI / 180) * position.Longitude);
-        //    }
-        //    return vertString;
-        //}
-
-        //public string GetEntryVetexString()
-        //{
-        //    string entryString = string.Format(
-        //        "{0},{1}",
-        //        Area.Positions[EntryVertex].Latitude,
-        //        Area.Positions[EntryVertex].Longitude);
-        //    return entryString;
-        //}
     }
 }

@@ -174,5 +174,29 @@ namespace ACE_Mission_Control.Core.Models
             }
             return false;
         }
+
+        public string GetTreatmentAreaString()
+        {
+            string vertString = "";
+            foreach (Coordinate position in TreatmentPolygon.Coordinates)
+            {
+                if (vertString.Length != 0)
+                    vertString = vertString + ";";
+                // Build string in latitude,longitude; format
+                vertString = vertString + string.Format("{0},{1}", position.Y, position.X);
+            }
+            // Returns in radians
+            return vertString;
+        }
+
+        public string GetUnlockCoordianteString()
+        {
+            // Returns in radians - latitude then longitude
+            string entryString = string.Format(
+                "{0},{1}",
+                PayloadUnlockCoordinate.Item2,
+                PayloadUnlockCoordinate.Item1);
+            return entryString;
+        }
     }
 }

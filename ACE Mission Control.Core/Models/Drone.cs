@@ -304,18 +304,28 @@ namespace ACE_Mission_Control.Core.Models
 
         public void UploadMission()
         {
-            //string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -name {3} -radians", 
-            //    MissionData.AreaScanRoutes[0].GetVerticesString(),
-            //    TreatmentDuration,
-            //    MissionData.AreaScanRoutes[0].GetEntryVetexString(),
-            //    MissionData.AreaScanRoutes[0].Name);
-            //SendCommand(uploadCmd);
+            bool firstCmd = true;
+            foreach (TreatmentInstruction instruction in MissionData.TreatmentInstructions)
+            {
+                if (instruction.DoTreatment)
+                {
+                    if (firstCmd)
+                    {
+                        string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -name {3} -radians",
+                            MissionData.TreatmentInstructions[0].GetTreatmentAreaString(),
+                            TreatmentDuration,
+                            MissionData.TreatmentInstructions[0].GetUnlockCoordianteString(),
+                            MissionData.TreatmentInstructions[0].Name);
+                        SendCommand(uploadCmd);
+                        firstCmd = false;
+                        continue;
+                    }
 
-            //if (MissionData.AreaScanRoutes.Count > 1)
-            //    for (int i = 1; i < MissionData.AreaScanRoutes.Count; i++)
-            //        SendCommand(string.Format("add_area -data {0} -name {1} -radians", 
-            //            MissionData.AreaScanRoutes[i].GetVerticesString(),
-            //            MissionData.AreaScanRoutes[i].Name));
+                    SendCommand(string.Format("add_area -data {0} -name {1} -radians",
+                        instruction.GetTreatmentAreaString(),
+                        instruction.Name));
+                }
+            }
         }
 
         private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)

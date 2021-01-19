@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
-using GalaSoft.MvvmLight;
 using ACE_Mission_Control.Core.Models;
 using GalaSoft.MvvmLight.Command;
 using ACE_Mission_Control.Helpers;
@@ -12,24 +8,16 @@ using GalaSoft.MvvmLight.Messaging;
 using System.ComponentModel;
 using Windows.ApplicationModel.Core;
 using System.Collections.ObjectModel;
-using Windows.UI.Core;
-using Windows.Storage.Pickers;
-using Windows.Storage;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml;
-using System.Security;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Devices.Geolocation;
 using Microsoft.Toolkit.Uwp.UI.Controls;
 
 namespace ACE_Mission_Control.ViewModels
 {
     // --- Messages
 
-    public class ShowPassphraseDialogMessage : MessageBase { }
-    public class HidePassphraseDialogMessage : MessageBase { }
     public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
-
 
     // --- Properties
 
@@ -87,9 +75,14 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public bool OBCConnected
+        //public bool OBCDirectorConnected
+        //{
+        //    get { return AttachedDrone.OBCClient.IsDirectorConnected; }
+        //}
+
+        public bool OBCChaperoneConnected
         {
-            get { return AttachedDrone.OBCClient.IsConnected; }
+            get { return AttachedDrone.OBCClient.IsChaperoneConnected; }
         }
 
         public bool OBCCanBeTested
@@ -222,25 +215,18 @@ namespace ACE_Mission_Control.ViewModels
             get { return _alerts; }
         }
 
-        private bool setupMissionDialogOpen;
         private bool suppressPayloadCommand;
-        private UGCSClient ugcsclient;
 
         public MissionViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();
             TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
 
-            setupMissionDialogOpen = false;
             suppressPayloadCommand = false;
         }
 
         protected override void DroneAttached(bool firstTime)
         {
-            LockButtonSymbol = OnboardComputerController.KeyOpen ? Symbol.Accept : Symbol.Permissions;
-            LockButtonEnabled = !OnboardComputerController.KeyOpen;
-
-            OnboardComputerController.StaticPropertyChanged += OnboardComputerClient_StaticPropertyChanged;
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
@@ -252,8 +238,10 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                if (e.PropertyName == "IsConnected")
-                    RaisePropertyChanged("OBCConnected");
+                if (e.PropertyName == "IsDirectorConnected")
+                    RaisePropertyChanged("IsDirectorConnected");
+                else if (e.PropertyName == "IsChaperoneConnected")
+                    RaisePropertyChanged("OBCChaperoneConnected");
             });
         }
 
@@ -312,22 +300,9 @@ namespace ACE_Mission_Control.ViewModels
 
         protected override void DroneUnattaching()
         {
-            OnboardComputerController.StaticPropertyChanged -= OnboardComputerClient_StaticPropertyChanged;
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
-        }
-
-        private async void OnboardComputerClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                if (e.PropertyName == "KeyOpen")
-                {
-                    LockButtonSymbol = OnboardComputerController.KeyOpen ? Symbol.Accept : Symbol.Permissions;
-                    LockButtonEnabled = !OnboardComputerController.KeyOpen;
-                }
-            });
         }
 
         private bool isTreatmentDurationValid(string durationString)
@@ -338,10 +313,13 @@ namespace ACE_Mission_Control.ViewModels
 
         // --- OBC Commands
 
-        public RelayCommand LockButtonCommand => new RelayCommand(() => lockButtonClicked());
-        private void lockButtonClicked()
+        public RelayCommand ConnectOBCCommand => new RelayCommand(() => connectOBCCommand());
+        private void connectOBCCommand()
         {
-            Messenger.Default.Send(new ShowPassphraseDialogMessage());
+            if (AttachedDrone.OBCClient.AutoTryingConnections)
+                AttachedDrone.OBCClient.StopTryingConnections();
+            else
+                AttachedDrone.OBCClient.StartTryingConnections();
         }
 
         public RelayCommand ConnectDroneCommand => new RelayCommand(() => connectDroneCommand());
@@ -431,30 +409,6 @@ namespace ACE_Mission_Control.ViewModels
             dataPackage.RequestedOperation = DataPackageOperation.Copy;
             dataPackage.SetText(copiedText);
             Clipboard.SetContent(dataPackage);
-        }
-
-        // --- Dialog Commands
-
-        public RelayCommand PassDialogEnterCommand => new RelayCommand(() => {
-            PassDialogErrorText = "";
-            PassDialogLoading = true;
-            passDialogEntered();
-        });
-
-        private void passDialogEntered()
-        {
-            Messenger.Default.Send(new HidePassphraseDialogMessage());
-            OnboardComputerController.StartTryingConnections();
-
-        }
-
-        public RelayCommand<PasswordBox> PassChangedCommand => new RelayCommand<PasswordBox>(pass => passChanged(pass));
-        private void passChanged(PasswordBox pass)
-        {
-            if (pass.Password.Length > 0)
-                AttachedDrone.OBCClient.Password.Clear();
-            foreach (char c in pass.Password.ToCharArray())
-                AttachedDrone.OBCClient.Password.AppendChar(c);
         }
     }
 }

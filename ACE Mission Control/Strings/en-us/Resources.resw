@@ -229,20 +229,11 @@
   <data name="Settings_NumDrones.Header" xml:space="preserve">
     <value>Number of Drones</value>
   </data>
-  <data name="Mission_PassDialogText.Text" xml:space="preserve">
-    <value>Please enter the SSH key passphrase to enable drone access.</value>
-  </data>
-  <data name="Mission_PassDialog.Title" xml:space="preserve">
-    <value>SSH Key Passphrase</value>
-  </data>
   <data name="Mission_OBCHeader.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
   <data name="Mission_MissionControlHeader.Text" xml:space="preserve">
     <value>Mission Controls</value>
-  </data>
-  <data name="Config_AutomationCheck.Content" xml:space="preserve">
-    <value>Disable Drone Automation</value>
   </data>
   <data name="Console_ActivateButton.Content" xml:space="preserve">
     <value>Activate Debug Console</value>
@@ -282,12 +273,6 @@
   </data>
   <data name="Alert_OBCSlow" xml:space="preserve">
     <value>Onboard Computer working slow. Response delay</value>
-  </data>
-  <data name="Config_AutoConnectCheck.Content" xml:space="preserve">
-    <value>Disable Drone Auto-Connecting</value>
-  </data>
-  <data name="Config_ConnectButton.Content" xml:space="preserve">
-    <value>Connect</value>
   </data>
   <data name="Mission_FlyThroughCheckbox.Content" xml:space="preserve">
     <value>Activated</value>
@@ -381,5 +366,14 @@
   </data>
   <data name="Planner_WaypointRouteComboboxTooltip.Text" xml:space="preserve">
     <value>Selects the waypoint route that the drone will follow</value>
+  </data>
+  <data name="Config_ManualCommandsCheckbox.Content" xml:space="preserve">
+    <value>Enable Manual Commands Only</value>
+  </data>
+  <data name="Mission_ConnectOBCSwitch.OffContent" xml:space="preserve">
+    <value>Connect to Onboard Computer</value>
+  </data>
+  <data name="Mission_ConnectOBCSwitch.OnContent" xml:space="preserve">
+    <value>Connect to Onboard Computer</value>
   </data>
 </root>

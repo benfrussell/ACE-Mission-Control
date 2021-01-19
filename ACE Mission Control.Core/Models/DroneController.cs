@@ -59,9 +59,9 @@ namespace ACE_Mission_Control.Core.Models
                 if (matchedDrone == null)
                 {
                     if (v.NameSpecified)
-                        Drones.Add(new Drone(v.Id, v.Name, "", ""));
+                        Drones.Add(new Drone(v.Id, v.Name, ""));
                     else
-                        Drones.Add(new Drone(v.Id, "Drone " + v.Id.ToString(), "", ""));
+                        Drones.Add(new Drone(v.Id, "Drone " + v.Id.ToString(), ""));
                 }
                 else
                 {

@@ -41,50 +41,16 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private bool _automation_checked;
-        public bool DisableAutomationChecked
+        public bool ManualCommandsChecked
         {
-            get { return _automation_checked; }
-            set
-            {
-                if (_automation_checked == value)
-                    return;
-                _automation_checked = value;
-                RaisePropertyChanged("DisableAutomationChecked");
-            }
+            get { return AttachedDrone.ManualCommandsOnly; }
         }
 
-        private bool _disable_auto_connect_checked;
-        public bool DisableAutoConnectChecked
-        {
-            get { return _disable_auto_connect_checked; }
-            set
-            {
-                if (_disable_auto_connect_checked == value)
-                    return;
-                _disable_auto_connect_checked = value;
-                RaisePropertyChanged("DisableAutoConnectChecked");
-            }
-        }
-
-        private bool _connect_button_enabled;
-        public bool ConnectButtonEnabled
-        {
-            get { return _connect_button_enabled; }
-            set
-            {
-                if (value == _connect_button_enabled)
-                    return;
-                _connect_button_enabled = value;
-                RaisePropertyChanged("ConnectButtonEnabled");
-            }
-        }
 
         public RelayCommand ApplyChangesCommand => new RelayCommand(() => applyButtonClicked());
         public RelayCommand ResetChangesCommand => new RelayCommand(() => resetButtonClicked());
-        public RelayCommand DisableAutomationCheckCommand => new RelayCommand(() => disableAutomationChecked());
-        public RelayCommand ConnectCommand => new RelayCommand(() => connectClicked());
-        public RelayCommand DisableAutoConnectCheckCommand => new RelayCommand(() => disableAutoConnectChecked());
+        public RelayCommand ManualCommandsCheckedCommand => new RelayCommand(() => manualCommandsCheckedCommand());
+
         public ConfigViewModel()
         {
 
@@ -93,42 +59,28 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneAttached(bool firstTime)
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
-            DisableAutomationChecked = AttachedDrone.OBCClient.AutomationDisabled;
-            DisableAutoConnectChecked = AttachedDrone.OBCClient.AutoConnectDisabled;
-            ConnectButtonEnabled = !AttachedDrone.OBCClient.IsConnected &&
-                !AttachedDrone.OBCClient.AttemptingConnection &&
-                AttachedDrone.OBCClient.AutoConnectDisabled;
-            AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
+            RaisePropertyChanged("ManualCommandsChecked");
+            AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
         }
 
         protected override void DroneUnattaching()
         {
-            AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
+            AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
         }
 
-        private async void OBCClient_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void AttachedDrone_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             // Property changes might come in from the wrong thread. This dispatches it to the UI thread.
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                var client = sender as OnboardComputerClient;
-
-                if (client.AttachedDrone.ID != DroneID)
-                    return;
-
-                if (e.PropertyName == "IsConnected" || e.PropertyName == "AttemptingConnection" || e.PropertyName == "AutoConnectDisabled")
-                {
-                    ConnectButtonEnabled = !AttachedDrone.OBCClient.IsConnected &&
-                        !AttachedDrone.OBCClient.AttemptingConnection &&
-                        AttachedDrone.OBCClient.AutoConnectDisabled;
-                }
-
+                if (e.PropertyName == "ManualCommandsOnly")
+                    RaisePropertyChanged("ManualCommandsChecked");
             });
         }
 
         private void applyButtonClicked()
         {
-            AttachedDrone.OBCClient.Hostname = Hostname_Text;
+            AttachedDrone.OBCClient.Configure(Hostname_Text);
             UnsavedChanges = false;
         }
 
@@ -137,19 +89,9 @@ namespace ACE_Mission_Control.ViewModels
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
         }
 
-        private void disableAutomationChecked()
+        private void manualCommandsCheckedCommand()
         {
-            AttachedDrone.OBCClient.AutomationDisabled = DisableAutomationChecked;
-        }
-
-        private void connectClicked()
-        {
-            AttachedDrone.OBCClient.TryConnect();
-        }
-
-        private void disableAutoConnectChecked()
-        {
-            AttachedDrone.OBCClient.AutoConnectDisabled = DisableAutoConnectChecked;
+            AttachedDrone.ManualCommandsOnly = !AttachedDrone.ManualCommandsOnly;
         }
     }
 }

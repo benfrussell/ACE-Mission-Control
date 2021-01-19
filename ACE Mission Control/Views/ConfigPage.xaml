@@ -18,6 +18,7 @@
                     Text="{x:Bind ViewModel.Hostname_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     x:Name="OBCHostnameBox"
                     IsSpellCheckEnabled="False"
+                    Style="{ThemeResource ACETextBox}"
                     helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.ApplyChangesCommand}" />
 
                 <StackPanel
@@ -37,26 +38,15 @@
                             Command="{x:Bind ViewModel.ResetChangesCommand}" />
                 </StackPanel>
             </StackPanel>
-            <TextBlock x:Uid="Config_DiagnosticsLabel" Margin="0,16,0,4" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <TextBlock x:Uid="Config_DiagnosticsLabel" Margin="0,16,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"/>
             <StackPanel
-                Margin="{StaticResource XSmallTopMargin}"
+                Margin="0,8,0,0"
                 HorizontalAlignment="Left">
-                <StackPanel Orientation="Horizontal">
-                    <Button x:Uid="Config_ConnectButton"
-                            IsEnabled="{x:Bind ViewModel.ConnectButtonEnabled, Mode=OneWay}"
-                            Command="{x:Bind ViewModel.ConnectCommand}"
-                            Style="{ThemeResource ACEButton}"/>
-                    <CheckBox x:Name="AutoConnectCheck"
-                              x:Uid="Config_AutoConnectCheck"
-                              Margin="8,0,0,0"
-                              IsChecked="{x:Bind ViewModel.DisableAutoConnectChecked, Mode=TwoWay}"
-                              Command="{x:Bind ViewModel.DisableAutoConnectCheckCommand}" />
-                </StackPanel>
-                <CheckBox x:Name="AutomationCheck"
-                          x:Uid="Config_AutomationCheck"
-                          Margin="0,8,0,0"
-                          IsChecked="{x:Bind ViewModel.DisableAutomationChecked, Mode=TwoWay}"
-                          Command="{x:Bind ViewModel.DisableAutomationCheckCommand}" />
+                <CheckBox x:Name="ManualCommandsCheckbox"
+                          x:Uid="Config_ManualCommandsCheckbox"
+                          Margin="0,0,0,0"
+                          IsChecked="{x:Bind ViewModel.ManualCommandsChecked, Mode=OneWay}"
+                          Command="{x:Bind ViewModel.ManualCommandsCheckedCommand}" />
             </StackPanel>
         </StackPanel>
     </Grid>

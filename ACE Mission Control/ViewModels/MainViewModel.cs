@@ -99,7 +99,7 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.AlertLog.CollectionChanged += Alerts_CollectionChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
             OBCStatusText = AttachedDrone.MissionStage.ToString();
-            OBCConnectedText = AttachedDrone.OBCClient.IsConnected ? "Connected" : "Not Connected";
+            OBCConnectedText = AttachedDrone.OBCClient.IsDirectorConnected ? "Connected" : "Not Connected";
         }
 
         private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -128,8 +128,8 @@ namespace ACE_Mission_Control.ViewModels
                 if (client.AttachedDrone.ID != DroneID)
                     return;
 
-                if (e.PropertyName == "IsConnected")
-                    OBCConnectedText = AttachedDrone.OBCClient.IsConnected ? "Connected" : "Not Connected";
+                if (e.PropertyName == "IsDirectorConnected")
+                    OBCConnectedText = AttachedDrone.OBCClient.IsDirectorConnected ? "Connected" : "Not Connected";
             });
         }
 

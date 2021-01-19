@@ -41,14 +41,6 @@ namespace ACE_Mission_Control.Views
             }
             else
             {
-                Messenger.Default.Register<ShowPassphraseDialogMessage>(this, async (msg) => await PassphraseDialog.ShowAsync());
-
-                Messenger.Default.Register<HidePassphraseDialogMessage>(this, (msg) =>
-                {
-                    diagCanClose = true;
-                    PassphraseDialog.Hide();
-                });
-
                 Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
             }
             base.OnNavigatedTo(e);
@@ -68,23 +60,6 @@ namespace ACE_Mission_Control.Views
 
         private void MissionPage_Loaded(object sender, RoutedEventArgs e)
         {
-        }
-
-        private void PassphraseDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
-        {
-            // Only allow the dialog to close if the diagCanClose is true.
-            if (args.Result == ContentDialogResult.Primary)
-            {
-                if (diagCanClose)
-                    PassphraseDialogInput.Password = "";
-
-                args.Cancel = !diagCanClose;
-                diagCanClose = false;
-            }
-            else
-            {
-                PassphraseDialogInput.Password = "";
-            }
         }
     }
 }

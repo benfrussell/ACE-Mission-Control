@@ -83,9 +83,9 @@ namespace ACE_Mission_Control.ViewModels
 
         public RelayCommand ConsoleActivateCommand => new RelayCommand(() => activateDebugCommand());
         public RelayCommand ConsoleCommandEnteredCommand => new RelayCommand(() => {
-            if (CommandText != "" && AttachedDrone.OBCClient.PrimaryCommanderClient.ReadyForCommand)
+            if (CommandText != "" && AttachedDrone.OBCClient.DirectorRequestClient.ReadyForCommand)
             {
-                if (!AttachedDrone.OBCClient.PrimaryCommanderClient.SendCommand(CommandText))
+                if (!AttachedDrone.OBCClient.DirectorRequestClient.SendCommand(CommandText))
                 {
                     var converter = new AlertToString();
                     CMDResponseText = (string)converter.Convert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection), typeof(string), null, null);
@@ -106,28 +106,28 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneAttached(bool firstTime)
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
-            AttachedDrone.OBCClient.DebugMonitorClient.LineReceivedEvent += DebugMonitorStream_LineReceivedEvent;
-            AttachedDrone.OBCClient.DebugMonitorClient.PropertyChanged += DebugMonitorClient_PropertyChanged;
-            AttachedDrone.OBCClient.PrimaryCommanderClient.ResponseReceivedEvent += DebugCommanderStream_ResponseReceivedEvent;
-            MonitorText = AttachedDrone.OBCClient.DebugMonitorClient.AllReceived;
-            CanOpenDebug = AttachedDrone.OBCClient.IsConnected;
+            //AttachedDrone.OBCClient.DebugMonitorClient.LineReceivedEvent += DebugMonitorStream_LineReceivedEvent;
+            //AttachedDrone.OBCClient.DebugMonitorClient.PropertyChanged += DebugMonitorClient_PropertyChanged;
+            AttachedDrone.OBCClient.DirectorRequestClient.ResponseReceivedEvent += DebugCommanderStream_ResponseReceivedEvent;
+            //MonitorText = AttachedDrone.OBCClient.DebugMonitorClient.AllReceived;
+            //CanOpenDebug = AttachedDrone.OBCClient.IsConnected;
         }
 
         protected override void DroneUnattaching()
         {
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
-            AttachedDrone.OBCClient.DebugMonitorClient.LineReceivedEvent -= DebugMonitorStream_LineReceivedEvent;
-            AttachedDrone.OBCClient.DebugMonitorClient.PropertyChanged -= DebugMonitorClient_PropertyChanged;
-            AttachedDrone.OBCClient.PrimaryCommanderClient.ResponseReceivedEvent -= DebugCommanderStream_ResponseReceivedEvent;
+            //AttachedDrone.OBCClient.DebugMonitorClient.LineReceivedEvent -= DebugMonitorStream_LineReceivedEvent;
+            //AttachedDrone.OBCClient.DebugMonitorClient.PropertyChanged -= DebugMonitorClient_PropertyChanged;
+            AttachedDrone.OBCClient.DirectorRequestClient.ResponseReceivedEvent -= DebugCommanderStream_ResponseReceivedEvent;
         }
 
         private async void DebugMonitorClient_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                if (e.PropertyName == "Connected" && AttachedDrone.OBCClient.DebugMonitorClient.Connected)
-                    CanWriteCommand = true;
-            });
+            //await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            //{
+            //    if (e.PropertyName == "Connected" && AttachedDrone.OBCClient.DebugMonitorClient.Connected)
+            //        CanWriteCommand = true;
+            //});
         }
 
         private async void DebugCommanderStream_ResponseReceivedEvent(object sender, ResponseReceivedEventArgs e)
@@ -156,14 +156,14 @@ namespace ACE_Mission_Control.ViewModels
                 if (client.AttachedDrone.ID != DroneID)
                     return;
 
-                if (e.PropertyName == "IsConnected")
-                    CanOpenDebug = client.IsConnected;
+                //if (e.PropertyName == "IsConnected")
+                //    CanOpenDebug = client.IsConnected;
             });
         }
 
         private void activateDebugCommand()
         {
-            AttachedDrone.OBCClient.OpenDebugConsole();
+            //AttachedDrone.OBCClient.OpenDebugConsole();
         }
     }
 }

@@ -10,6 +10,7 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class Drone : INotifyPropertyChanged
     {
+        public static List<string> ChaperoneCommandList = new List<string> { "get_error", "check_director", "start_director", "force_stop_payload" };
         public event PropertyChangedEventHandler PropertyChanged;
 
         public AlertEntry.AlertType LastAlertType
@@ -112,7 +113,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool OBCCanBeTested
         {
-            get { return !MissionIsActivated && OBCClient.IsConnected; }
+            get { return !MissionIsActivated && OBCClient.IsDirectorConnected; }
         }
 
         public bool MissionCanBeReset
@@ -121,7 +122,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 return MissionHasProgress &&
                   !MissionIsActivated &&
-                  OBCClient.IsConnected &&
+                  OBCClient.IsDirectorConnected &&
                   MissionStage != MissionStatus.Types.Stage.NoMission;
             }
         }
@@ -130,7 +131,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             get
             {
-                return OBCClient.IsConnected && ((!MissionIsActivated &&
+                return OBCClient.IsDirectorConnected && ((!MissionIsActivated &&
                   MissionStage != MissionStatus.Types.Stage.NoMission) ||
                   NewMission);
             }
@@ -140,7 +141,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             get
             {
-                if (!OBCClient.IsConnected)
+                if (!OBCClient.IsDirectorConnected)
                     return false;
                 if (MissionIsActivated)
                     return true;
@@ -228,54 +229,70 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private bool _manualCommandsOnly;
+        public bool ManualCommandsOnly
+        {
+            get { return _manualCommandsOnly; }
+            set
+            {
+                if (_manualCommandsOnly == value)
+                    return;
+                _manualCommandsOnly = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public int ID;
 
         public OnboardComputerClient OBCClient;
         public ObservableCollection<AlertEntry> AlertLog;
-        private Queue<string> commandQueue;
+        private Queue<string> directorCommandQueue;
+        private Queue<string> chaperoneCommandQueue;
         private bool checkCommandsSent;
 
-        public Drone(int id, string name, string clientHostname, string clientUsername)
+        public Drone(int id, string name, string clientHostname)
         {
-            commandQueue = new Queue<string>();
+            directorCommandQueue = new Queue<string>();
+            chaperoneCommandQueue = new Queue<string>();
 
             ID = id;
             Name = name;
             AlertLog = new ObservableCollection<AlertEntry>();
             MissionData = new MissionData();
             NewMission = false;
+            ManualCommandsOnly = false;
 
             OBCClient = new OnboardComputerClient(this, clientHostname);
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
-            OBCClient.PrimaryMonitorClient.MessageReceivedEvent += PrimaryMonitorClient_MessageReceivedEvent;
-            OBCClient.PrimaryCommanderClient.PropertyChanged += PrimaryCommanderClient_PropertyChanged;
+            OBCClient.DirectorMonitorClient.MessageReceivedEvent += DirectorMonitorClient_MessageReceivedEvent;
+            OBCClient.DirectorRequestClient.PropertyChanged += DirectorRequestClient_PropertyChanged;
         }
 
-        private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void DirectorRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ReadyForCommand" && OBCClient.PrimaryCommanderClient.ReadyForCommand)
+            if (e.PropertyName == "ReadyForCommand" && OBCClient.DirectorRequestClient.ReadyForCommand)
             {
-                if (OBCClient.IsConnected)
+                if (OBCClient.IsDirectorConnected)
                 {
-                    if (checkCommandsSent && commandQueue.Count > 0)
-                    {
-                        SendCommand(commandQueue.Dequeue());
-                    }
+                    if (checkCommandsSent && directorCommandQueue.Count > 0)
+                        SendCommand(directorCommandQueue.Dequeue());
                     else if (!checkCommandsSent)
-                    {
                         SendCheckCommands();
-                    }
                 }
             }
-            else if (e.PropertyName == "Connected")
+            else if (e.PropertyName == "Connected" & OBCClient.IsDirectorConnected)
             {
                 checkCommandsSent = false;
             }
 
         }
 
+        // Check commands update the state of the Onboard Computer with Mission Control
+        // They're sent everytime a connection to the director is re-established
         private void SendCheckCommands()
         {
+            if (ManualCommandsOnly)
+                return;
             SendCommand("check_interface");
             SendCommand("check_mission_status");
             SendCommand("check_mission_config");
@@ -284,22 +301,43 @@ namespace ACE_Mission_Control.Core.Models
 
         public void SendCommand(string command)
         {
-            if (!OBCClient.PrimaryCommanderClient.Connected)
+            string commandOnly = command.Split(' ')[0];
+            
+            // Commands are dumped if the client isn't connected, otherwise if the send fails the command is queued
+
+            if (ChaperoneCommandList.Any(c => c == commandOnly))
             {
-                var alert = new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection);
-                AddAlert(alert);
-                return;
+                if (!OBCClient.IsChaperoneConnected)
+                {
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection));
+                    return;
+                }
+                    
+                if (!SendCommandWithClient(OBCClient.ChaperoneRequestClient, command) && !ManualCommandsOnly)
+                    chaperoneCommandQueue.Enqueue(command);
             }
-            else if (!OBCClient.PrimaryCommanderClient.ReadyForCommand)
+            else
             {
-                commandQueue.Enqueue(command);
-                return;
+                if (!OBCClient.IsDirectorConnected)
+                {
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection));
+                    return;
+                }
+
+                if (!SendCommandWithClient(OBCClient.DirectorRequestClient, command) && !ManualCommandsOnly)
+                    directorCommandQueue.Enqueue(command);
             }
 
-            if (!OBCClient.PrimaryCommanderClient.SendCommand(command))
-            {
-                commandQueue.Enqueue(command);
-            }
+        }
+
+        // Returns success or failure
+        private bool SendCommandWithClient(RequestClient client, string command)
+        {
+            if (!client.ReadyForCommand)
+                return false;
+            if (!client.SendCommand(command))
+                return false;
+            return true;
         }
 
         public void UploadMission()
@@ -328,7 +366,7 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void PrimaryMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
+        private void DirectorMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
         {
             switch (e.MessageType)
             {
@@ -370,14 +408,14 @@ namespace ACE_Mission_Control.Core.Models
 
         private void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "IsConnected")
+            if (e.PropertyName == "IsDirectorConnected")
             {
                 NotifyPropertyChanged("OBCCanBeTested");
                 NotifyPropertyChanged("MissionCanBeReset");
                 NotifyPropertyChanged("MissionCanBeModified");
                 NotifyPropertyChanged("MissionCanToggleActivation");
 
-                if (OBCClient.IsConnected && !checkCommandsSent && OBCClient.PrimaryCommanderClient.ReadyForCommand)
+                if (OBCClient.IsDirectorConnected && !checkCommandsSent)
                 {
                     SendCheckCommands();
                 }

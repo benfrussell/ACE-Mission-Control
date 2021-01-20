@@ -56,23 +56,37 @@
                 x:Uid="Main_OBCHeader"
                 Style="{ThemeResource SubtitleTextBlockStyle}"
                 Margin="4,0,0,0"/>
-            <TextBlock
-                Grid.Column="1"
-                x:Uid="Main_OBCConnected"
-                Text="{x:Bind ViewModel.OBCConnectedText, Mode=OneWay}"
-                Margin="4,0,0,0"/>
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Margin="4,2,0,0">
-                <SymbolIcon
+                <TextBlock
+                    x:Uid="Main_ChaperoneConnectionLabel"
                     VerticalAlignment="Center"
-                    Symbol="{x:Bind ViewModel.OBCAlertSymbol, Mode=OneWay}"/>
+                    Height="20"
+                    Margin="0,0,0,0"/>
                 <TextBlock
                     VerticalAlignment="Center"
                     Height="20"
                     Margin="4,0,0,0"
-                    Text="{x:Bind ViewModel.OBCAlert, Mode=OneWay, Converter={StaticResource AlertToString}}"/>
+                    Text="{x:Bind ViewModel.OBCChaperoneConnectedText, Mode=OneWay}"
+                    Foreground="{x:Bind ViewModel.OBCChaperoneConnectedColour, Mode=OneWay}"/>
+            </StackPanel>
+            <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Margin="4,2,0,0">
+                <TextBlock
+                    x:Uid="Main_DirectorConnectionLabel"
+                    VerticalAlignment="Center"
+                    Height="20"
+                    Margin="0,0,0,0"/>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Height="20"
+                    Margin="4,0,0,0"
+                    Text="{x:Bind ViewModel.OBCDirectorConnectedText, Mode=OneWay}"
+                    Foreground="{x:Bind ViewModel.OBCDirectorConnectedColour, Mode=OneWay}"/>
             </StackPanel>
         </StackPanel>
 

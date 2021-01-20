@@ -56,22 +56,10 @@ namespace ACE_Mission_Control.Core.Models
 
         protected override object OnReceiveReady_SocketThread(NetMQSocketEventArgs e)
         {
-            return e.Socket.ReceiveMultipartBytes(2);
-        }
-
-        protected override void OnReceiveReady_MainThread(object socketThreadResult)
-        {
-            if (!Connected)
-            {
-                FailureTimer.Stop();
-                ConnectionInProgress = false;
-                Connected = true;
-            }
-
-            List<byte[]> data = (List<byte[]>)socketThreadResult;
+            List<byte[]> data = e.Socket.ReceiveMultipartBytes(2);
 
             if (data.Count != 2)
-                return;
+                return null;
 
             int message_type_id = (byte)data[0][0];
 
@@ -118,12 +106,26 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             if (message != null)
+                return new MessageReceivedEventArgs()
+                {
+                    Message = message,
+                    MessageType = (MessageType)message_type_id
+                };
+
+            return null;
+        }
+
+        protected override void OnReceiveReady_MainThread(object socketThreadResult)
+        {
+            if (!Connected)
             {
-                MessageReceivedEventArgs messageEventArgs = new MessageReceivedEventArgs();
-                messageEventArgs.MessageType = (MessageType)message_type_id;
-                messageEventArgs.Message = message;
-                MessageReceivedEvent(this, messageEventArgs);
+                FailureTimer.Stop();
+                ConnectionInProgress = false;
+                Connected = true;
             }
+
+            if (socketThreadResult != null)
+                MessageReceivedEvent(this, (MessageReceivedEventArgs)socketThreadResult);
         }
     }
 }

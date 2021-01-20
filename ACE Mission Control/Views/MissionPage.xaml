@@ -21,7 +21,7 @@
         Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="115" />
-            <RowDefinition Height="155" />
+            <RowDefinition Height="160" />
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid

@@ -317,9 +317,15 @@ namespace ACE_Mission_Control.ViewModels
         private void connectOBCCommand()
         {
             if (AttachedDrone.OBCClient.AutoTryingConnections)
+            {
                 AttachedDrone.OBCClient.StopTryingConnections();
+                AttachedDrone.OBCClient.Disconnect();
+            }
             else
+            {
                 AttachedDrone.OBCClient.StartTryingConnections();
+            }
+                
         }
 
         public RelayCommand ConnectDroneCommand => new RelayCommand(() => connectDroneCommand());
@@ -331,7 +337,7 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand RestartOBCCommand => new RelayCommand(() => restartOBCCommand());
         private void restartOBCCommand()
         {
-            AttachedDrone.SendCommand("stop_director");
+            AttachedDrone.SendCommand("start_director");
         }
 
         public RelayCommand TestPayloadCommand => new RelayCommand(() => testPayloadCommand());

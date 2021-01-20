@@ -61,8 +61,6 @@ namespace ACE_Mission_Control.Core.Models
         {
             Socket = socket;
             Socket.ReceiveReady += Socket_ReceiveReady;
-            Poller = new NetMQPoller();
-            Poller.Add(Socket);
 
             FailureTimer = new System.Timers.Timer(timeoutMsec);
             FailureTimer.Elapsed += FailureTimer_Elapsed;
@@ -96,11 +94,14 @@ namespace ACE_Mission_Control.Core.Models
                 Disconnect();
 
             ConnectionInProgress = true;
+            ConnectionFailure = false;
             Address = "tcp://" + ip + ":" + port;
             Socket.Connect(Address);
 
-            if (!Poller.IsRunning)
-                Poller.RunAsync();
+            // Need to recreate the poller each time for some reason
+            Poller = new NetMQPoller();
+            Poller.Add(Socket);
+            Poller.RunAsync();
 
             OnTryConnection();
         }
@@ -119,12 +120,12 @@ namespace ACE_Mission_Control.Core.Models
 
         public void Disconnect()
         {
-            if (!Connected)
+            if (!Connected && !ConnectionInProgress)
                 return;
 
             Socket.Disconnect(Address);
             if (Poller.IsRunning)
-                Poller.Stop();
+                Poller.StopAsync();
 
             ConnectionInProgress = false;
             Connected = false;
@@ -137,14 +138,6 @@ namespace ACE_Mission_Control.Core.Models
         protected void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected void ExecuteMainThreadSocketAction(Action<NetMQSocket> action, NetMQSocket socket)
-        {
-            syncContext.Post(
-                    new SendOrPostCallback((_) => action(socket)),
-                    null
-                );
         }
     }
 }

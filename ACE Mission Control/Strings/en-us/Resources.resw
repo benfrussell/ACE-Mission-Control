@@ -253,14 +253,11 @@
   <data name="Main_OBCHeader.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Alert_ConnectionReady" xml:space="preserve">
+  <data name="Alert_OBCReady" xml:space="preserve">
     <value>Connection: Ready!</value>
   </data>
   <data name="Alert_ConnectionTimedOut" xml:space="preserve">
     <value>Connection: Onboard Computer stopped responding.</value>
-  </data>
-  <data name="Alert_ConnectionSearching" xml:space="preserve">
-    <value>Connection: Searching for device...</value>
   </data>
   <data name="Alert_NoConnectionNotConfigured" xml:space="preserve">
     <value>Connection: Not configured.</value>
@@ -325,11 +322,8 @@
   <data name="Mission_AlertGridCopy.Text" xml:space="preserve">
     <value>Copy Text</value>
   </data>
-  <data name="Alert_ConnectionNoResponse" xml:space="preserve">
-    <value>Connection: No command response.</value>
-  </data>
   <data name="Alert_ConnectionStarting" xml:space="preserve">
-    <value>Connection: Starting connection...</value>
+    <value>Connection: Starting connection attempts.</value>
   </data>
   <data name="Alert_NoConnection" xml:space="preserve">
     <value>Onboard Computer is not connected.</value>
@@ -375,5 +369,17 @@
   </data>
   <data name="Mission_ConnectOBCSwitch.OnContent" xml:space="preserve">
     <value>Connect to Onboard Computer</value>
+  </data>
+  <data name="Main_ChaperoneConnectionLabel.Text" xml:space="preserve">
+    <value>Chaperone:</value>
+  </data>
+  <data name="Main_DirectorConnectionLabel.Text" xml:space="preserve">
+    <value>Director:</value>
+  </data>
+  <data name="Alert_ChaperoneConnectionFailed" xml:space="preserve">
+    <value>Connection: Could not connect to the chaperone.</value>
+  </data>
+  <data name="Alert_DirectorConnectionFailed" xml:space="preserve">
+    <value>Connection: Could not connect to the director.</value>
   </data>
 </root>

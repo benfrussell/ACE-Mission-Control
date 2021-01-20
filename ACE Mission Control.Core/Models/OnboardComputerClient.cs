@@ -121,9 +121,9 @@ namespace ACE_Mission_Control.Core.Models
 
         public void Connect(Object source = null, ElapsedEventArgs args = null)
         {
-            if (DirectorMonitorClient.Connected)
+            if (IsDirectorConnected && IsChaperoneConnected)
             {
-                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionReady));
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
                 return;
             }
 
@@ -151,13 +151,17 @@ namespace ACE_Mission_Control.Core.Models
 
         private void ChaperoneRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "Connected" && ChaperoneRequestClient.Connected)
+            if (e.PropertyName == "Connected")
             {
                 NotifyPropertyChanged("IsChaperoneConnected");
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
             }
             else if (e.PropertyName == "ConnectionFailure" && ChaperoneRequestClient.ConnectionFailure)
             {
-                ClientConnectionFailed();
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.ChaperoneConnectionFailed));
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
             }
         }
 
@@ -175,14 +179,19 @@ namespace ACE_Mission_Control.Core.Models
                     }
                     else
                     {
-                        AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionReady));
+                        AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
                     }
-                        
+                }
+                else
+                {
+                    if (!ConnectionInProgress)
+                        AllAttemptsFinished();
                 }
             }
             else if (e.PropertyName == "ConnectionFailure" && DirectorRequestClient.ConnectionFailure)
             {
-                ClientConnectionFailed();
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
             }
         }
 
@@ -191,25 +200,28 @@ namespace ACE_Mission_Control.Core.Models
             if (e.PropertyName == "Connected")
             {
                 NotifyPropertyChanged("IsDirectorConnected");
-                if (DirectorMonitorClient.Connected)
-                    AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionReady));
+                if (DirectorRequestClient.Connected && DirectorMonitorClient.Connected)
+                    AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
             }
             else if (e.PropertyName == "ConnectionFailure" && DirectorMonitorClient.ConnectionFailure)
             {
-                ClientConnectionFailed();
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
             }
         }
 
-        private void ClientConnectionFailed()
+        private void AllAttemptsFinished()
         {
-            // Only perform failure functions if no other clients are still trying to connect
-            if (!ConnectionInProgress)
-            {
-                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionTimedOut));
-                NotifyPropertyChanged("ConnectionInProgress");
-                if (AutoTryingConnections)
-                    reattemptTimer.Start();
-            }
+            NotifyPropertyChanged("ConnectionInProgress");
+
+            // Don't do the director ready alert here in case it was just the chaperone that was making an attempt to connect
+            if (!IsDirectorConnected) 
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.DirectorConnectionFailed));
+
+            if (AutoTryingConnections && (!IsDirectorConnected || !IsChaperoneConnected))
+                reattemptTimer.Start();
         }
 
         private void DirectorMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
@@ -232,6 +244,7 @@ namespace ACE_Mission_Control.Core.Models
             DirectorMonitorClient.Disconnect();
             DirectorRequestClient.Disconnect();
             ChaperoneRequestClient.Disconnect();
+            NotifyPropertyChanged("ConnectionInProgress");
             if (AutoTryingConnections)
                 reattemptTimer.Start();
         }

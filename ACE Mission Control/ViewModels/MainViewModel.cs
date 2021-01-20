@@ -4,6 +4,8 @@ using ACE_Mission_Control.Core.Models;
 using GalaSoft.MvvmLight;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
+using Windows.UI;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -17,6 +19,7 @@ namespace ACE_Mission_Control.ViewModels
         private string _obcStatusText;
         public string OBCStatusText
         {
+            get => _obcStatusText;
             set
             {
                 if (value == _obcStatusText)
@@ -24,61 +27,57 @@ namespace ACE_Mission_Control.ViewModels
                 _obcStatusText = value;
                 RaisePropertyChanged("OBCStatusText");
             }
-            get
-            {
-                if (IsDroneAttached)
-                    return _obcStatusText;
-                else
-                    return "Loading associated drone...";
-            }
         }
 
-        private string _obcConnectedText;
-        public string OBCConnectedText
+        private string _obcDirectorConnectedText;
+        public string OBCDirectorConnectedText
         {
+            get => _obcDirectorConnectedText;
             set
             {
-                if (value == _obcConnectedText)
+                if (value == _obcDirectorConnectedText)
                     return;
-                _obcConnectedText = value;
-                RaisePropertyChanged("OBCConnectedText");
-            }
-            get
-            {
-                if (IsDroneAttached)
-                    return _obcConnectedText;
-                else
-                    return "Loading associated drone...";
+                _obcDirectorConnectedText = value;
+                RaisePropertyChanged("OBCDirectorConnectedText");
             }
         }
 
-        private Symbol _obcAlertSymbol;
-        public Symbol OBCAlertSymbol
+        private SolidColorBrush _obcDirectorConnectedColour;
+        public SolidColorBrush OBCDirectorConnectedColour
         {
+            get => _obcDirectorConnectedColour;
             set
             {
-                if (_obcAlertSymbol == value)
+                if (value == _obcDirectorConnectedColour)
                     return;
-                _obcAlertSymbol = value;
-                RaisePropertyChanged("OBCAlertSymbol");
-            }
-            get
-            {
-                return _obcAlertSymbol;
+                _obcDirectorConnectedColour = value;
+                RaisePropertyChanged("OBCDirectorConnectedColour");
             }
         }
 
-        private AlertEntry _obcAlert;
-        public AlertEntry OBCAlert
+        private string _obcChaperoneConnectedText;
+        public string OBCChaperoneConnectedText
         {
+            get => _obcChaperoneConnectedText;
             set
             {
-                _obcAlert = value;
-                RaisePropertyChanged("OBCAlert");
+                if (value == _obcChaperoneConnectedText)
+                    return;
+                _obcChaperoneConnectedText = value;
+                RaisePropertyChanged("OBCChaperoneConnectedText");
             }
-            get
+        }
+
+        private SolidColorBrush _obcChaperoneConnectedColour;
+        public SolidColorBrush OBCChaperoneConnectedColour
+        {
+            get => _obcChaperoneConnectedColour;
+            set
             {
-                return _obcAlert;
+                if (value == _obcChaperoneConnectedColour)
+                    return;
+                _obcChaperoneConnectedColour = value;
+                RaisePropertyChanged("OBCChaperoneConnectedColour");
             }
         }
 
@@ -96,10 +95,47 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneAttached(bool firstTime)
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
-            AttachedDrone.AlertLog.CollectionChanged += Alerts_CollectionChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
-            OBCStatusText = AttachedDrone.MissionStage.ToString();
-            OBCConnectedText = AttachedDrone.OBCClient.IsDirectorConnected ? "Connected" : "Not Connected";
+            SetDirectorConnectedText();
+            SetChaperoneConnectedText();
+        }
+
+        private void SetDirectorConnectedText()
+        {
+            if (AttachedDrone.OBCClient.IsDirectorConnected)
+            {
+                OBCDirectorConnectedText = "Connected";
+                OBCDirectorConnectedColour = new SolidColorBrush(Colors.ForestGreen);
+            }
+            else if (AttachedDrone.OBCClient.ConnectionInProgress)
+            {
+                OBCDirectorConnectedText = "Attempting Connection";
+                OBCDirectorConnectedColour = new SolidColorBrush(Colors.Yellow);
+            }
+            else
+            {
+                OBCDirectorConnectedText = "Not Connected";
+                OBCDirectorConnectedColour = new SolidColorBrush(Colors.OrangeRed);
+            }
+        }
+
+        private void SetChaperoneConnectedText()
+        {
+            if (AttachedDrone.OBCClient.IsChaperoneConnected)
+            {
+                OBCChaperoneConnectedText = "Connected";
+                OBCChaperoneConnectedColour = new SolidColorBrush(Colors.ForestGreen);
+            }
+            else if (AttachedDrone.OBCClient.ConnectionInProgress)
+            {
+                OBCChaperoneConnectedText = "Attempting Connection";
+                OBCChaperoneConnectedColour = new SolidColorBrush(Colors.Yellow);
+            }
+            else
+            {
+                OBCChaperoneConnectedText = "Not Connected";
+                OBCChaperoneConnectedColour = new SolidColorBrush(Colors.OrangeRed);
+            }
         }
 
         private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -114,7 +150,6 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneUnattaching()
         {
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
-            AttachedDrone.AlertLog.CollectionChanged -= Alerts_CollectionChanged;
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
         }
 
@@ -123,38 +158,20 @@ namespace ACE_Mission_Control.ViewModels
             // Property changes might come in from the wrong thread. This dispatches it to the UI thread.
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                var client = sender as OnboardComputerClient;
-
-                if (client.AttachedDrone.ID != DroneID)
-                    return;
-
-                if (e.PropertyName == "IsDirectorConnected")
-                    OBCConnectedText = AttachedDrone.OBCClient.IsDirectorConnected ? "Connected" : "Not Connected";
-            });
-        }
-
-        private async void Alerts_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                if (e.PropertyName == "ConnectionInProgress")
                 {
-                    ProcessAlertChanges(e.NewItems);
+                    SetChaperoneConnectedText();
+                    SetDirectorConnectedText();
+                }
+                else if (e.PropertyName == "IsDirectorConnected")
+                {
+                    SetDirectorConnectedText();
+                }
+                else if (e.PropertyName == "IsChaperoneConnected")
+                {
+                    SetChaperoneConnectedText();
                 }
             });
-        }
-
-        private void ProcessAlertChanges(System.Collections.IList newItems)
-        {
-            AlertEntry alert = (AlertEntry)newItems[0];
-            if (alert.Level == AlertEntry.AlertLevel.Info)
-                OBCAlertSymbol = Symbol.Message;
-            else if (alert.Level == AlertEntry.AlertLevel.Medium)
-                OBCAlertSymbol = Symbol.Flag;
-            else if (alert.Level == AlertEntry.AlertLevel.High)
-                OBCAlertSymbol = Symbol.Important;
-
-            OBCAlert = alert;
         }
     }
 }

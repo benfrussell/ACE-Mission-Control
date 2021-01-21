@@ -75,36 +75,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        //public bool OBCDirectorConnected
-        //{
-        //    get { return AttachedDrone.OBCClient.IsDirectorConnected; }
-        //}
-
-        public bool OBCChaperoneConnected
-        {
-            get { return AttachedDrone.OBCClient.IsChaperoneConnected; }
-        }
-
-        public bool OBCCanBeTested
-        {
-            get { return AttachedDrone.OBCCanBeTested; }
-        }
-
-        public bool MissionCanBeReset
-        {
-            get { return AttachedDrone.MissionCanBeReset; }
-        }
-
-        public bool MissionCanBeModified
-        {
-            get { return AttachedDrone.MissionCanBeModified; }
-        }
-
-        public bool MissionCanToggleActivation
-        {
-            get { return AttachedDrone.MissionCanToggleActivation; }
-        }
-
         private string _missionActivatedText;
         public string MissionActivatedText
         {
@@ -232,6 +202,11 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
 
             _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
+
+            if (AttachedDrone.MissionIsActivated)
+                MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
+            else
+                MissionActivatedText = "Mission_ActivateButton".GetLocalized();
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)

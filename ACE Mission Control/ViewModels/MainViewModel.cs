@@ -81,6 +81,32 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private string _obcDroneConnectedText;
+        public string OBCDroneConnectedText
+        {
+            get => _obcDroneConnectedText;
+            set
+            {
+                if (value == _obcDroneConnectedText)
+                    return;
+                _obcDroneConnectedText = value;
+                RaisePropertyChanged("OBCDroneConnectedText");
+            }
+        }
+
+        private SolidColorBrush _obcDroneConnectedColour;
+        public SolidColorBrush OBCDroneConnectedColour
+        {
+            get => _obcDroneConnectedColour;
+            set
+            {
+                if (value == _obcDroneConnectedColour)
+                    return;
+                _obcDroneConnectedColour = value;
+                RaisePropertyChanged("OBCDroneConnectedColour");
+            }
+        }
+
         private string _ugcsMissionRetrieveText;
         public string UGCSMissionRetrieveText
         {
@@ -96,8 +122,10 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
+            OBCStatusText = AttachedDrone.MissionStage.ToString();
             SetDirectorConnectedText();
             SetChaperoneConnectedText();
+            SetDroneConnectedText();
         }
 
         private void SetDirectorConnectedText()
@@ -138,12 +166,33 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private void SetDroneConnectedText()
+        {
+            if (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online)
+            {
+                OBCDroneConnectedText = "Connected";
+                OBCDroneConnectedColour = new SolidColorBrush(Colors.ForestGreen);
+            }
+            else if (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting)
+            {
+                OBCDroneConnectedText = "Attempting Connection";
+                OBCDroneConnectedColour = new SolidColorBrush(Colors.Yellow);
+            }
+            else
+            {
+                OBCDroneConnectedText = "Not Connected";
+                OBCDroneConnectedColour = new SolidColorBrush(Colors.OrangeRed);
+            }
+        }
+
         private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
                 if (e.PropertyName == "MissionStage")
                     OBCStatusText = AttachedDrone.MissionStage.ToString();
+                else if (e.PropertyName == "InterfaceState")
+                    SetDroneConnectedText();
             });
         }
 

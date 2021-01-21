@@ -382,4 +382,7 @@
   <data name="Alert_DirectorConnectionFailed" xml:space="preserve">
     <value>Connection: Could not connect to the director.</value>
   </data>
+  <data name="Main_DroneConnectionLabel.Text" xml:space="preserve">
+    <value>Drone:</value>
+  </data>
 </root>

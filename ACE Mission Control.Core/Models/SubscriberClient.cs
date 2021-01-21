@@ -5,6 +5,8 @@ using Pbdrone;
 using NetMQ.Sockets;
 using NetMQ;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -42,90 +44,107 @@ namespace ACE_Mission_Control.Core.Models
             AllReceived = "";
         }
 
-        protected override void OnTryConnection()
-        {
-            AllReceived = "";
-            Socket.SubscribeToAnyTopic();
-            FailureTimer.Start();
-        }
-
         protected override void OnDisconnect()
         {
             FailureTimer.Stop();
         }
 
-        protected override object OnReceiveReady_SocketThread(NetMQSocketEventArgs e)
+        protected override async void ClientRuntimeAsync(CancellationToken cancellationToken)
         {
-            List<byte[]> data = e.Socket.ReceiveMultipartBytes(2);
+            AllReceived = "";
+            Socket.SubscribeToAnyTopic();
+            FailureTimer.Start();
 
-            if (data.Count != 2)
-                return null;
-
-            int message_type_id = (byte)data[0][0];
-
-            byte[] message_data = data[1];
-            IMessage message = null;
-
-            switch ((MessageType)message_type_id)
+            while (true)
             {
-                case MessageType.Heartbeat:
-                    FailureTimer.Stop();
-                    FailureTimer.Start();
-                    message = Heartbeat.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.InterfaceStatus:
-                    message = InterfaceStatus.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.FlightStatus:
-                    message = FlightStatus.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.ControlDevice:
-                    message = ControlDevice.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.Telemetry:
-                    message = Telemetry.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.FlightAnomaly:
-                    message = FlightAnomaly.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.ACEError:
-                    message = ACEError.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.MissionStatus:
-                    message = MissionStatus.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.MissionConfig:
-                    message = MissionConfig.Parser.ParseFrom(message_data);
-                    break;
-                case MessageType.CommandResponse:
-                    message = CommandResponse.Parser.ParseFrom(message_data);
-                    break;
-                default:
-                    System.Diagnostics.Debug.WriteLine("Received unknown message type: " + message_type_id);
-                    break;
-            }
+                List<byte[]> data = new List<byte[]>();
 
-            if (message != null)
-                return new MessageReceivedEventArgs()
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    Message = message,
-                    MessageType = (MessageType)message_type_id
-                };
+                    if (!Socket.TryReceiveMultipartBytes(ref data, 2))
+                    {
+                        try
+                        {
+                            await Task.Delay(100, cancellationToken);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
 
-            return null;
-        }
+                if (cancellationToken.IsCancellationRequested)
+                    break;
 
-        protected override void OnReceiveReady_MainThread(object socketThreadResult)
-        {
-            if (!Connected)
-            {
-                FailureTimer.Stop();
-                ConnectionInProgress = false;
-                Connected = true;
+                if (data.Count != 2)
+                    continue;
+
+                int message_type_id = (byte)data[0][0];
+
+                byte[] message_data = data[1];
+                IMessage message = null;
+
+                switch ((MessageType)message_type_id)
+                {
+                    case MessageType.Heartbeat:
+                        FailureTimer.Stop();
+                        FailureTimer.Start();
+                        message = Heartbeat.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.InterfaceStatus:
+                        message = InterfaceStatus.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.FlightStatus:
+                        message = FlightStatus.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.ControlDevice:
+                        message = ControlDevice.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.Telemetry:
+                        message = Telemetry.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.FlightAnomaly:
+                        message = FlightAnomaly.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.ACEError:
+                        message = ACEError.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.MissionStatus:
+                        message = MissionStatus.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.MissionConfig:
+                        message = MissionConfig.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.CommandResponse:
+                        message = CommandResponse.Parser.ParseFrom(message_data);
+                        break;
+                    default:
+                        System.Diagnostics.Debug.WriteLine("Received unknown message type: " + message_type_id);
+                        break;
+                }
+
+                if (message != null)
+                {
+                    if (!Connected)
+                    {
+                        FailureTimer.Stop();
+                        ConnectionInProgress = false;
+                        Connected = true;
+                    }
+
+                    var messageArgs = new MessageReceivedEventArgs()
+                    {
+                        Message = message,
+                        MessageType = (MessageType)message_type_id
+                    };
+                    MessageReceivedEvent(this, messageArgs);
+                }
             }
-
-            if (socketThreadResult != null)
-                MessageReceivedEvent(this, (MessageReceivedEventArgs)socketThreadResult);
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 
 namespace ACE_Mission_Control.Core.Models
@@ -51,16 +52,15 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         protected T Socket;
-        protected NetMQPoller Poller;
         protected string Address;
         protected System.Timers.Timer FailureTimer;
 
         private SynchronizationContext syncContext;
+        private CancellationTokenSource cancellationTokenSource;
 
         public ACENetMQClient(T socket, int timeoutMsec = 5000)
         {
             Socket = socket;
-            Socket.ReceiveReady += Socket_ReceiveReady;
 
             FailureTimer = new System.Timers.Timer(timeoutMsec);
             FailureTimer.Elapsed += FailureTimer_Elapsed;
@@ -93,30 +93,16 @@ namespace ACE_Mission_Control.Core.Models
             if (Connected)
                 Disconnect();
 
+            cancellationTokenSource = new CancellationTokenSource();
             ConnectionInProgress = true;
             ConnectionFailure = false;
             Address = "tcp://" + ip + ":" + port;
             Socket.Connect(Address);
 
-            // Need to recreate the poller each time for some reason
-            Poller = new NetMQPoller();
-            Poller.Add(Socket);
-            Poller.RunAsync();
-
-            OnTryConnection();
+            ClientRuntimeAsync(cancellationTokenSource.Token);
         }
 
-        protected abstract void OnTryConnection();
-
-        private void Socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
-        {
-            object socketThreadResult = OnReceiveReady_SocketThread(e);
-            syncContext.Post(new SendOrPostCallback((_) => OnReceiveReady_MainThread(socketThreadResult)), null);
-        }
-
-        protected abstract object OnReceiveReady_SocketThread(NetMQSocketEventArgs e);
-
-        protected abstract void OnReceiveReady_MainThread(object socketThreadResult);
+        protected abstract void ClientRuntimeAsync(CancellationToken cancellationToken);
 
         public void Disconnect()
         {
@@ -124,8 +110,8 @@ namespace ACE_Mission_Control.Core.Models
                 return;
 
             Socket.Disconnect(Address);
-            if (Poller.IsRunning)
-                Poller.StopAsync();
+
+            cancellationTokenSource.Cancel();
 
             ConnectionInProgress = false;
             Connected = false;

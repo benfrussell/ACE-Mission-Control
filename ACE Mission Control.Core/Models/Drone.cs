@@ -23,20 +23,6 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool _newMission;
-        public bool NewMission
-        {
-            get { return _newMission; }
-            set
-            {
-                if (_newMission == value)
-                    return;
-                _newMission = value;
-                NotifyPropertyChanged();
-                NotifyPropertyChanged("MissionCanBeModified");
-            }
-        }
-
         private InterfaceStatus.Types.State _interfaceState;
         public InterfaceStatus.Types.State InterfaceState
         {
@@ -74,9 +60,6 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 _missionStage = value;
                 NotifyPropertyChanged();
-                NotifyPropertyChanged("MissionCanBeReset");
-                NotifyPropertyChanged("MissionCanBeModified");
-                NotifyPropertyChanged("MissionCanToggleActivation");
             }
         }
 
@@ -118,23 +101,12 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool MissionCanBeReset
         {
-            get
-            {
-                return MissionHasProgress &&
-                  !MissionIsActivated &&
-                  OBCClient.IsDirectorConnected &&
-                  MissionStage != MissionStatus.Types.Stage.NoMission;
-            }
+            get { return MissionHasProgress && !MissionIsActivated && OBCClient.IsDirectorConnected; }
         }
 
         public bool MissionCanBeModified
         {
-            get
-            {
-                return OBCClient.IsDirectorConnected && ((!MissionIsActivated &&
-                  MissionStage != MissionStatus.Types.Stage.NoMission) ||
-                  NewMission);
-            }
+            get { return OBCClient.IsDirectorConnected && !MissionIsActivated; }
         }
 
         public bool MissionCanToggleActivation
@@ -146,8 +118,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (MissionIsActivated)
                     return true;
                 else
-                    return InterfaceState == InterfaceStatus.Types.State.Online &&
-                        MissionStage != MissionStatus.Types.Stage.NoMission;
+                    return InterfaceState == InterfaceStatus.Types.State.Online;
             }
         }
 
@@ -259,7 +230,6 @@ namespace ACE_Mission_Control.Core.Models
             Name = name;
             AlertLog = new ObservableCollection<AlertEntry>();
             MissionData = new MissionData();
-            NewMission = false;
             ManualCommandsOnly = false;
 
             OBCClient = new OnboardComputerClient(this, clientHostname);
@@ -415,10 +385,16 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged("MissionCanBeModified");
                 NotifyPropertyChanged("MissionCanToggleActivation");
 
-                if (OBCClient.IsDirectorConnected && !checkCommandsSent)
+                if (OBCClient.IsDirectorConnected)
                 {
-                    SendCheckCommands();
+                    if (!checkCommandsSent)
+                        SendCheckCommands();
                 }
+                else
+                {
+                    checkCommandsSent = false;
+                }
+                
             }
         }
 

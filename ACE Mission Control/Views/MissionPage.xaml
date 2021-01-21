@@ -82,14 +82,14 @@
                 <Button x:Name="TestPayloadButton"
                         x:Uid="Mission_TestPayload"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.OBCCanBeTested, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
                         Command="{x:Bind ViewModel.TestPayloadCommand}"
                         Margin="8,0,0,0"/>
                 <Button x:Name="TestInterfaceButton"
                         x:Uid="Mission_TestInterface"
                         Margin="8,0,0,0"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.OBCCanBeTested, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
                         Command="{x:Bind ViewModel.TestInterfaceCommand}"/>
             </StackPanel>
         </Grid>
@@ -148,7 +148,7 @@
                         MaxWidth="100"
                         Margin="16,0,0,0"
                         Style="{ThemeResource ACETextBox}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeModified, Mode=OneWay}"
                         BorderBrush="{x:Bind ViewModel.TreatmentDurationBorderColour, Mode=OneWay}"
                         Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                         helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"/>
@@ -165,7 +165,7 @@
                     <CheckBox
                         x:Uid="Mission_FlyThroughCheckbox"
                         Margin="16,0,0,0"
-                        IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeModified, Mode=OneWay}"
                         IsChecked="{x:Bind ViewModel.FlyThroughMode, Mode=OneWay}"
                         Command="{x:Bind ViewModel.FlyThroughChangedCommand}"/>
                 </StackPanel>
@@ -178,21 +178,21 @@
                 <Button x:Name="UploadButton"
                         x:Uid="Mission_UploadButton"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanBeModified, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeModified, Mode=OneWay}"
                         Command="{x:Bind ViewModel.UploadCommand}"/>
                 <Button x:Name="ActivateButton"
                         x:Uid="Mission_ActivateButton"
                         Margin="8,0,0,0"
                         Style="{ThemeResource ACEButton}"
                         Content="{x:Bind ViewModel.MissionActivatedText, Mode=OneWay}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanToggleActivation, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanToggleActivation, Mode=OneWay}"
                         Command="{x:Bind ViewModel.ActivateCommand}"/>
                 <AppBarSeparator VerticalAlignment="Center"
                                  Height="35"/>
                 <Button x:Name="ResetButton"
                         x:Uid="Mission_ResetButton"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.MissionCanBeReset, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeReset, Mode=OneWay}"
                         Command="{x:Bind ViewModel.ResetCommand}"/>
             </StackPanel>
         </Grid>

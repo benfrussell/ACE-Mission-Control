@@ -2,6 +2,7 @@
 using NetMQ.Sockets;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -38,23 +39,77 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private TaskCompletionSource<string> nextCommand;
+
         public RequestClient() : base(new RequestSocket())
         {
             ReadyForCommand = false;
-            Socket.SendReady += Socket_SendReady;
         }
 
-        protected override void OnTryConnection()
+        protected override async void ClientRuntimeAsync(CancellationToken cancellationToken)
         {
-            ReadyForCommand = false;
-            FailureTimer.Start();
-        }
+            cancellationToken.Register(() => nextCommand?.TrySetCanceled());
 
-        private void Socket_SendReady(object sender, NetMQSocketEventArgs e)
-        {
-            // TODO: Pinging twice for some reason but only with the director port (5536)
-            if (!Connected)
-                Socket.TrySendFrame("ping");
+            while (true)
+            {
+                if (!Connected)
+                {
+                    Socket.SendFrame("ping");
+                }
+                else
+                {
+                    nextCommand = new TaskCompletionSource<string>();
+                    ReadyForCommand = true;
+                    try
+                    {
+                        string command = await nextCommand.Task;
+                        Socket.SendFrame(command);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                }
+
+                ReadyForCommand = false;
+                FailureTimer.Start();
+
+                string response = "";
+
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    if (!Socket.TryReceiveFrameString(out response))
+                    {
+                        try
+                        {
+                            await Task.Delay(100, cancellationToken);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                FailureTimer.Stop();
+
+                if (!Connected)
+                {
+                    ConnectionInProgress = false;
+                    Connected = true;
+                }
+
+                ResponseReceivedEventArgs response_e = new ResponseReceivedEventArgs();
+                response_e.Line = response;
+                ResponseReceivedEvent?.Invoke(this, response_e);
+            }
         }
 
         public bool SendCommand(string command)
@@ -64,7 +119,7 @@ namespace ACE_Mission_Control.Core.Models
 
             try
             {
-                Socket.SendFrame(command);
+                nextCommand.SetResult(command);
             }
             catch (FiniteStateMachineException)
             {
@@ -77,30 +132,10 @@ namespace ACE_Mission_Control.Core.Models
             return true;
         }
 
-        protected override object OnReceiveReady_SocketThread(NetMQSocketEventArgs e)
-        {
-            return e.Socket.ReceiveFrameString();
-        }
-
-        protected override void OnReceiveReady_MainThread(object socketThreadResult)
-        {
-            FailureTimer.Stop();
-
-            if (!Connected)
-            {
-                ConnectionInProgress = false;
-                Connected = true;
-            }
-
-            ResponseReceivedEventArgs response_e = new ResponseReceivedEventArgs();
-            response_e.Line = (string)socketThreadResult;
-            ResponseReceivedEvent?.Invoke(this, response_e);
-            ReadyForCommand = true;
-        }
-
         protected override void OnDisconnect()
         {
             FailureTimer.Stop();
+            Socket = new RequestSocket();
             ReadyForCommand = false;
         }
     }

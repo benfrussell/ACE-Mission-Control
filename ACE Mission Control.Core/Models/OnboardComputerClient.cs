@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using static ACE_Mission_Control.Core.Models.ACEEnums;
 using System.Timers;
 using Pbdrone;
+using System.Threading;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -60,7 +61,8 @@ namespace ACE_Mission_Control.Core.Models
         // The reattempt timer is only started if AutoTryConnections is on
         // If AutoTryConnections is on, the timer is triggered by a connection failure when no other attempts are currently in progress
         // It will also be started after a manual disconnect
-        private Timer reattemptTimer;
+        private System.Timers.Timer reattemptTimer;
+        private SynchronizationContext syncContext;
 
         public event PropertyChangedEventHandler PropertyChanged;
         public Drone AttachedDrone;
@@ -75,9 +77,10 @@ namespace ACE_Mission_Control.Core.Models
             Hostname = hostname;
             AutoTryingConnections = false;
 
-            reattemptTimer = new Timer(3000);
-            reattemptTimer.Elapsed += Connect;
+            reattemptTimer = new System.Timers.Timer(3000);
+            reattemptTimer.Elapsed += ReattemptTimer_Elapsed;
             reattemptTimer.AutoReset = false;
+            syncContext = SynchronizationContext.Current;
 
             DirectorMonitorClient = new SubscriberClient();
             DirectorMonitorClient.PropertyChanged += DirectorMonitorClient_PropertyChanged;
@@ -88,6 +91,11 @@ namespace ACE_Mission_Control.Core.Models
 
             ChaperoneRequestClient = new RequestClient();
             ChaperoneRequestClient.PropertyChanged += ChaperoneRequestClient_PropertyChanged;
+        }
+
+        private void ReattemptTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            syncContext.Post(new SendOrPostCallback((_) => Connect()), null);
         }
 
         public void Configure(string hostname)
@@ -119,7 +127,7 @@ namespace ACE_Mission_Control.Core.Models
             reattemptTimer.Stop();
         }
 
-        public void Connect(Object source = null, ElapsedEventArgs args = null)
+        public void Connect()
         {
             if (IsDirectorConnected && IsChaperoneConnected)
             {

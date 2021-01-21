@@ -231,6 +231,7 @@ namespace ACE_Mission_Control.Core.Models
             AlertLog = new ObservableCollection<AlertEntry>();
             MissionData = new MissionData();
             ManualCommandsOnly = false;
+            InterfaceState = InterfaceStatus.Types.State.Offline;
 
             OBCClient = new OnboardComputerClient(this, clientHostname);
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
@@ -243,18 +244,16 @@ namespace ACE_Mission_Control.Core.Models
             if (e.PropertyName == "ReadyForCommand" && OBCClient.DirectorRequestClient.ReadyForCommand)
             {
                 if (OBCClient.IsDirectorConnected)
-                {
-                    if (checkCommandsSent && directorCommandQueue.Count > 0)
-                        SendCommand(directorCommandQueue.Dequeue());
-                    else if (!checkCommandsSent)
-                        SendCheckCommands();
-                }
+                    CommandsReadied();
             }
-            else if (e.PropertyName == "Connected" & OBCClient.IsDirectorConnected)
-            {
-                checkCommandsSent = false;
-            }
+        }
 
+        private void CommandsReadied()
+        {
+            if (checkCommandsSent && directorCommandQueue.Count > 0)
+                SendCommand(directorCommandQueue.Dequeue());
+            else if (!checkCommandsSent)
+                SendCheckCommands();
         }
 
         // Check commands update the state of the Onboard Computer with Mission Control
@@ -269,6 +268,7 @@ namespace ACE_Mission_Control.Core.Models
             checkCommandsSent = true;
         }
 
+        // TODO: Should probably handle this in OnboardComputerClient but keep this as an interface for the ViewModel?
         public void SendCommand(string command)
         {
             string commandOnly = command.Split(' ')[0];
@@ -385,16 +385,16 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged("MissionCanBeModified");
                 NotifyPropertyChanged("MissionCanToggleActivation");
 
-                if (OBCClient.IsDirectorConnected)
+                if (!OBCClient.IsDirectorConnected)
                 {
-                    if (!checkCommandsSent)
-                        SendCheckCommands();
+                    checkCommandsSent = false;
+                    InterfaceState = InterfaceStatus.Types.State.Offline;
                 }
                 else
                 {
-                    checkCommandsSent = false;
+                    if (OBCClient.DirectorRequestClient.ReadyForCommand)
+                        CommandsReadied();
                 }
-                
             }
         }
 

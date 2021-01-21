@@ -62,19 +62,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private bool _passDialogLoading;
-        public bool PassDialogLoading
-        {
-            get { return _passDialogLoading; }
-            set
-            {
-                if (value == _passDialogLoading)
-                    return;
-                _passDialogLoading = value;
-                RaisePropertyChanged("PassDialogLoading");
-            }
-        }
-
         private string _missionActivatedText;
         public string MissionActivatedText
         {
@@ -171,11 +158,16 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public bool UGCSConnected
+        private bool _droneConnectionOn;
+        public bool DroneConnectionOn
         {
-            get
+            get { return _droneConnectionOn; }
+            set
             {
-                return false;
+                if (_droneConnectionOn == value)
+                    return;
+                _droneConnectionOn = value;
+                RaisePropertyChanged();
             }
         }
 
@@ -200,6 +192,8 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
+            DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
+                AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
 
             _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
 
@@ -214,9 +208,14 @@ namespace ACE_Mission_Control.ViewModels
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
                 if (e.PropertyName == "IsDirectorConnected")
+                {
                     RaisePropertyChanged("IsDirectorConnected");
+                    connectDroneCommand();
+                }
                 else if (e.PropertyName == "IsChaperoneConnected")
+                {
                     RaisePropertyChanged("OBCChaperoneConnected");
+                }
             });
         }
 
@@ -303,10 +302,22 @@ namespace ACE_Mission_Control.ViewModels
                 
         }
 
-        public RelayCommand ConnectDroneCommand => new RelayCommand(() => connectDroneCommand());
-        private void connectDroneCommand()
+        public RelayCommand<ToggleSwitch> ConnectDroneCommand => new RelayCommand<ToggleSwitch>((toggle) => connectDroneCommand(toggle));
+        private void connectDroneCommand(ToggleSwitch toggle = null)
         {
-            AttachedDrone.SendCommand("start_interface");
+            bool connectDrone = toggle == null ? DroneConnectionOn : toggle.IsOn;
+            if (connectDrone)
+            {
+                if (AttachedDrone.OBCClient.IsDirectorConnected && AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Offline)
+                    AttachedDrone.SendCommand("start_interface");
+            }
+            else
+            {
+                if (AttachedDrone.OBCClient.IsDirectorConnected &&
+                    (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
+                    AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online))
+                    AttachedDrone.SendCommand("stop_interface");
+            }
         }
 
         public RelayCommand RestartOBCCommand => new RelayCommand(() => restartOBCCommand());

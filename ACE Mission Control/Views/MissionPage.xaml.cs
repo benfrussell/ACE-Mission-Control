@@ -25,7 +25,7 @@ namespace ACE_Mission_Control.Views
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MissionPage : DroneBasePage
-    { 
+    {
         private bool diagCanClose = false;
 
         private MissionViewModel ViewModel
@@ -37,19 +37,13 @@ namespace ACE_Mission_Control.Views
         {
             if (isInit)
             {
-                base.OnNavigatedTo(e);
+                // Things to do on every navigation
             }
             else
             {
-                Messenger.Default.Register<ShowPassphraseDialogMessage>(this, async (msg) => await PassphraseDialog.ShowAsync());
-
-                Messenger.Default.Register<HidePassphraseDialogMessage>(this, (msg) =>
-                {
-                    diagCanClose = true;
-                    PassphraseDialog.Hide();
-                });
-                base.OnNavigatedTo(e);
+                Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
             }
+            base.OnNavigatedTo(e);
         }
 
         public MissionPage() : base()
@@ -59,25 +53,13 @@ namespace ACE_Mission_Control.Views
             Loaded += MissionPage_Loaded;
         }
 
-        private void MissionPage_Loaded(object sender, RoutedEventArgs e)
+        private void AlertGridScrollToBottom(object newItem)
         {
+            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
         }
 
-        private void PassphraseDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
+        private void MissionPage_Loaded(object sender, RoutedEventArgs e)
         {
-            // Only allow the dialog to close if the diagCanClose is true.
-            if (args.Result == ContentDialogResult.Primary)
-            {
-                if (diagCanClose)
-                    PassphraseDialogInput.Password = "";
-
-                args.Cancel = !diagCanClose;
-                diagCanClose = false;
-            }
-            else
-            {
-                PassphraseDialogInput.Password = "";
-            }
         }
     }
 }

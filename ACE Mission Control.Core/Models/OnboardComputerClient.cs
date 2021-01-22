@@ -1,271 +1,260 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
-using System.IO;
-using Microsoft.Win32;
-using Renci.SshNet;
-using System.Security.Principal;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Renci.SshNet.Common;
+using static ACE_Mission_Control.Core.Models.ACEEnums;
+using System.Timers;
+using Pbdrone;
+using System.Threading;
 
 namespace ACE_Mission_Control.Core.Models
 {
     public class OnboardComputerClient : INotifyPropertyChanged
     {
-        public enum StatusEnum
-        {
-            PrivateKeyClosed,
-            NotConfigured,
-            SearchingPreMission,
-            TryingPreMission,
-            ConnectedPreMission
-        }
-
-        // Non-static variables
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        public Drone AttachedDrone;
-        public MonitorClient PrimaryMonitorClient;
-        public MonitorClient DebugMonitorClient;
-        public CommanderClient PrimaryCommanderClient;
-
-        private ConnectionInfo connectionInfo;
-
         private string _hostname = "";
         public string Hostname
         {
             get { return _hostname; }
-            set
+            private set
             {
                 if (_hostname == value)
                     return;
                 _hostname = value;
                 NotifyPropertyChanged();
-                if (Hostname.Length != 0 && Username.Length != 0)
-                {
-                    IsConfigured = true;
-                    UpdateStatus();
-                }
             }
         }
 
-        private string _username = "";
-        public string Username
-        {
-            get { return _username; }
-            set
-            {
-                if (_username == value)
-                    return;
-                _username = value;
-                NotifyPropertyChanged();
-                if (Hostname.Length != 0 && Username.Length != 0)
-                {
-                    IsConfigured = true;
-                    UpdateStatus();
-                }
-            }
-        }
-
-        private StatusEnum _status;
-        public StatusEnum Status
-        {
-            get
-            {
-                return _status;
-            }
-            set
-            {
-                if (value == _status)
-                    return;
-                _status = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private bool _isConfigured;
         public bool IsConfigured
         {
-            get { return _isConfigured; }
+            get { return Hostname != null && Hostname.Length > 0; }
+        }
+
+        public bool IsDirectorConnected
+        {
+            get { return DirectorRequestClient.Connected && DirectorMonitorClient.Connected; }
+        }
+
+        public bool IsChaperoneConnected
+        {
+            get { return ChaperoneRequestClient.Connected; }
+        }
+
+        private bool _autoTryingConnections;
+        public bool AutoTryingConnections
+        {
+            get { return _autoTryingConnections; }
             private set
             {
-                if (_isConfigured == value)
+                if (value == _autoTryingConnections)
                     return;
-                _isConfigured = value;
+                _autoTryingConnections = value;
                 NotifyPropertyChanged();
             }
         }
 
-        private bool _automationDisabled;
-        public bool AutomationDisabled
+        public bool ConnectionInProgress
         {
-            get { return _automationDisabled; }
-            set
-            {
-                if (_automationDisabled == value)
-                    return;
-                _automationDisabled = value;
-                NotifyPropertyChanged();
-            }
+            get { return ChaperoneRequestClient.ConnectionInProgress ||
+                    DirectorRequestClient.ConnectionInProgress ||
+                    DirectorMonitorClient.ConnectionInProgress; }
         }
 
-        private bool _isConnected;
-        public bool IsConnected
-        {
-            get { return _isConnected; }
-            private set
-            {
-                if (_isConnected == value)
-                    return;
-                _isConnected = value;
-                NotifyPropertyChanged();
-            }
-        }
+        // The reattempt timer is only started if AutoTryConnections is on
+        // If AutoTryConnections is on, the timer is triggered by a connection failure when no other attempts are currently in progress
+        // It will also be started after a manual disconnect
+        private System.Timers.Timer reattemptTimer;
+        private SynchronizationContext syncContext;
 
-        private bool _commanderErrorFlag;
-        public bool CommanderErrorFlag
-        {
-            get { return _commanderErrorFlag; }
-            private set
-            {
-                if (_commanderErrorFlag == value)
-                    return;
-                _commanderErrorFlag = value;
-                NotifyPropertyChanged();
-            }
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        public Drone AttachedDrone;
 
-        private string _commanderErrorText;
-        public string CommanderErrorText
-        {
-            get { return _commanderErrorText; }
-            private set
-            {
-                if (_commanderErrorText == value)
-                    return;
-                _commanderErrorText = value;
-                NotifyPropertyChanged();
-            }
-        }
+        public SubscriberClient DirectorMonitorClient;
+        public RequestClient DirectorRequestClient;
+        public RequestClient ChaperoneRequestClient;
 
-        public OnboardComputerClient(Drone parentDrone, string hostname, string username)
+        public OnboardComputerClient(Drone parentDrone, string hostname)
         {
             AttachedDrone = parentDrone;
-            Username = username;
             Hostname = hostname;
-            AutomationDisabled = false;
-            IsConnected = false;
+            AutoTryingConnections = false;
 
-            PrimaryMonitorClient = new MonitorClient();
-            PrimaryMonitorClient.PropertyChanged += PrimaryMonitorClient_PropertyChanged;
+            reattemptTimer = new System.Timers.Timer(3000);
+            reattemptTimer.Elapsed += ReattemptTimer_Elapsed;
+            reattemptTimer.AutoReset = false;
+            syncContext = SynchronizationContext.Current;
 
-            DebugMonitorClient = new MonitorClient();
+            DirectorMonitorClient = new SubscriberClient();
+            DirectorMonitorClient.PropertyChanged += DirectorMonitorClient_PropertyChanged;
+            DirectorMonitorClient.MessageReceivedEvent += DirectorMonitorClient_MessageReceivedEvent;
 
-            PrimaryCommanderClient = new CommanderClient();
-            PrimaryCommanderClient.PropertyChanged += PrimaryCommanderClient_PropertyChanged;
+            DirectorRequestClient = new RequestClient();
+            DirectorRequestClient.PropertyChanged += DirectorRequestClient_PropertyChanged;
 
-            if (hostname.Length == 0 || username.Length == 0)
-                IsConfigured = false;
-            else
-                IsConfigured = true;
-
-            UpdateStatus();
+            ChaperoneRequestClient = new RequestClient();
+            ChaperoneRequestClient.PropertyChanged += ChaperoneRequestClient_PropertyChanged;
         }
 
-        // Non-static methods
-
-        public bool TryConnect(out string result)
+        private void ReattemptTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (PrimaryMonitorClient.Receiving && PrimaryCommanderClient.Initialized)
-            {
-                result = "Already connected.";
-                return true;
-            }
+            syncContext.Post(new SendOrPostCallback((_) => Connect()), null);
+        }
 
-            if (PrimaryMonitorClient.Started)
-            {
-                result = "Already starting.";
-                return true;
-            }
+        public void Configure(string hostname)
+        {
+            Hostname = hostname;
+            NotifyPropertyChanged("Hostname");
+            NotifyPropertyChanged("IsConfigured");
+            if (IsDirectorConnected || IsChaperoneConnected)
+                Disconnect();
+            else if (AutoTryingConnections)
+                Connect();
+        }
 
-            IsConnected = false;
+        public void StartTryingConnections()
+        {
+            if (AutoTryingConnections)
+                return;
+            AutoTryingConnections = true;
 
-            if (!OnboardComputerController.KeyOpen)
+            Connect();
+        }
+
+        public void StopTryingConnections()
+        {
+            if (!AutoTryingConnections)
+                return;
+            AutoTryingConnections = false;
+
+            reattemptTimer.Stop();
+        }
+
+        public void Connect()
+        {
+            if (IsDirectorConnected && IsChaperoneConnected)
             {
-                result = "The private key has not been opened.";
-                return false;
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
+                return;
             }
 
             if (!IsConfigured)
             {
-                result = "This client isn't configured.";
-                return false;
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionNotConfigured), true);
+                return;
             }
 
-            connectionInfo = new ConnectionInfo(Hostname, Username, new PrivateKeyAuthenticationMethod(Username, 
-                OnboardComputerController.PrivateKey));
+            if (!ChaperoneRequestClient.Connected && !ChaperoneRequestClient.ConnectionInProgress)
+                ChaperoneRequestClient.TryConnection(Hostname, "5537");
 
-            CommanderErrorFlag = false;
-            CommanderErrorText = "";
+            if (!DirectorRequestClient.Connected && !DirectorRequestClient.ConnectionInProgress)
+                DirectorRequestClient.TryConnection(Hostname, "5536");
 
-            bool successful = PrimaryMonitorClient.StartStream(out result, connectionInfo);
+            // Only try a monitor connection if the request client isn't already making an attempt
+            // Both clients communicate with the same program, so we only need to try with one to start
+            // If the request client succeeds it will move on to connect the monitor client 
+            if (!DirectorRequestClient.ConnectionInProgress && !DirectorMonitorClient.Connected && !DirectorMonitorClient.ConnectionInProgress)
+                DirectorMonitorClient.TryConnection(Hostname, "5535");
 
-            UpdateStatus();
-
-            return successful;
+            if (ConnectionInProgress)
+                NotifyPropertyChanged("ConnectionInProgress");
         }
 
-        private void PrimaryMonitorClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void ChaperoneRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Start the debug command stream if the monitor is receiving successfully
-            if (e.PropertyName == "Receiving" && PrimaryMonitorClient.Receiving)
+            if (e.PropertyName == "Connected")
             {
-                string result;
-                if (!PrimaryCommanderClient.StartStream(out result, connectionInfo))
+                NotifyPropertyChanged("IsChaperoneConnected");
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
+            }
+            else if (e.PropertyName == "ConnectionFailure" && ChaperoneRequestClient.ConnectionFailure)
+            {
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.ChaperoneConnectionFailed));
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
+            }
+        }
+
+        private void DirectorRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Connected")
+            {
+                NotifyPropertyChanged("IsDirectorConnected");
+                if (DirectorRequestClient.Connected)
                 {
-                    CommanderErrorFlag = true;
-                    CommanderErrorText = result;
+                    if (!DirectorMonitorClient.Connected)
+                    {
+                        AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionStarting));
+                        DirectorMonitorClient.TryConnection(Hostname, "5535");
+                    }
+                    else
+                    {
+                        AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
+                    }
                 }
-                UpdateStatus();
+                else
+                {
+                    if (!ConnectionInProgress)
+                        AllAttemptsFinished();
+                }
             }
-        }
-
-        private void PrimaryCommanderClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Initialized" && PrimaryCommanderClient.Initialized)
+            else if (e.PropertyName == "ConnectionFailure" && DirectorRequestClient.ConnectionFailure)
             {
-                IsConnected = true;
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
             }
-            UpdateStatus();
         }
 
-        public bool OpenDebugConsole(out string error)
+        private void DirectorMonitorClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            string stream_error;
-            if (!DebugMonitorClient.StartStream(out stream_error, connectionInfo, 2, true))
+            if (e.PropertyName == "Connected")
             {
-                error = stream_error;
-                return false;
+                NotifyPropertyChanged("IsDirectorConnected");
+                if (DirectorRequestClient.Connected && DirectorMonitorClient.Connected)
+                    AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
             }
-            error = "";
-            return true;
+            else if (e.PropertyName == "ConnectionFailure" && DirectorMonitorClient.ConnectionFailure)
+            {
+                if (!ConnectionInProgress)
+                    AllAttemptsFinished();
+            }
         }
 
-        public void UpdateStatus()
+        private void AllAttemptsFinished()
         {
-            if (!OnboardComputerController.KeyOpen)
-                Status = StatusEnum.PrivateKeyClosed;
-            else if (!IsConfigured)
-                Status = StatusEnum.NotConfigured;
-            else if (PrimaryMonitorClient.Started == false)
-                Status = StatusEnum.SearchingPreMission;
-            else if (IsConnected)
-                Status = StatusEnum.ConnectedPreMission;
-            else
-                Status = StatusEnum.TryingPreMission;
+            NotifyPropertyChanged("ConnectionInProgress");
+
+            // Don't do the director ready alert here in case it was just the chaperone that was making an attempt to connect
+            if (!IsDirectorConnected) 
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.DirectorConnectionFailed));
+
+            if (AutoTryingConnections && (!IsDirectorConnected || !IsChaperoneConnected))
+                reattemptTimer.Start();
+        }
+
+        private void DirectorMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
+        {
+            if (e.MessageType == MessageType.Heartbeat)
+            {
+                Heartbeat heartbeat = (Heartbeat)e.Message;
+                if (heartbeat.Arrhythmia > 0.4)
+                    AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
+            }
+            else if (e.MessageType == MessageType.ACEError)
+            {
+                ACEError error = (ACEError)e.Message;
+                AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.OBCError, error.Timestamp + ": " + error.Error));
+            }
+        }
+
+        public void Disconnect()
+        {
+            DirectorMonitorClient.Disconnect();
+            DirectorRequestClient.Disconnect();
+            ChaperoneRequestClient.Disconnect();
+            NotifyPropertyChanged("ConnectionInProgress");
+            if (AutoTryingConnections)
+                reattemptTimer.Start();
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

@@ -28,8 +28,10 @@ namespace ACE_Mission_Control.ViewModels
 {
     public abstract class DroneViewModelBase : ViewModelBase
     {
+        private Drone attachedDrone;
+        public Drone AttachedDrone { get => attachedDrone; set => attachedDrone = value; }
+
         protected int? DroneID;
-        protected Drone AttachedDrone;
         protected bool IsDroneAttached;
         private List<int> previouslyAttached = new List<int>();
 

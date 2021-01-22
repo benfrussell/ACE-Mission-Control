@@ -1,0 +1,29 @@
+﻿<Page
+    x:Class="ACE_Mission_Control.Views.WelcomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ACE_Mission_Control.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <StackPanel
+        Orientation="Vertical"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center">
+        <TextBlock
+            x:Uid="Welcome_FirstText"
+            HorizontalAlignment="Center"
+            Style="{ThemeResource HeaderTextBlockStyle}"/>
+        <TextBlock
+            x:Uid="Welcome_SecondText"
+            HorizontalAlignment="Center"
+            Style="{ThemeResource SubheaderTextBlockStyle}"/>
+        <TextBlock
+            HorizontalAlignment="Center"
+            Text="{x:Bind ViewModel.UGCSConnectText, Mode=OneWay}"
+            Margin="0,32,0,0"
+            Style="{ThemeResource CaptionTextBlockStyle}"/>
+    </StackPanel>
+</Page>

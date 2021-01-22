@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package pbdrone;
+
+// Code 0
+message Heartbeat {
+	float arrhythmia = 1;
+}
+
+// Code 1 - sent by Drone
+message InterfaceStatus {
+	enum State {
+		OFFLINE = 0;
+		ATTEMPTING = 1;
+		ONLINE = 2;
+	}
+
+	enum FailState {
+		NO_FAILURE = 0;
+		ATTEMPT_FAILURE = 1;
+		DROPPED_FAILURE = 2;
+		THREAD_FAILURE = 3;
+		THREAD_TIMEOUT = 4;
+	}
+
+	State interface_state = 1;
+	FailState failure_type = 2;
+	string failure_output = 3;
+	bool active_mode = 4;
+}
+
+// Code 2 - sent by Drone
+message FlightStatus {
+	enum State {
+		STOPPED = 0;
+		ON_GROUND = 1;
+		IN_AIR = 2;
+	}
+
+	State flight_state = 1;
+}
+
+// Code 3 - sent by Drone
+message ControlDevice {
+	enum Device {
+		RC = 0;
+		MSDK = 1;
+		OSDK = 2;
+	}
+
+	Device control_device = 1;
+}
+
+// Code 4 - sent by Drone
+message Telemetry {
+	double longitude = 1;
+	double latitude = 2;
+	float altitude = 3;
+	int32 satellites = 4;
+	float vel_x = 5;
+	float vel_y = 6;
+	float accel_x = 7;
+	float accel_y = 8;
+}
+
+// Code 5
+message FlightAnomaly {
+	repeated string anomaly = 1;
+}
+
+// Code 6
+message ACEError {
+	string timestamp = 1;
+	string error = 2;
+}
+
+// Code 7
+message MissionStatus { 
+	enum Stage {
+		NO_MISSION = 0;
+		READY = 1; 
+		// Stage 2 and 3 are the only times that we receive high-rate telemetry
+		ENROUTE = 2;
+		EXECUTING = 3;
+		RETURNING = 4;
+		OVERRIDE = 5;
+		COMPLETE = 6;
+	}
+	Stage mission_stage = 1;
+	bool activated = 2;
+	bool in_progress = 3;
+
+	double last_longitude = 4;
+	double last_latitude = 5;
+	float last_altitude = 6;
+
+	string log = 7;
+	bool errors = 8;
+}
+
+// Code 8
+message MissionConfig {
+	int32 treatment_duration = 1;
+	bool fly_through_mode = 2;
+	int32 selected_payload = 3;
+	repeated string available_payloads = 4;
+	repeated string routes = 5;
+}
+
+// Code 9
+message CommandResponse {
+	string command = 1;
+	bool successful = 2;
+	string response = 3;
+}

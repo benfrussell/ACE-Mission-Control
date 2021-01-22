@@ -6,122 +6,250 @@
     xmlns:helper="using:ACE_Mission_Control.Helpers"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:ace="using:ACE_Mission_Control.Core.Models"
+    xmlns:i="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <StackPanel
+    <local:DroneBasePage.Resources>
+        <helper:AlertToString x:Key="AlertToString" />
+        <helper:AlertLevelToColour x:Key="AlertLevelToColour" />
+    </local:DroneBasePage.Resources>
+    <Grid
         x:Name="ContentArea"
         Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="115" />
+            <RowDefinition Height="160" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
         <Grid
-            x:Name="OBCStatusArea"
-            Margin="8,8,8,0">
+            x:Name="OBCControlsArea"
+            Margin="8,8,8,0"
+            Grid.Row="0">
+
             <Grid.RowDefinitions>
-                <RowDefinition />
+                <RowDefinition Height="20" />
                 <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <Border Grid.ColumnSpan="1" Grid.RowSpan="3" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"
-                    BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>
+            <Border Grid.ColumnSpan="1"
+                    Grid.RowSpan="3"
+                    Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"
+                    BorderBrush="ForestGreen"
+                    BorderThickness="3,0,0,0"/>
             <TextBlock x:Uid="Mission_OBCHeader"
                        Grid.Row="0"
                        Grid.ColumnSpan="2"
-                       Margin="10,4,0,8"
+                       Margin="10,4,0,0"
                        FontWeight="Bold"/>
-            <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Grid.Row="1"
-                Grid.ColumnSpan="1"
-                Margin="2,8,0,8">
-                <SymbolIcon x:Name="OBCStatusSymbolIcon"
-                        VerticalAlignment="Center"
-                        Width="40"
-                        Symbol="{x:Bind ViewModel.OBCStatusSymbol}"/>
-                <TextBlock x:Name="OBCStatusTextBlock"
-                       VerticalAlignment="Center"
-                       Text="{x:Bind ViewModel.OBCStatusText, Mode=OneWay}"/>
-            </StackPanel>
+            <ToggleSwitch Grid.Row="1"
+                          x:Name="ConnectOBCSwitch"
+                          x:Uid="Mission_ConnectOBCSwitch"
+                          Margin="10,8,0,0">
+                <i:Interaction.Behaviors>
+                    <core:EventTriggerBehavior EventName="Toggled">
+                        <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectOBCCommand}"/>
+                    </core:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
+            </ToggleSwitch>
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Grid.Row="2"
                 Grid.ColumnSpan="1"
-                Margin="10,8,0,8">
-                <Button x:Name="LockButton"
-                    x:Uid="Mission_LockButton"
-                    Style="{ThemeResource ACEIconButton}"
-                    Command="{x:Bind ViewModel.LockButtonCommand}"
-                    IsEnabled="{x:Bind ViewModel.LockButtonEnabled, Mode=OneWay}">
-                    <SymbolIcon x:Name="LockButtonSymbol"
-                        Grid.Column="0"
-                        VerticalAlignment="Center"
-                        Symbol="{x:Bind ViewModel.LockButtonSymbol, Mode=OneWay}"/>
-                </Button>
-                <Button x:Name="UploadButton"
-                    x:Uid="Mission_UploadButton"
-                    Margin="8,0,0,0"
-                    Style="{ThemeResource ACEButton}"/>
+                Margin="10,0,0,8">
+
+                <ToggleSwitch x:Name="ConnectDroneSwitch"
+                              x:Uid="Mission_ConnectDroneSwitch"
+                              Margin="0,0,0,0"
+                              IsOn="{x:Bind ViewModel.DroneConnectionOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <i:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Toggled">
+                            <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectDroneCommand}"
+                                                      CommandParameter="{x:Bind ConnectDroneSwitch}"/>
+                        </core:EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                </ToggleSwitch>
+                <AppBarSeparator/>
+                <Button x:Name="RestartOBCButton"
+                        x:Uid="Mission_RestartOBC"
+                        Margin="8,0,0,0"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsDirectorConnected, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.RestartOBCCommand}"/>
+                <Button x:Name="TestPayloadButton"
+                        x:Uid="Mission_TestPayload"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.TestPayloadCommand}"
+                        Margin="8,0,0,0"/>
+                <Button x:Name="TestInterfaceButton"
+                        x:Uid="Mission_TestInterface"
+                        Margin="8,0,0,0"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.TestInterfaceCommand}"/>
             </StackPanel>
         </Grid>
         <Grid
-            x:Name="UGCSStatusArea"
-            Margin="8,8,8,0">
+            x:Name="MissionControlsArea"
+            Margin="8,8,8,0"
+            Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition />
+                <RowDefinition Height="20" />
                 <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <Border Grid.ColumnSpan="1" Grid.RowSpan="4" Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"
-                    BorderBrush="ForestGreen" BorderThickness="3,0,0,0"/>
-            <TextBlock x:Uid="Mission_RetrievalHeader"
+            <Border Grid.ColumnSpan="1"
+                    Grid.RowSpan="3"
+                    Background="{ThemeResource SystemControlPageBackgroundChromeMediumLowBrush}"
+                    BorderBrush="ForestGreen"
+                    BorderThickness="3,0,0,0"/>
+            <TextBlock x:Uid="Mission_MissionControlHeader"
                        Grid.Row="0"
-                       Grid.ColumnSpan="2"
-                       Margin="10,4,0,8"
+                       Grid.ColumnSpan="1"
+                       Margin="10,4,0,0"
                        FontWeight="Bold"/>
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Grid.Row="1"
-                Grid.ColumnSpan="1"
-                Margin="2,8,0,8">
-                <SymbolIcon Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Symbol="Clock" Width="40" Height="20"/>
-                <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
-                       Grid.Column="1"
-                       Grid.Row="1"
-                       VerticalAlignment="Center"
-                       Text="{x:Bind ViewModel.UGCSMissionRetrieveText}"
-                       Height="20"/>
+                Margin="10,8,0,0">
+                <StackPanel
+                    Orientation="Vertical">
+                    <TextBlock
+                        x:Uid="Mission_SetPayload"
+                        Margin="0,0,0,4"/>
+                    <ComboBox
+                        x:Name="PayloadComboBox"
+                        MinWidth="150"
+                        Style="{ThemeResource ACEComboBox}"
+                        IsEnabled="False"
+                        ItemsSource="{x:Bind ViewModel.AvailablePayloads, Mode=OneWay}"
+                        SelectedIndex="{x:Bind ViewModel.SelectedPayload, Mode=OneWay}">
+                        <i:Interaction.Behaviors>
+                            <core:EventTriggerBehavior EventName="SelectionChanged">
+                                <core:InvokeCommandAction Command="{x:Bind ViewModel.PayloadSelectionCommand}"
+                                                          CommandParameter="{x:Bind PayloadComboBox}"/>
+                            </core:EventTriggerBehavior>
+                        </i:Interaction.Behaviors>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel
+                    Orientation="Vertical">
+                    <TextBlock
+                        x:Uid="Mission_SetDuration"
+                        Margin="16,0,0,4"/>
+                    <TextBox
+                        IsSpellCheckEnabled="False"
+                        MaxWidth="100"
+                        Margin="16,0,0,0"
+                        Style="{ThemeResource ACETextBox}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeModified, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.TreatmentDurationBorderColour, Mode=OneWay}"
+                        Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                        helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"/>
+                    <TextBlock Text="{x:Bind ViewModel.TreatmentDurationValidText, Mode=OneWay}"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource SystemErrorTextColor}"
+                               Margin="16,0,0,0"/>
+                </StackPanel>
+                <StackPanel
+                    Orientation="Vertical">
+                    <TextBlock
+                        x:Uid="Mission_SetFlyThrough"
+                        Margin="16,0,0,4"/>
+                    <CheckBox
+                        x:Uid="Mission_FlyThroughCheckbox"
+                        Margin="16,0,0,0"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeModified, Mode=OneWay}"
+                        IsChecked="{x:Bind ViewModel.FlyThroughMode, Mode=TwoWay}"
+                        Command="{x:Bind ViewModel.FlyThroughChangedCommand}"/>
+                </StackPanel>
             </StackPanel>
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Grid.Row="2"
-                Grid.ColumnSpan="1"
-                Margin="10,8,0,0">
-                <Button x:Name="ConnectUGCSButton"
-                        x:Uid="Mission_ConnectUGCSButton"
-                        Style="{ThemeResource ACEButton}"/>
-                <DropDownButton Style="{ThemeResource ACEDropDownButton}"
-                                Margin="8,0,0,0"/>
-                <Button x:Name="RetrieveButton"
-                        x:Uid="Mission_RetrieveButton"
+                Margin="10,0,0,0">
+                <Button x:Name="UploadButton"
+                        x:Uid="Mission_UploadButton"
                         Style="{ThemeResource ACEButton}"
-                        Margin="8,0,0,0"/>
-            </StackPanel>
-            <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Grid.Row="3"
-                Margin="10,8,0,8">
-                <Button x:Name="ImportFileButton"
-                        x:Uid="Mission_ImportFileButton"
-                        Style="{ThemeResource ACEButton}"/>
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeModified, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.UploadCommand}"/>
+                <Button x:Name="ActivateButton"
+                        x:Uid="Mission_ActivateButton"
+                        Margin="8,0,0,0"
+                        Style="{ThemeResource ACEButton}"
+                        Content="{x:Bind ViewModel.MissionActivatedText, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanToggleActivation, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.ActivateCommand}"/>
+                <AppBarSeparator VerticalAlignment="Center"
+                                 Height="35"/>
+                <Button x:Name="ResetButton"
+                        x:Uid="Mission_ResetButton"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.MissionCanBeReset, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.ResetCommand}"/>
             </StackPanel>
         </Grid>
 
-        <ContentDialog x:Name="PassphraseDialog"
+        <controls:DataGrid ItemsSource="{x:Bind ViewModel.Alerts, Mode=OneWay}"
+                           IsReadOnly="True"
+                           ColumnHeaderHeight="12"
+                           Margin="8,8,8,8"
+                           Grid.Row="2"
+                           ClipboardCopyMode="ExcludeHeader"
+                           x:Name="AlertDataGrid">
+            <controls:DataGrid.Columns>
+                <controls:DataGridTemplateColumn MinWidth="70">
+                    <controls:DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="ace:AlertEntry">
+                            <Border
+                                Background="{x:Bind Level, Converter={StaticResource AlertLevelToColour}}">
+                                <TextBlock Text="{x:Bind Timestamp.ToLongTimeString()}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"/>
+                            </Border>
+                        </DataTemplate>
+                    </controls:DataGridTemplateColumn.CellTemplate>
+                </controls:DataGridTemplateColumn>
+
+                <controls:DataGridTemplateColumn Width="*">
+                    <controls:DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="ace:AlertEntry">
+                            <Border Background="{x:Bind Level, Converter={StaticResource AlertLevelToColour}}">
+                                <TextBlock Text="{x:Bind Mode=OneWay, Converter={StaticResource AlertToString}}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Left"
+                                           Margin="4,0,0,0"/>
+                            </Border>
+                        </DataTemplate>
+                    </controls:DataGridTemplateColumn.CellTemplate>
+                </controls:DataGridTemplateColumn>
+            </controls:DataGrid.Columns>
+            <controls:DataGrid.RowStyle>
+                <Style TargetType="controls:DataGridRow">
+                    <Setter Property="ContextFlyout">
+                        <Setter.Value>
+                            <MenuFlyout>
+                                <MenuFlyoutItem x:Uid="Mission_AlertGridCopy"
+                                                Command="{x:Bind ViewModel.AlertCopyCommand}"
+                                                CommandParameter="{x:Bind AlertDataGrid}"/>
+                            </MenuFlyout>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </controls:DataGrid.RowStyle>
+        </controls:DataGrid>
+
+        <!--<ContentDialog x:Name="PassphraseDialog"
                        x:Uid="Mission_PassDialog"
                        PrimaryButtonText="Enter"
                        SecondaryButtonText="Cancel"
@@ -131,14 +259,21 @@
                 <TextBlock x:Uid="Mission_PassDialogText" />
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <PasswordBox x:Name="PassphraseDialogInput"
-                                 Password="{x:Bind ViewModel.PassDialogInputText, Mode=TwoWay}"
-                                 helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.PassDialogEnterCommand}" />
+                                 helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.PassDialogEnterCommand}">
+                        <i:Interaction.Behaviors>
+                            <core:EventTriggerBehavior EventName="PasswordChanged">
+                                <core:InvokeCommandAction
+                                    Command="{x:Bind ViewModel.PassChangedCommand}"
+                                    CommandParameter="{x:Bind PassphraseDialogInput}"/>
+                            </core:EventTriggerBehavior>
+                        </i:Interaction.Behaviors>
+                    </PasswordBox>
                     <ProgressRing Margin="8,0,0,12"
                                   IsActive="{x:Bind ViewModel.PassDialogLoading, Mode=OneWay}" />
                 </StackPanel>
                 <TextBlock Text="{x:Bind ViewModel.PassDialogErrorText, Mode=OneWay}"
                            Foreground="{ThemeResource SystemErrorTextColor}"/>
             </StackPanel>
-        </ContentDialog>
-    </StackPanel>
+        </ContentDialog>-->
+    </Grid>
 </local:DroneBasePage>

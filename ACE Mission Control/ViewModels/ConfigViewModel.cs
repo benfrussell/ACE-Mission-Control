@@ -20,23 +20,8 @@ namespace ACE_Mission_Control.ViewModels
             {
                 if (_hostname_text != value)
                 {
-                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text) | (AttachedDrone.OBCClient.Username != value);
+                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text);
                     _hostname_text = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        private string _username_text;
-        public string Username_Text
-        {
-            get { return _username_text; }
-            set
-            {
-                if (_username_text != value)
-                {
-                    UnsavedChanges = (AttachedDrone.OBCClient.Hostname != Hostname_Text) | (AttachedDrone.OBCClient.Username != value);
-                    _username_text = value;
                     RaisePropertyChanged();
                 }
             }
@@ -56,69 +41,57 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private bool _automation_checked;
-        public bool AutomationChecked
+        public bool ManualCommandsChecked
         {
-            get { return _automation_checked; }
-            set
-            {
-                if (_automation_checked == value)
-                    return;
-                _automation_checked = value;
-                RaisePropertyChanged("AutomationChecked");
-            }
+            get { return AttachedDrone.ManualCommandsOnly; }
         }
+
 
         public RelayCommand ApplyChangesCommand => new RelayCommand(() => applyButtonClicked());
         public RelayCommand ResetChangesCommand => new RelayCommand(() => resetButtonClicked());
-        public RelayCommand AutomationCheckCommand => new RelayCommand(() => automationChecked());
+        public RelayCommand ManualCommandsCheckedCommand => new RelayCommand(() => manualCommandsCheckedCommand());
 
         public ConfigViewModel()
         {
-            
+
         }
 
         protected override void DroneAttached(bool firstTime)
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
-            Username_Text = AttachedDrone.OBCClient.Username;
-            AutomationChecked = AttachedDrone.OBCClient.AutomationDisabled;
-            AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
+            RaisePropertyChanged("ManualCommandsChecked");
+            AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
         }
 
         protected override void DroneUnattaching()
         {
-            
+            AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
         }
 
-        private async void OBCClient_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void AttachedDrone_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             // Property changes might come in from the wrong thread. This dispatches it to the UI thread.
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                var client = sender as OnboardComputerClient;
-
-                if (client.AttachedDrone.ID != DroneID)
-                    return;
+                if (e.PropertyName == "ManualCommandsOnly")
+                    RaisePropertyChanged("ManualCommandsChecked");
             });
         }
 
         private void applyButtonClicked()
         {
-            AttachedDrone.OBCClient.Username = Username_Text;
-            AttachedDrone.OBCClient.Hostname = Hostname_Text;
+            AttachedDrone.OBCClient.Configure(Hostname_Text);
             UnsavedChanges = false;
         }
 
         private void resetButtonClicked()
         {
             Hostname_Text = AttachedDrone.OBCClient.Hostname;
-            Username_Text = AttachedDrone.OBCClient.Username;
         }
 
-        private void automationChecked()
+        private void manualCommandsCheckedCommand()
         {
-            AttachedDrone.OBCClient.AutomationDisabled = AutomationChecked;
+            AttachedDrone.ManualCommandsOnly = !AttachedDrone.ManualCommandsOnly;
         }
     }
 }

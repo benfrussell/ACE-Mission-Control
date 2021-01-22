@@ -78,15 +78,28 @@ namespace ACE_Mission_Control.Core.Models
 
             var intersector = new RobustLineIntersector();
 
+            var firstSegment = waypoints.First();
+            var firstLong = (firstSegment.P0[0] / Math.PI) * 180;
+            var firstLat = (firstSegment.P0[0] / Math.PI) * 180;
+            var secondLong = (firstSegment.P0[0] / Math.PI) * 180;
+            var secondLat = (firstSegment.P0[0] / Math.PI) * 180;
+
             foreach (LineSegment waypointSegment in waypoints)
             {
+                List<Coordinate> segmentIntersections = new List<Coordinate>();
                 foreach (LineSegment areaSegment in areaScanSegments)
                 {
                     intersector.ComputeIntersection(waypointSegment.P0, waypointSegment.P1, areaSegment.P0, areaSegment.P1);
                     if (intersector.IsProper)
-                    {
-                        return intersector.GetIntersection(0);
-                    }
+                        segmentIntersections.Add(intersector.GetIntersection(0));
+                }
+
+                if (segmentIntersections.Count > 0)
+                {
+                    if (reverse)
+                        return segmentIntersections.OrderBy(intersect => intersect.Distance(waypointSegment.P1)).First();
+                    else
+                        return segmentIntersections.OrderBy(intersect => intersect.Distance(waypointSegment.P0)).First();
                 }
             }
 

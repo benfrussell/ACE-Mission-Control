@@ -237,7 +237,7 @@ namespace ACE_Mission_Control.Core.Models
             if (e.MessageType == MessageType.Heartbeat)
             {
                 Heartbeat heartbeat = (Heartbeat)e.Message;
-                if (heartbeat.Arrhythmia > 0)
+                if (heartbeat.Arrhythmia > 0.4)
                     AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
             }
             else if (e.MessageType == MessageType.ACEError)

@@ -1,67 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using UGCS.Sdk.Protocol.Encoding;
-using System.Numerics;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Timers;
-using UGCS.Sdk.Protocol;
+using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class RouteCollectionUpdates<T>
-    {
-        public bool AnyChanges { get => RemovedRouteIDs.Count + AddedRoutes.Count + ModifiedRoutes.Count > 0; }
-        public List<int> RemovedRouteIDs { get; set; }
-        public List<T> AddedRoutes { get; set; }
-        public List<T> ModifiedRoutes { get; set; }
-
-        public RouteCollectionUpdates()
-        {
-            RemovedRouteIDs = new List<int>();
-            AddedRoutes = new List<T>();
-            ModifiedRoutes = new List<T>();
-        }
-    }
-
     public class AreaScanPolygonsUpdatedArgs
     {
         public RouteCollectionUpdates<AreaScanPolygon> updates { get; set; }
     }
 
-    public class InstructionsUpdatedEventArgs
+    public class MissionRetriever : INotifyPropertyChanged
     {
-        public List<TreatmentInstruction> Instructions { get; set; }
-
-        public InstructionsUpdatedEventArgs() { Instructions = new List<TreatmentInstruction>(); }
-    }
-
-    public class MissionData : INotifyPropertyChanged
-    {
-
-        // Static Mission Data relevant for all instances
-
         public static event PropertyChangedEventHandler StaticPropertyChanged;
 
         public static event EventHandler<AreaScanPolygonsUpdatedArgs> AreaScanPolygonsUpdated;
 
         private static List<WaypointRoute> waypointRoutes;
-        public static List<WaypointRoute> WaypointRoutes 
-        { 
-            get => waypointRoutes; 
+        public static List<WaypointRoute> WaypointRoutes
+        {
+            get => waypointRoutes;
             private set
             {
                 if (waypointRoutes == value)
                     return;
                 waypointRoutes = value;
                 NotifyStaticPropertyChanged("WaypointRoutes");
-            } 
+            }
         }
 
         private static List<AreaScanPolygon> areaScanPolygons;
@@ -76,7 +44,6 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyStaticPropertyChanged("AreaScanPolygons");
             }
         }
-
         private static bool isUGCSPollerRunning;
         public static bool IsUGCSPollerRunning
         {
@@ -92,10 +59,12 @@ namespace ACE_Mission_Control.Core.Models
 
         private static Timer ugcsPoller;
 
-        static MissionData()
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        static MissionRetriever()
         {
-            AreaScanPolygons = new List<AreaScanPolygon>();
             WaypointRoutes = new List<WaypointRoute>();
+            AreaScanPolygons = new List<AreaScanPolygon>();
             UGCSClient.ReceivedRecentRoutesEvent += UGCSClient_ReceivedRecentRoutesEvent;
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
         }
@@ -157,7 +126,7 @@ namespace ACE_Mission_Control.Core.Models
                 var areaIDsToRemove = new List<int>(areaChanges.RemovedRouteIDs);
                 areaIDsToRemove.AddRange(from r in areaChanges.ModifiedRoutes select r.Id);
                 AreaScanPolygons.RemoveAll(a => areaIDsToRemove.Contains(a.Id));
-                TreatmentInstruction.RemoveAreaScansByIDs(areaIDsToRemove);
+                TreatmentInstruction.InterceptCollection.RemoveAreaScansByIDs(areaIDsToRemove);
             }
 
             if (waypointRouteChanges.AnyChanges)
@@ -165,7 +134,7 @@ namespace ACE_Mission_Control.Core.Models
                 var routeIDsToRemove = new List<int>(waypointRouteChanges.RemovedRouteIDs);
                 routeIDsToRemove.AddRange(from r in waypointRouteChanges.ModifiedRoutes select r.Id);
                 WaypointRoutes.RemoveAll(a => routeIDsToRemove.Contains(a.Id));
-                TreatmentInstruction.RemoveWaypointRoutesByIDs(routeIDsToRemove);
+                TreatmentInstruction.InterceptCollection.RemoveWaypointRoutesByIDs(routeIDsToRemove);
 
                 var routesToAdd = RoutesToWaypointRoutes(waypointRouteChanges.AddedRoutes).ToList();
                 routesToAdd.AddRange(RoutesToWaypointRoutes(waypointRouteChanges.ModifiedRoutes));
@@ -173,7 +142,7 @@ namespace ACE_Mission_Control.Core.Models
 
                 // Unmodified areas only need to check against new routes
                 foreach (AreaScanPolygon area in AreaScanPolygons)
-                    TreatmentInstruction.AddTreatmentRouteIntercepts(area, routesToAdd);
+                    TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, routesToAdd);
 
                 NotifyStaticPropertyChanged("WaypointRoutes");
             }
@@ -192,9 +161,9 @@ namespace ACE_Mission_Control.Core.Models
 
                 // New and modified areas need to check against every waypoint route
                 foreach (AreaScanPolygon area in areasUpdate.ModifiedRoutes)
-                    TreatmentInstruction.AddTreatmentRouteIntercepts(area, WaypointRoutes);
+                    TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, WaypointRoutes);
                 foreach (AreaScanPolygon area in areasUpdate.AddedRoutes)
-                    TreatmentInstruction.AddTreatmentRouteIntercepts(area, WaypointRoutes);
+                    TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, WaypointRoutes);
 
                 NotifyStaticPropertyChanged("AreaScanPolygons");
 
@@ -249,128 +218,5 @@ namespace ACE_Mission_Control.Core.Models
         {
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
         }
-
-        // Instance-only Mission Data
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public event EventHandler<InstructionsUpdatedEventArgs> InstructionUpdated;
-
-        public ObservableCollection<TreatmentInstruction> TreatmentInstructions;
-
-        public MissionData()
-        {
-            AreaScanPolygonsUpdated += MissionData_AreaScanPolygonsUpdated;
-            TreatmentInstructions = new ObservableCollection<TreatmentInstruction>();
-        }
-
-        private void MissionData_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
-        {
-            // Remove all instructions that have removed polygons
-            foreach (int removedID in e.updates.RemovedRouteIDs)
-            {
-                var removedInstruction = TreatmentInstructions.FirstOrDefault(i => removedID == i.TreatmentPolygon.Id);
-                if (removedInstruction != null)
-                    TreatmentInstructions.Remove(removedInstruction);
-            }
-
-            InstructionsUpdatedEventArgs updatedInstructions = new InstructionsUpdatedEventArgs();
-
-            foreach (TreatmentInstruction instruction in TreatmentInstructions)
-            {
-                var newTreatmentArea = e.updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentPolygon.Id);
-                if (newTreatmentArea != null)
-                {
-                    // Update treatment areas if they were modified
-                    instruction.UpdateTreatmentArea(newTreatmentArea);
-                    updatedInstructions.Instructions.Add(instruction);
-                }
-                else
-                {
-                    var routeUpdated = instruction.RevalidateTreatmentRoute();
-                    if (routeUpdated)
-                        updatedInstructions.Instructions.Add(instruction);
-                }   
-            }
-
-            // Add new treatment areas as instructions
-            foreach (AreaScanPolygon addedArea in e.updates.AddedRoutes)
-                TreatmentInstructions.Add(new TreatmentInstruction(addedArea));
-
-            if (updatedInstructions.Instructions.Count > 0)
-                InstructionUpdated?.Invoke(this, updatedInstructions);
-        }
-
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        // Deprecated file import code
-
-        //public async void AddRoutesFromFile(StorageFile file)
-        //{
-        //    foreach (AreaScanPolygon route in await CreateRoutesFromFile(file))
-        //    {
-        //        AreaScanRoutes.Add(route);
-        //    }
-        //}
-
-        //public static async Task<MissionData> CreateMissionDataFromFile(StorageFile file)
-        //{
-        //    List<AreaScanPolygon> routes = await CreateRoutesFromFile(file);
-        //    return new MissionData(new ObservableCollection<AreaScanPolygon>(routes));
-        //}
-
-        //public static async Task<List<AreaScanPolygon>> CreateRoutesFromFile(StorageFile file)
-        //{
-        //    string fileText = await FileIO.ReadTextAsync(file);
-        //    JObject fileJson = JObject.Parse(fileText);
-        //    List<AreaScanPolygon> routes = new List<AreaScanPolygon>();
-
-        //    if (fileJson.ContainsKey("mission"))
-        //    {
-        //        var routeTokens = fileJson["mission"]["routes"].Children();
-        //        foreach (JToken routeToken in routeTokens)
-        //        {
-        //            routes = routes.Concat(parseRoute(routeToken)).ToList();
-        //        }
-        //    }
-        //    else if (fileJson.ContainsKey("route"))
-        //    {
-        //        var routeToken = fileJson["route"];
-        //        routes = routes.Concat(parseRoute(routeToken)).ToList();
-        //    }
-
-        //    return routes;
-        //}
-
-        //private static List<AreaScanPolygon> parseRoute(JToken routeToken)
-        //{
-        //    List<AreaScanPolygon> routes = new List<AreaScanPolygon>();
-        //    string routeName = routeToken["name"].ToObject<string>();
-
-        //    foreach (JToken segmentToken in routeToken["segments"].Children())
-        //    {
-        //        if (segmentToken["type"].ToObject<string>() == "AreaScan")
-        //        {
-        //            var pointsToken = segmentToken["polygon"]["points"].Children();
-        //            List<BasicGeoposition> routeArea = new List<BasicGeoposition>();
-
-        //            foreach (JToken pointToken in pointsToken)
-        //            {
-        //                var geop = new BasicGeoposition();
-        //                geop.Latitude = (180 / Math.PI) * pointToken["latitude"].ToObject<double>();
-        //                geop.Longitude = (180 / Math.PI) * pointToken["longitude"].ToObject<double>();
-
-        //                routeArea.Add(geop);
-        //            }
-
-        //            routes.Add(new AreaScanPolygon(routeName, new Geopath(routeArea)));
-        //        }
-        //    }
-
-        //    return routes;
-        //}
     }
 }

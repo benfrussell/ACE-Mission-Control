@@ -7,11 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ACE_Mission_Control.Core.Models;
+using ACE_Mission_Control.Helpers;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Windows.ApplicationModel.Core;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -34,19 +37,148 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private string _missionActivatedText;
+        public string MissionActivatedText
+        {
+            set
+            {
+                if (value == _missionActivatedText)
+                    return;
+                _missionActivatedText = value;
+                RaisePropertyChanged();
+            }
+            get
+            {
+                return _missionActivatedText;
+            }
+        }
+
+        private string _treatmentDuration;
+        public string TreatmentDuration
+        {
+            get { return _treatmentDuration; }
+            set
+            {
+                if (_treatmentDuration == value)
+                    return;
+                _treatmentDuration = value;
+                if (isTreatmentDurationValid(_treatmentDuration))
+                {
+                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+                    TreatmentDurationValidText = "";
+                }
+                else
+                {
+                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
+                    TreatmentDurationValidText = "Mission_InvalidInteger".GetLocalized();
+                }
+                RaisePropertyChanged("TreatmentDuration");
+            }
+        }
+
+        private SolidColorBrush _treatmentDurationBorderColour;
+        public SolidColorBrush TreatmentDurationBorderColour
+        {
+            get { return _treatmentDurationBorderColour; }
+            set
+            {
+                if (_treatmentDurationBorderColour == value)
+                    return;
+                _treatmentDurationBorderColour = value;
+                RaisePropertyChanged("TreatmentDurationBorderColour");
+            }
+        }
+
+        private string _treatmentDurationValidText;
+        public string TreatmentDurationValidText
+        {
+            get { return _treatmentDurationValidText; }
+            set
+            {
+                if (_treatmentDurationValidText == value)
+                    return;
+                _treatmentDurationValidText = value;
+                RaisePropertyChanged("TreatmentDurationValidText");
+            }
+        }
+
+        public List<string> AvailablePayloads
+        {
+            get { return AttachedDrone.Mission.AvailablePayloads; }
+        }
+
+        private int _selectedPayload;
+        public int SelectedPayload
+        {
+            get { return _selectedPayload; }
+            set
+            {
+                if (_selectedPayload == value)
+                    return;
+                _selectedPayload = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool suppressPayloadCommand;
+
         public PlannerViewModel()
         {
             Messenger.Default.Register<MapPointSelected>(this, (msg) => { });
+
+            TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+            suppressPayloadCommand = false;
         }
 
         protected override void DroneAttached(bool firstTime)
         {
-            TreatmentInstructions = AttachedDrone.MissionData.TreatmentInstructions;
+            TreatmentInstructions = AttachedDrone.Mission.TreatmentInstructions;
             Messenger.Default.Send(new UpdatePlannerMapAreas());
-            AttachedDrone.MissionData.InstructionUpdated += MissionData_InstructionUpdated;
+            AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
+            AttachedDrone.Mission.InstructionUpdated += Mission_InstructionUpdated;
+
+            if (AttachedDrone.Mission.Activated)
+                MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
+            else
+                MissionActivatedText = "Mission_ActivateButton".GetLocalized();
         }
 
-        private void MissionData_InstructionUpdated(object sender, InstructionsUpdatedEventArgs e)
+        private async void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                switch (e.PropertyName)
+                {
+                    case "CanBeReset":
+                        RaisePropertyChanged("CanBeReset");
+                        break;
+                    case "CanBeModified":
+                        RaisePropertyChanged("CanBeModified");
+                        break;
+                    case "CanToggleActivation":
+                        RaisePropertyChanged("CanToggleActivation");
+                        break;
+                    case "Activated":
+                        if (AttachedDrone.Mission.Activated)
+                            MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
+                        else
+                            MissionActivatedText = "Mission_ActivateButton".GetLocalized();
+                        break;
+                    case "TreatmentDuration":
+                        TreatmentDuration = AttachedDrone.Mission.TreatmentDuration.ToString();
+                        break;
+                    case "SelectedPayload":
+                        suppressPayloadCommand = true;
+                        SelectedPayload = AttachedDrone.Mission.SelectedPayload;
+                        break;
+                    case "AvailablePayloads":
+                        RaisePropertyChanged("AvailablePayloads");
+                        break;
+                }
+            });
+        }
+
+        private void Mission_InstructionUpdated(object sender, InstructionsUpdatedEventArgs e)
         {
             // Force the binding to update by removing and re-adding the instruction
             // This is dumb but the alternative seems to be making my own ObservableCollection class which is also dumb
@@ -76,7 +208,60 @@ namespace ACE_Mission_Control.ViewModels
 
         protected override void DroneUnattaching()
         {
-            AttachedDrone.MissionData.InstructionUpdated -= MissionData_InstructionUpdated;
+            AttachedDrone.Mission.InstructionUpdated -= Mission_InstructionUpdated;
+            AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
+        }
+
+        private bool isTreatmentDurationValid(string durationString)
+        {
+            int parseOut;
+            return durationString.Length == 0 || int.TryParse(durationString, out parseOut);
+        }
+
+        // --- Mission Commands
+
+        public RelayCommand<ComboBox> PayloadSelectionCommand => new RelayCommand<ComboBox>((box) => payloadSelectionCommand(box));
+        private void payloadSelectionCommand(ComboBox box)
+        {
+            if (!suppressPayloadCommand)
+            {
+                //AttachedDrone.SendCommand("set_payload -index " + box.SelectedIndex.ToString());
+                suppressPayloadCommand = false;
+            }
+        }
+
+        public RelayCommand DurationChangedCommand => new RelayCommand(() => durationChangedCommand());
+        private void durationChangedCommand()
+        {
+            if (isTreatmentDurationValid(TreatmentDuration))
+                AttachedDrone.SendCommand("set_duration -duration " + TreatmentDuration.ToString());
+        }
+
+        public RelayCommand UploadCommand => new RelayCommand(() => uploadCommand());
+        private void uploadCommand()
+        {
+            AttachedDrone.UploadMission();
+        }
+
+        public RelayCommand ActivateCommand => new RelayCommand(() => activateCommand());
+        private void activateCommand()
+        {
+            if (AttachedDrone.Mission.Activated)
+                AttachedDrone.SendCommand("deactivate_mission");
+            else
+                AttachedDrone.SendCommand("activate_mission");
+        }
+
+        public RelayCommand ResetCommand => new RelayCommand(() => resetCommand());
+        private void resetCommand()
+        {
+            AttachedDrone.SendCommand("reset_mission");
+        }
+
+        public RelayCommand<SelectionChangedEventArgs> StartModeSelectionCommand => new RelayCommand<SelectionChangedEventArgs>((args) => startModeSelectionCommand(args));
+        private void startModeSelectionCommand(SelectionChangedEventArgs args)
+        {
+            
         }
     }
 }

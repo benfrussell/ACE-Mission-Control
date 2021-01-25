@@ -157,49 +157,13 @@
     <value>File name is null or empty. Specify a valid file name</value>
     <comment>File name is null or empty to save file in settings storage extensions</comment>
   </data>
-  <data name="Settings_Theme.Text" xml:space="preserve">
-    <value>Choose Theme</value>
-    <comment>Choose theme text for Settings</comment>
-  </data>
-  <data name="Settings_Theme_Dark.Content" xml:space="preserve">
-    <value>Dark</value>
-    <comment>Dark theme text for Settings</comment>
-  </data>
-  <data name="Settings_Theme_Default.Content" xml:space="preserve">
-    <value>Windows default</value>
-    <comment>Windows default theme text for Settings</comment>
-  </data>
-  <data name="Settings_Theme_Light.Content" xml:space="preserve">
-    <value>Light</value>
-    <comment>Light theme text for Settings</comment>
-  </data>
   <data name="Settings_About.Text" xml:space="preserve">
     <value>About this application</value>
     <comment>About this application title for Settings</comment>
   </data>
   <data name="Settings_AboutDescription.Text" xml:space="preserve">
-    <value>About text goes here</value>
+    <value>ACE Mission Control is a tool used to automate payload based drone missions in combination with UGCS and ACE Onboard Computer.</value>
     <comment>About this application description for Settings</comment>
-  </data>
-  <data name="Settings_PrivacyTermsLink.Content" xml:space="preserve">
-    <value>Privacy Statement</value>
-    <comment>Privacy Statement link content for Settings</comment>
-  </data>
-  <data name="Settings_PrivacyTermsLink.NavigateUri" xml:space="preserve">
-    <value>https://YourPrivacyUrlGoesHere/</value>
-    <comment>Here is your Privacy Statement url for Settings</comment>
-  </data>
-  <data name="Settings_Personalization.Text" xml:space="preserve">
-    <value>Personalization</value>
-    <comment>Personalization text for Settings</comment>
-  </data>
-  <data name="ExceptionEnumToBooleanConverterValueMustBeAnEnum" xml:space="preserve">
-    <value>value must be an Enum!</value>
-    <comment>Value must be an Enum in enum to boolean converter</comment>
-  </data>
-  <data name="ExceptionEnumToBooleanConverterParameterMustBeAnEnumName" xml:space="preserve">
-    <value>parameter must be an Enum name!</value>
-    <comment>Parameter must be an Enum name in enum to boolean converter</comment>
   </data>
   <data name="Config_OBCConfigLabel.Text" xml:space="preserve">
     <value>Onboard Computer</value>
@@ -207,15 +171,9 @@
   <data name="Config_OBCIPLabel.Text" xml:space="preserve">
     <value>IP Address</value>
   </data>
-  <data name="Mission_UploadButton.Content" xml:space="preserve">
+  <data name="Planner_UploadButton.Content" xml:space="preserve">
     <value>Upload Mission</value>
     <comment>Mission upload button text</comment>
-  </data>
-  <data name="Settings_SSHKeys.Text" xml:space="preserve">
-    <value>SSH Keys</value>
-  </data>
-  <data name="Settings_GenerateKeysButton.Content" xml:space="preserve">
-    <value>Generate SSH Keys</value>
   </data>
   <data name="Config_ApplyButton.Content" xml:space="preserve">
     <value>Apply</value>
@@ -223,17 +181,11 @@
   <data name="Config_ResetButton.Content" xml:space="preserve">
     <value>Reset</value>
   </data>
-  <data name="Settings_Drones.Text" xml:space="preserve">
-    <value>Drones</value>
-  </data>
-  <data name="Settings_NumDrones.Header" xml:space="preserve">
-    <value>Number of Drones</value>
-  </data>
   <data name="Mission_OBCHeader.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Mission_MissionControlHeader.Text" xml:space="preserve">
-    <value>Mission Controls</value>
+  <data name="Planner_MissionControlHeader.Text" xml:space="preserve">
+    <value>Mission Parameters</value>
   </data>
   <data name="Console_ActivateButton.Content" xml:space="preserve">
     <value>Activate Debug Console</value>
@@ -271,22 +223,16 @@
   <data name="Alert_OBCSlow" xml:space="preserve">
     <value>Onboard Computer working slow. Response delay</value>
   </data>
-  <data name="Mission_FlyThroughCheckbox.Content" xml:space="preserve">
-    <value>Activated</value>
-  </data>
-  <data name="Mission_ResetButton.Content" xml:space="preserve">
+  <data name="Planner_ResetButton.Content" xml:space="preserve">
     <value>Reset Mission Progress</value>
   </data>
   <data name="Mission_RestartOBC.Content" xml:space="preserve">
     <value>Restart Director</value>
   </data>
-  <data name="Mission_SetDuration.Text" xml:space="preserve">
+  <data name="Planner_SetDuration.Text" xml:space="preserve">
     <value>Duration</value>
   </data>
-  <data name="Mission_SetFlyThrough.Text" xml:space="preserve">
-    <value>Fly-Through Mode</value>
-  </data>
-  <data name="Mission_SetPayload.Text" xml:space="preserve">
+  <data name="Planner_SetPayload.Text" xml:space="preserve">
     <value>Payload</value>
   </data>
   <data name="Mission_TestInterface.Content" xml:space="preserve">
@@ -295,17 +241,11 @@
   <data name="Mission_TestPayload.Content" xml:space="preserve">
     <value>Test Payload</value>
   </data>
-  <data name="Mission_ActivateButton" xml:space="preserve">
+  <data name="Planner_ActivateButton" xml:space="preserve">
     <value>Activate</value>
   </data>
-  <data name="Mission_DeactivateButton" xml:space="preserve">
+  <data name="Planner_DeactivateButton" xml:space="preserve">
     <value>Deactivate</value>
-  </data>
-  <data name="Mission_SetupMissionSubtitle.Text" xml:space="preserve">
-    <value>Drag the routes into the order that they will be treated.</value>
-  </data>
-  <data name="Mission_SetupMissionTitle.Text" xml:space="preserve">
-    <value>Setup Mission</value>
   </data>
   <data name="Alert_CommandError" xml:space="preserve">
     <value>Command error</value>
@@ -350,16 +290,16 @@
     <value>Waypoint Route</value>
   </data>
   <data name="Planner_Subtitle.Text" xml:space="preserve">
-    <value>Set treatment order</value>
+    <value>Treatment Order and Parameters</value>
   </data>
   <data name="Planner_Title.Text" xml:space="preserve">
     <value>Mission Planner</value>
   </data>
   <data name="Planner_TreatmentEnabledCheckboxTooltip.Text" xml:space="preserve">
-    <value>Enables/disables this area for treatment</value>
+    <value>Enables/disables this area for treatment.</value>
   </data>
   <data name="Planner_WaypointRouteComboboxTooltip.Text" xml:space="preserve">
-    <value>Selects the waypoint route that the drone will follow</value>
+    <value>Selects the waypoint route that the drone will follow.</value>
   </data>
   <data name="Config_ManualCommandsCheckbox.Content" xml:space="preserve">
     <value>Enable Manual Commands Only</value>
@@ -384,5 +324,36 @@
   </data>
   <data name="Main_DroneConnectionLabel.Text" xml:space="preserve">
     <value>Drone:</value>
+  </data>
+  <data name="Planner_SetStartMode.Text" xml:space="preserve">
+    <value>Treatment Start Mode</value>
+  </data>
+  <data name="Planner_StartModeItem_FirstEntry.Text" xml:space="preserve">
+    <value>Start at first entry</value>
+  </data>
+  <data name="Planner_StartModeItem_FirstEntryTooltip.Text" xml:space="preserve">
+    <value>When set, the drone will start treating as soon as it enters the treatment area.</value>
+  </data>
+  <data name="Planner_StartModeItem_LastPositionContinued.Text" xml:space="preserve">
+    <value>Start at last position using continue mission</value>
+  </data>
+  <data name="Planner_StartModeItem_LastPositionContinuedTooltip.Text" xml:space="preserve">
+    <value>When set, the drone will start treating in the treatment area after stopping and starting at it's last position.
+
+This mode is compatible with the UGCS continue mission function.</value>
+  </data>
+  <data name="Planner_StartModeItem_LastPositionWaypoint.Text" xml:space="preserve">
+    <value>Start at last position using waypoint</value>
+  </data>
+  <data name="Planner_StartModeItem_LastPositionWaypointTooltip.Text" xml:space="preserve">
+    <value>When set, the drone will start treating in the treatment area after it passes a waypoint placed at it's last position.
+
+This mode will automatically place a waypoint at the drone's last position for you.</value>
+  </data>
+  <data name="Planner_StartModeItem_SelectedWaypoint.Text" xml:space="preserve">
+    <value>Start at selected waypoint</value>
+  </data>
+  <data name="Planner_StartModeItem_SelectedWaypointTooltip.Text" xml:space="preserve">
+    <value>When set, the drone will start treating in the treatment area after it passes the selected waypoint.</value>
   </data>
 </root>

@@ -122,7 +122,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
-            OBCStatusText = AttachedDrone.MissionStage.ToString();
+            OBCStatusText = AttachedDrone.Mission.Stage.ToString();
             SetDirectorConnectedText();
             SetChaperoneConnectedText();
             SetDroneConnectedText();
@@ -190,7 +190,7 @@ namespace ACE_Mission_Control.ViewModels
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
                 if (e.PropertyName == "MissionStage")
-                    OBCStatusText = AttachedDrone.MissionStage.ToString();
+                    OBCStatusText = AttachedDrone.Mission.Stage.ToString();
                 else if (e.PropertyName == "InterfaceState")
                     SetDroneConnectedText();
             });

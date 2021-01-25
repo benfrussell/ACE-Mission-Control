@@ -23,141 +23,6 @@ namespace ACE_Mission_Control.ViewModels
 
     public class MissionViewModel : DroneViewModelBase
     {
-        private Symbol _lockButtonSymbol;
-        public Symbol LockButtonSymbol
-        {
-            get { return _lockButtonSymbol; }
-            set
-            {
-                if (value == _lockButtonSymbol)
-                    return;
-                _lockButtonSymbol = value;
-                RaisePropertyChanged("LockButtonSymbol");
-            }
-        }
-
-        private bool _lockButtonEnabled;
-        public bool LockButtonEnabled
-        {
-            get { return _lockButtonEnabled; }
-            set
-            {
-                if (value == _lockButtonEnabled)
-                    return;
-                _lockButtonEnabled = value;
-                RaisePropertyChanged("LockButtonEnabled");
-            }
-        }
-
-        private string _passDialogErrorText;
-        public string PassDialogErrorText
-        {
-            get { return _passDialogErrorText; }
-            set
-            {
-                if (value == _passDialogErrorText)
-                    return;
-                _passDialogErrorText = value;
-                RaisePropertyChanged("PassDialogErrorText");
-            }
-        }
-
-        private string _missionActivatedText;
-        public string MissionActivatedText
-        {
-            set
-            {
-                if (value == _missionActivatedText)
-                    return;
-                _missionActivatedText = value;
-                RaisePropertyChanged();
-            }
-            get
-            {
-                return _missionActivatedText;
-            }
-        }
-
-        private bool _flyThroughMode;
-        public bool FlyThroughMode
-        {
-            get { return _flyThroughMode; }
-            set
-            {
-                if (_flyThroughMode == value)
-                    return;
-                _flyThroughMode = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        private string _treatmentDuration;
-        public string TreatmentDuration
-        {
-            get { return _treatmentDuration; }
-            set
-            {
-                if (_treatmentDuration == value)
-                    return;
-                _treatmentDuration = value;
-                if (isTreatmentDurationValid(_treatmentDuration))
-                {
-                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
-                    TreatmentDurationValidText = "";
-                }
-                else
-                {
-                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
-                    TreatmentDurationValidText = "Mission_InvalidInteger".GetLocalized();
-                }
-                RaisePropertyChanged("TreatmentDuration");
-            }
-        }
-
-        private SolidColorBrush _treatmentDurationBorderColour;
-        public SolidColorBrush TreatmentDurationBorderColour
-        {
-            get { return _treatmentDurationBorderColour; }
-            set
-            {
-                if (_treatmentDurationBorderColour == value)
-                    return;
-                _treatmentDurationBorderColour = value;
-                RaisePropertyChanged("TreatmentDurationBorderColour");
-            }
-        }
-
-        private string _treatmentDurationValidText;
-        public string TreatmentDurationValidText
-        {
-            get { return _treatmentDurationValidText; }
-            set
-            {
-                if (_treatmentDurationValidText == value)
-                    return;
-                _treatmentDurationValidText = value;
-                RaisePropertyChanged("TreatmentDurationValidText");
-            }
-        }
-
-        public List<string> AvailablePayloads
-        {
-            get { return AttachedDrone.AvailablePayloads; }
-        }
-
-        private int _selectedPayload;
-        public int SelectedPayload
-        {
-            get { return _selectedPayload; }
-            set
-            {
-                if (_selectedPayload == value)
-                    return;
-                _selectedPayload = value;
-                RaisePropertyChanged();
-            }
-        }
-
         private bool _droneConnectionOn;
         public bool DroneConnectionOn
         {
@@ -177,14 +42,9 @@ namespace ACE_Mission_Control.ViewModels
             get { return _alerts; }
         }
 
-        private bool suppressPayloadCommand;
-
         public MissionViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();
-            TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
-
-            suppressPayloadCommand = false;
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -192,15 +52,11 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
+
             DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
                 AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
 
             _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
-
-            if (AttachedDrone.MissionIsActivated)
-                MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
-            else
-                MissionActivatedText = "Mission_ActivateButton".GetLocalized();
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -228,34 +84,6 @@ namespace ACE_Mission_Control.ViewModels
                     case "OBCCanBeTested":
                         RaisePropertyChanged("OBCCanBeTested");
                         break;
-                    case "MissionCanBeReset":
-                        RaisePropertyChanged("MissionCanBeReset");
-                        break;
-                    case "MissionCanBeModified":
-                        RaisePropertyChanged("MissionCanBeModified");
-                        break;
-                    case "MissionCanToggleActivation":
-                        RaisePropertyChanged("MissionCanToggleActivation");
-                        break;
-                    case "MissionIsActivated":
-                        if (AttachedDrone.MissionIsActivated)
-                            MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
-                        else
-                            MissionActivatedText = "Mission_ActivateButton".GetLocalized();
-                        break;
-                    case "FlyThroughMode":
-                        FlyThroughMode = AttachedDrone.FlyThroughMode;
-                        break;
-                    case "TreatmentDuration":
-                        TreatmentDuration = AttachedDrone.TreatmentDuration.ToString();
-                        break;
-                    case "SelectedPayload":
-                        suppressPayloadCommand = true;
-                        SelectedPayload = AttachedDrone.SelectedPayload;
-                        break;
-                    case "AvailablePayloads":
-                        RaisePropertyChanged("AvailablePayloads");
-                        break;
                 }
             });
         }
@@ -277,12 +105,6 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
             AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
-        }
-
-        private bool isTreatmentDurationValid(string durationString)
-        {
-            int parseOut;
-            return durationString.Length == 0 || int.TryParse(durationString, out parseOut);
         }
 
         // --- OBC Commands
@@ -336,55 +158,6 @@ namespace ACE_Mission_Control.ViewModels
         private void testInterfaceCommand()
         {
             AttachedDrone.SendCommand("test_interface");
-        }
-
-        // --- Mission Commands
-
-        public RelayCommand<ComboBox> PayloadSelectionCommand => new RelayCommand<ComboBox>((box) => payloadSelectionCommand(box));
-        private void payloadSelectionCommand(ComboBox box)
-        {
-            if (!suppressPayloadCommand)
-            {
-                //AttachedDrone.SendCommand("set_payload -index " + box.SelectedIndex.ToString());
-                suppressPayloadCommand = false;
-            }
-        }
-
-        public RelayCommand DurationChangedCommand => new RelayCommand(() => durationChangedCommand());
-        private void durationChangedCommand()
-        {
-            if (isTreatmentDurationValid(TreatmentDuration))
-                AttachedDrone.SendCommand("set_duration -duration " + TreatmentDuration.ToString());
-        }
-
-        public RelayCommand FlyThroughChangedCommand => new RelayCommand(() => flyThroughChangedCommand());
-        private void flyThroughChangedCommand()
-        {
-            if (FlyThroughMode)
-                AttachedDrone.SendCommand("set_fly_through -on");
-            else
-                AttachedDrone.SendCommand("set_fly_through -off");
-        }
-
-        public RelayCommand UploadCommand => new RelayCommand(() => uploadCommand());
-        private void uploadCommand()
-        {
-            AttachedDrone.UploadMission();
-        }
-
-        public RelayCommand ActivateCommand => new RelayCommand(() => activateCommand());
-        private void activateCommand()
-        {
-            if (AttachedDrone.MissionIsActivated)
-                AttachedDrone.SendCommand("deactivate_mission");
-            else
-                AttachedDrone.SendCommand("activate_mission");
-        }
-
-        public RelayCommand ResetCommand => new RelayCommand(() => resetCommand());
-        private void resetCommand()
-        {
-            AttachedDrone.SendCommand("reset_mission");
         }
 
         public RelayCommand<DataGrid> AlertCopyCommand => new RelayCommand<DataGrid>((grid) => alertCopyCommand(grid));

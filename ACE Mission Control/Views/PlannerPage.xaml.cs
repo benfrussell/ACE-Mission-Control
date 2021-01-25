@@ -136,18 +136,18 @@ namespace ACE_Mission_Control.Views
                 ((MapElementsLayer)EntryMapControl.Layers[1]).MapElements.Remove(element);
 
             // Add Unlock and Lock icons
-            if (instruction.PayloadUnlockCoordinate != null)
+            if (instruction.AreaStartCoordinate != null)
             {
                 MapIcon unlockIcon = new MapIcon();
-                unlockIcon.Location = CoordToGeopoint(instruction.PayloadUnlockCoordinate);
+                unlockIcon.Location = CoordToGeopoint(instruction.AreaStartCoordinate);
                 unlockIcon.Tag = instruction.TreatmentPolygon.Id;
                 ((MapElementsLayer)EntryMapControl.Layers[1]).MapElements.Add(unlockIcon);
             }
 
-            if (instruction.PayloadLockCoordinate != null)
+            if (instruction.AreaStopCoordinate != null)
             {
                 MapIcon lockIcon = new MapIcon();
-                lockIcon.Location = CoordToGeopoint(instruction.PayloadLockCoordinate);
+                lockIcon.Location = CoordToGeopoint(instruction.AreaStopCoordinate);
                 lockIcon.Tag = instruction.TreatmentPolygon.Id;
                 ((MapElementsLayer)EntryMapControl.Layers[1]).MapElements.Add(lockIcon);
             }

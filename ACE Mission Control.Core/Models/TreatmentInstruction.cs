@@ -8,6 +8,9 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class TreatmentInstruction
     {
+        // This seems to be the easiest way to notify that this single property changed
+        public event EventHandler<EventArgs> EnabledChangedEvent;
+        
         public static WaypointRouteInterceptCollection InterceptCollection = new WaypointRouteInterceptCollection();
 
         private AreaScanPolygon treatmentPolygon;
@@ -39,26 +42,22 @@ namespace ACE_Mission_Control.Core.Models
         private AreaResult.Types.Status areaStatus;
         public AreaResult.Types.Status AreaStatus { get => areaStatus; set => areaStatus = value; }
 
-        public Tuple<double, double> AreaStartCoordinate
+        public Coordinate AreaEntryCoordinate
         {
             get
             {
                 if (selectedInterceptRoute != null)
-                    return new Tuple<double, double>(
-                        selectedInterceptRoute.EntryCoordinate.X,
-                        selectedInterceptRoute.EntryCoordinate.Y);
+                    return selectedInterceptRoute.EntryCoordinate;
                 return null;
             }
         }
 
-        public Tuple<double, double> AreaStopCoordinate
+        public Coordinate AreaExitCoordinate
         {
             get
             {
                 if (selectedInterceptRoute != null)
-                    return new Tuple<double, double>(
-                        selectedInterceptRoute.ExitCoordinate.X,
-                        selectedInterceptRoute.ExitCoordinate.Y);
+                    return selectedInterceptRoute.ExitCoordinate;
                 return null;
             }
         }
@@ -91,6 +90,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (enabled == value)
                     return;
                 enabled = value;
+                EnabledChangedEvent?.Invoke(this, new EventArgs());
             }
         }
 
@@ -164,16 +164,6 @@ namespace ACE_Mission_Control.Core.Models
             }
             // Returns in radians
             return vertString;
-        }
-
-        public string GetStartCoordianteString()
-        {
-            // Returns in radians - latitude then longitude
-            string entryString = string.Format(
-                "{0},{1}",
-                AreaStartCoordinate.Item2,
-                AreaStartCoordinate.Item1);
-            return entryString;
         }
     }
 }

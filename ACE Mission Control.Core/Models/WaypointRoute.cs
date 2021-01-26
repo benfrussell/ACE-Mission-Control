@@ -20,30 +20,36 @@ namespace ACE_Mission_Control.Core.Models
     {
         public int Id { get; protected set; }
         public long LastModificationTime { get; protected set; }
-        public string Name;
-        
 
-        public WaypointRoute(int id, string name, long modifiedTime, Coordinate[] points) : base(points)
+        public string Name;
+
+        private readonly IEnumerable<IDCoordinate> idCoordinates;
+        public IEnumerable<IDCoordinate> IDCoordinates => idCoordinates;
+
+
+        public WaypointRoute(int id, string name, long modifiedTime, IEnumerable<IDCoordinate> coords) : base(coords.Select(c => c.Coordinate).ToArray())
         {
             Id = id;
             Name = name;
             LastModificationTime = modifiedTime;
+            idCoordinates = coords;
         }
 
         public static WaypointRoute CreateFromUGCSRoute(Route route)
         {
+            List<IDCoordinate> coords = new List<IDCoordinate>();
+
             // UGCS Waypoints: A waypoint route is represented by a series of segments with single figure points
-            var coordinates = route.Segments.ConvertAll(
-                segment => 
-                {
-                    if (!IsFigureWaypoint(segment.Figure))
-                        return null;
+            foreach (SegmentDefinition segment in route.Segments)
+            {
+                if (!IsFigureWaypoint(segment.Figure))
+                    continue;
 
-                    var point = segment.Figure.Points[0];
-                    return new Coordinate(point.Longitude, point.Latitude);
-                });
+                var point = segment.Figure.Points[0];
+                coords.Add(new IDCoordinate(segment.Uuid, new Coordinate(point.Longitude, point.Latitude)));
+            }
 
-            return new WaypointRoute(route.Id, route.Name, route.LastModificationTime, coordinates.ToArray());
+            return new WaypointRoute(route.Id, route.Name, route.LastModificationTime, coords);
         }
 
         public static bool IsUGCSRouteWaypointRoute(Route route)
@@ -108,7 +114,6 @@ namespace ACE_Mission_Control.Core.Models
 
         public IEnumerable<LineSegment> GetLineSegments()
         {
-
             for (int i = 0; i < NumPoints - 1; i++)
             {
                 var coord = Coordinates[i];

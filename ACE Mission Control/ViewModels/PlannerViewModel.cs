@@ -12,16 +12,16 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Windows.ApplicationModel.Core;
+using Windows.Devices.Geolocation;
+using Windows.Storage.Streams;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Media;
 
 namespace ACE_Mission_Control.ViewModels
 {
-    public class UpdatePlannerMapAreas : MessageBase { }
-    public class UpdatePlannerMapPoints : MessageBase { public TreatmentInstruction Instruction { get; set; } }
-    public class MapPointSelected : MessageBase { public int index { get; set; } }
-
     public class PlannerViewModel : DroneViewModelBase
     {
         private ObservableCollection<TreatmentInstruction> treatmentInstructions;
@@ -120,20 +120,47 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private ObservableCollection<MapLayer> mapLayers;
+        public ObservableCollection<MapLayer> MapLayers
+        {
+            get => mapLayers;
+            set
+            {
+                if (mapLayers == value)
+                    return;
+                mapLayers = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private Geopoint mapCentre;
+        public Geopoint MapCentre
+        {
+            get => mapCentre;
+            set
+            {
+                if (mapCentre == value)
+                    return;
+                mapCentre = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private bool suppressPayloadCommand;
 
         public PlannerViewModel()
         {
-            Messenger.Default.Register<MapPointSelected>(this, (msg) => { });
-
             TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+            MapLayers = new ObservableCollection<MapLayer>();
+            MapLayers.Add(new MapElementsLayer());
+            MapLayers.Add(new MapElementsLayer());
             suppressPayloadCommand = false;
         }
 
         protected override void DroneAttached(bool firstTime)
         {
             TreatmentInstructions = AttachedDrone.Mission.TreatmentInstructions;
-            Messenger.Default.Send(new UpdatePlannerMapAreas());
+            UpdatePlannerMapAreas();
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             AttachedDrone.Mission.InstructionUpdated += Mission_InstructionUpdated;
 
@@ -174,6 +201,10 @@ namespace ACE_Mission_Control.ViewModels
                     case "AvailablePayloads":
                         RaisePropertyChanged("AvailablePayloads");
                         break;
+                    case "StartParameters":
+                        RaisePropertyChanged("SelectedModeInt");
+                        UpdatePlannerMapPoints();
+                        break;
                 }
             });
         }
@@ -187,22 +218,23 @@ namespace ACE_Mission_Control.ViewModels
                 var indexOf = TreatmentInstructions.IndexOf(instruction);
                 TreatmentInstructions.RemoveAt(indexOf);
                 TreatmentInstructions.Insert(indexOf, instruction);
-
-                // Update the map points to remove them for this instruction if it not longer has a treatment route
-                if (instruction.TreatmentRoute == null)
-                    Messenger.Default.Send(new UpdatePlannerMapPoints() { Instruction = instruction });
             }
-            Messenger.Default.Send(new UpdatePlannerMapAreas());
+            UpdatePlannerMapPoints();
+            UpdatePlannerMapAreas();
         }
 
         public RelayCommand<ComboBox> WaypointRouteComboBox_SelectionChangedCommand => new RelayCommand<ComboBox>(args => WaypointRouteComboBox_SelectionChanged(args));
 
         // Not called when the selection changes to null
+        // Apparently this is called whenever anything is a added to the TreatmentInstructions collection
+        // This function is unintentionally driving many necessary updates to the planner map - so I'm just going to let it keep doing that
+        // TODO: Actually it doesn't ALWAYS update on drag and drop
+        // UWP ComboBoxes are WEIRD
         private void WaypointRouteComboBox_SelectionChanged(ComboBox args)
         {
             if (args.DataContext != null)
             {
-                Messenger.Default.Send(new UpdatePlannerMapPoints() { Instruction = args.DataContext as TreatmentInstruction });
+                UpdatePlannerMapPoints();
             }
         }
 
@@ -258,9 +290,174 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.SendCommand("reset_mission");
         }
 
-        public RelayCommand<SelectionChangedEventArgs> StartModeSelectionCommand => new RelayCommand<SelectionChangedEventArgs>((args) => startModeSelectionCommand(args));
-        private void startModeSelectionCommand(SelectionChangedEventArgs args)
+        public RelayCommand<ComboBoxItem> StartModeSelectionCommand => new RelayCommand<ComboBoxItem>((args) => startModeSelectionCommand(args));
+        private void startModeSelectionCommand(ComboBoxItem item)
         {
+            var selectedMode = (StartTreatmentParameters.Modes)item.Tag;
+            if (selectedMode != AttachedDrone.Mission.StartParameters.SelectedMode)
+                AttachedDrone.Mission.SetStartTreatmentMode(selectedMode);
+        }
+
+        // -- Map Functions
+
+        private static List<Color> MapColours = new List<Color>
+        {
+            Colors.Orange,
+            Colors.DarkBlue,
+            Colors.Green,
+            Colors.Purple,
+            Colors.Gray,
+            Colors.LightBlue
+        };
+
+        private static RandomAccessStreamReference StartImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Start.png"));
+        private static RandomAccessStreamReference StopImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Stop.png"));
+        private static RandomAccessStreamReference NextImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Next.png"));
+        private static RandomAccessStreamReference FlagImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Flag.png"));
+        private static RandomAccessStreamReference PointImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Point.png"));
+
+        private Geopath CoordsToGeopath(IEnumerable<Tuple<double, double>> coords)
+        {
+            List<BasicGeoposition> positions = new List<BasicGeoposition>();
+            foreach (Tuple<double, double> coord in coords)
+            {
+                positions.Add(
+                    new BasicGeoposition()
+                    {
+                        Longitude = (coord.Item1 / Math.PI) * 180,
+                        Latitude = (coord.Item2 / Math.PI) * 180
+                    });
+            }
+            return new Geopath(positions);
+        }
+
+        // Input is in radians and output is in degrees
+        private Geopoint CoordToGeopoint(double longitude, double latitude)
+        {
+            return new Geopoint(
+                new BasicGeoposition
+                {
+                    Longitude = (longitude / Math.PI) * 180,
+                    Latitude = (latitude / Math.PI) * 180
+                });
+        }
+
+        private void UpdatePlannerMapAreas()
+        {
+            // Clear elements
+            ((MapElementsLayer)MapLayers[0]).MapElements.Clear();
+
+            var colorIndex = 0;
+            // Make the area polygons
+            foreach (TreatmentInstruction instruction in TreatmentInstructions)
+            {
+                if (!instruction.Enabled)
+                    continue;
+                var colour = MapColours[colorIndex % MapColours.Count];
+                MapPolygon polygon = new MapPolygon();
+                polygon.Path = CoordsToGeopath(instruction.TreatmentPolygon.GetBasicCoordinates());
+                polygon.ZIndex = 1;
+                polygon.StrokeColor = colour;
+                polygon.StrokeThickness = 4;
+                polygon.StrokeDashed = false;
+                colour.A = 100;
+                polygon.FillColor = colour;
+                ((MapElementsLayer)MapLayers[0]).MapElements.Add(polygon);
+
+                colorIndex++;
+            }
+
+            // Centre the map
+            var areaLayerElements = ((MapElementsLayer)MapLayers[0]).MapElements;
+            if (areaLayerElements.Count > 0)
+            {
+                Geopoint centrePoint = new Geopoint(((MapPolygon)areaLayerElements[0]).Path.Positions[0]);
+                MapCentre = centrePoint;
+            }
+        }
+
+        private void UpdatePlannerMapPoints()
+        {
+            var layer = (MapElementsLayer)MapLayers[1];
+
+            layer.MapElements.Clear();
+
+            var nextInstructions = TreatmentInstructions.Where(i => i.Enabled && i.AreaStatus != Pbdrone.AreaResult.Types.Status.Finished).ToList();
+
+            // Add a MapIcon for each waypoint in the first instruction's route if in SelectedWaypoint mode
+            if (AttachedDrone.Mission.StartParameters.SelectedMode == StartTreatmentParameters.Modes.SelectedWaypoint)
+            {
+                var firstInstruction = AttachedDrone.Mission.GetNextInstruction();
+                foreach (IDCoordinate idCoord in firstInstruction.TreatmentRoute.IDCoordinates)
+                {
+                    MapIcon waypointIcon = new MapIcon();
+                    waypointIcon.Location = CoordToGeopoint(idCoord.Coordinate.X, idCoord.Coordinate.Y);
+                    waypointIcon.Image = PointImage;
+                    waypointIcon.Tag = idCoord.ID;
+                    waypointIcon.ZIndex = -2;
+                    layer.MapElements.Add(waypointIcon);
+                }
+            }
+
+            // Add a MapIcon for the last position if there is a last position
+            if (AttachedDrone.Mission.LastPosition != null)
+            {
+                MapIcon lastPosIcon = new MapIcon();
+                lastPosIcon.Location = CoordToGeopoint(
+                    AttachedDrone.Mission.LastPosition.X,
+                    AttachedDrone.Mission.LastPosition.Y);
+                lastPosIcon.Image = FlagImage;
+                lastPosIcon.NormalizedAnchorPoint = new Windows.Foundation.Point(0.5, 1);
+                lastPosIcon.Title = "Planner_MapLastPositionLabel".GetLocalized();
+                lastPosIcon.ZIndex = -1;
+                layer.MapElements.Add(lastPosIcon);
+            }
+
+            for (int i = 0; i < nextInstructions.Count; i++)
+            {
+                var instruction = nextInstructions[i];
+                var isFirstInstruction = i == 0;
+                var isLastInstruction = i == nextInstructions.Count - 1;
+
+                // Add a MapIcon for the starting point and each area entry point that follows
+                MapIcon startIcon = new MapIcon();
+
+                if (isFirstInstruction)
+                {
+                    var startCoord = AttachedDrone.Mission.StartCoordinate;
+                    startIcon.Location = CoordToGeopoint(startCoord.X, startCoord.Y);
+                }
+                else
+                {
+                    startIcon.Location = CoordToGeopoint(instruction.AreaEntryCoordinate.X, instruction.AreaEntryCoordinate.Y);
+                }
+
+                startIcon.Image = StartImage;
+                startIcon.Title = instruction.Name;
+                layer.MapElements.Add(startIcon);
+
+                // Add a MapIcon for the exit point for each area
+                MapIcon stopIcon = new MapIcon();
+                stopIcon.Location = CoordToGeopoint(instruction.AreaExitCoordinate.X, instruction.AreaExitCoordinate.Y);
+                stopIcon.Image = isLastInstruction ? StopImage : NextImage;
+                layer.MapElements.Add(stopIcon);
+            }
+        }
+
+        public RelayCommand<MapElementClickEventArgs> MapElementClickedCommand => new RelayCommand<MapElementClickEventArgs>((args) => mapElementClickedCommand(args));
+        private void mapElementClickedCommand(MapElementClickEventArgs args)
+        {
+            if (AttachedDrone.Mission.StartParameters.SelectedMode != StartTreatmentParameters.Modes.SelectedWaypoint)
+                return;
+
+            foreach (MapElement element in args.MapElements)
+            {
+                if (args.MapElements[0].Tag == null)
+                    continue;
+
+                AttachedDrone.Mission.SetSelectedWaypoint(args.MapElements[0].Tag as string);
+                break;
+            }
             
         }
     }

@@ -356,4 +356,7 @@ This mode will automatically place a waypoint at the drone's last position for y
   <data name="Planner_StartModeItem_SelectedWaypointTooltip.Text" xml:space="preserve">
     <value>When set, the drone will start treating in the treatment area after it passes the selected waypoint.</value>
   </data>
+  <data name="Planner_MapLastPositionLabel" xml:space="preserve">
+    <value>Last Position</value>
+  </data>
 </root>

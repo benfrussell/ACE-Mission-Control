@@ -204,7 +204,7 @@ namespace ACE_Mission_Control.Core.Models
                         string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -name {3} -radians",
                             Mission.TreatmentInstructions[0].GetTreatmentAreaString(),
                             Mission.TreatmentDuration,
-                            Mission.TreatmentInstructions[0].GetStartCoordianteString(),
+                            Mission.GetStartCoordianteString(),
                             Mission.TreatmentInstructions[0].Name);
                         SendCommand(uploadCmd);
                         firstCmd = false;

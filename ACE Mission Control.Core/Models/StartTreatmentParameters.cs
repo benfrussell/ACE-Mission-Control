@@ -16,6 +16,8 @@ namespace ACE_Mission_Control.Core.Models
 
         public Modes SelectedMode;
 
+        public int SelectedModeInt { get => (int)SelectedMode; }
+
         private bool firstEntryModeAvailable;
         public bool FirstEntryModeAvailable { get => firstEntryModeAvailable; private set => firstEntryModeAvailable = value; }
 

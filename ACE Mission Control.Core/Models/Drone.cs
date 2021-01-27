@@ -101,11 +101,13 @@ namespace ACE_Mission_Control.Core.Models
         private Queue<string> directorCommandQueue;
         private Queue<string> chaperoneCommandQueue;
         private bool checkCommandsSent;
+        private List<string> unsentStartModeCommands;
 
         public Drone(int id, string name, string clientHostname)
         {
             directorCommandQueue = new Queue<string>();
             chaperoneCommandQueue = new Queue<string>();
+            unsentStartModeCommands = new List<string>();
 
             ID = id;
             Name = name;
@@ -119,6 +121,30 @@ namespace ACE_Mission_Control.Core.Models
             OBCClient.DirectorRequestClient.PropertyChanged += DirectorRequestClient_PropertyChanged;
 
             Mission = new Mission(this, OBCClient);
+            Mission.PropertyChanged += Mission_PropertyChanged;
+
+        }
+
+        private void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "StartParameters")
+            {
+                var entryCommand = $"set_entry -entry {Mission.GetStartCoordinateString()} -radians";
+                var flyThroughCommand = Mission.StartParameters.StopAndTurn ? "set_fly_through -on" : "set_fly_through -off";
+
+                if (OBCClient.IsDirectorConnected)
+                {
+                    SendCommand(entryCommand);
+                    SendCommand(flyThroughCommand);
+                }
+                else
+                {
+                    // If the director isn't connected, buffer the last start mode related commands to be sent when reconnected
+                    unsentStartModeCommands.Clear();
+                    unsentStartModeCommands.Add(entryCommand);
+                    unsentStartModeCommands.Add(flyThroughCommand);
+                }
+            }
         }
 
         private void DirectorRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -145,8 +171,15 @@ namespace ACE_Mission_Control.Core.Models
             if (ManualCommandsOnly)
                 return;
             SendCommand("check_interface");
-            SendCommand("check_mission_status");
             SendCommand("check_mission_config");
+
+            // Also send unsent start mode commands - but before status, because status might change the start mode
+            foreach (string command in unsentStartModeCommands)
+                SendCommand(command);
+            unsentStartModeCommands.Clear();
+
+            SendCommand("check_mission_status");
+
             checkCommandsSent = true;
         }
 
@@ -161,7 +194,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 if (!OBCClient.IsChaperoneConnected)
                 {
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection));
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.CommandError, $": command '{command}' could not be sent because the chaperone isn't connected."));
                     return;
                 }
                     
@@ -172,7 +205,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 if (!OBCClient.IsDirectorConnected)
                 {
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnection));
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.CommandError, $": command '{command}' could not be sent because the director isn't connected. Resend the command when connected!"));
                     return;
                 }
 
@@ -195,25 +228,29 @@ namespace ACE_Mission_Control.Core.Models
         public void UploadMission()
         {
             bool firstCmd = true;
-            foreach (TreatmentInstruction instruction in Mission.TreatmentInstructions)
+            var instructions = Mission.GetRemainingInstructions();
+            foreach (TreatmentInstruction instruction in instructions)
             {
                 if (instruction.Enabled)
                 {
                     if (firstCmd)
                     {
-                        string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -name {3} -radians",
-                            Mission.TreatmentInstructions[0].GetTreatmentAreaString(),
+                        string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -exit {3} -id {4} -radians",
+                            instruction.GetTreatmentAreaString(),
                             Mission.TreatmentDuration,
-                            Mission.GetStartCoordianteString(),
-                            Mission.TreatmentInstructions[0].Name);
+                            Mission.GetStartCoordinateString(),
+                            instruction.GetExitCoordinateString(),
+                            instruction.TreatmentPolygon.Id);
                         SendCommand(uploadCmd);
                         firstCmd = false;
                         continue;
                     }
 
-                    SendCommand(string.Format("add_area -data {0} -name {1} -radians",
+                    SendCommand(string.Format("add_area -data {0} -entry {1} -exit {2} -id {3} -radians",
                         instruction.GetTreatmentAreaString(),
-                        instruction.Name));
+                        instruction.GetEntryCoordianteString(),
+                        instruction.GetExitCoordinateString(),
+                        instruction.TreatmentPolygon.Id));
                 }
             }
         }

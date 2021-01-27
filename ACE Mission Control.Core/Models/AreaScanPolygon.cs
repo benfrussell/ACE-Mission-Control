@@ -13,13 +13,16 @@ namespace ACE_Mission_Control.Core.Models
         public int Id { get; protected set; }
         public long LastModificationTime { get; protected set; }
 
+        public List<ParameterValue> Parameters;
+
         public string Name;
 
-        public AreaScanPolygon(int id, string name, long modifiedTime, LinearRing polygonPoints) : base(polygonPoints)
+        public AreaScanPolygon(int id, string name, long modifiedTime, LinearRing polygonPoints, List<ParameterValue> parameters) : base(polygonPoints)
         {
             Id = id;
             Name = name;
             LastModificationTime = modifiedTime;
+            Parameters = parameters;
         }
 
         public static AreaScanPolygon CreateFromUGCSRoute(Route route)
@@ -30,7 +33,7 @@ namespace ACE_Mission_Control.Core.Models
                 var coordinates = route.Segments[0].Figure.Points.ConvertAll(
                     point => new Coordinate(point.Longitude, point.Latitude));
                 LinearRing ring = new LinearRing(coordinates.ToArray());
-                return new AreaScanPolygon(route.Id, route.Name, route.LastModificationTime, ring);
+                return new AreaScanPolygon(route.Id, route.Name, route.LastModificationTime, ring, route.Segments[0].ParameterValues);
             } 
             catch (Exception e)
             {

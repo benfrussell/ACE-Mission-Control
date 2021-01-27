@@ -16,9 +16,16 @@ namespace ACE_Mission_Control.Core.Models
         public InstructionsUpdatedEventArgs() { Instructions = new List<TreatmentInstruction>(); }
     }
 
+    public class StartModeChangedEventArgs
+    {
+        public StartTreatmentParameters.Modes NewMode { get; set; }
+    }
+
     public class Mission : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public event EventHandler<StartModeChangedEventArgs> StartModeChanged;
 
         public event EventHandler<InstructionsUpdatedEventArgs> InstructionUpdated;
 
@@ -181,19 +188,6 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private Coordinate startCoordinate;
-        public Coordinate StartCoordinate
-        {
-            get => startCoordinate;
-            private set
-            {
-                if (startCoordinate == value)
-                    return;
-                startCoordinate = value;
-                NotifyPropertyChanged();
-            }
-        }
-
         // Only store the ID of the coordinate because we should search and confirm it still exists everytime we need to use it
         private string boundStartCoordinateID;
         // Used to suppress EnabledChanged events causing InstructionUpdated events to be sent out while updating instructions
@@ -210,6 +204,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             MissionRetriever.AreaScanPolygonsUpdated += MissionData_AreaScanPolygonsUpdated;
             TreatmentInstructions = new ObservableCollection<TreatmentInstruction>();
+            TreatmentInstructions.CollectionChanged += TreatmentInstructions_CollectionChanged;
             StartParameters = new StartTreatmentParameters();
 
             drone = _drone;
@@ -218,16 +213,22 @@ namespace ACE_Mission_Control.Core.Models
             onboardComputer.PropertyChanged += OnboardComputerClient_PropertyChanged;
 
             Activated = false;
-            HasProgress = false;
+            HasProgress = true;
 
             UpdateCanBeModified();
             UpdateCanBeReset();
             UpdateCanToggleActivation();
 
             // test
-            // LastPosition = new Coordinate(-1.32579946805, 0.791221070472);
+            LastPosition = new Coordinate(-1.32579946805, 0.791221070472);
 
             StartParameters.UpdateAvailableModes(null, HasProgress);
+        }
+
+        private void TreatmentInstructions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && !updatingInstructions)
+                UpdateStartCoordinate();
         }
 
         public void UpdateMissionStatus(MissionStatus newStatus)
@@ -240,16 +241,24 @@ namespace ACE_Mission_Control.Core.Models
             HasProgress = newStatus.InProgress;
             UpdateCanBeReset();
 
-            LastPosition = new Coordinate(
-                (newStatus.LastLongitude / 180) * Math.PI,
-                (newStatus.LastLatitude / 180) * Math.PI);
-
             // Update the treatment instruction statuses with any results that came from the mission status update
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
                 var resultInStatus = newStatus.Results.FirstOrDefault(r => r.AreaID == instruction.TreatmentPolygon.Id);
                 if (resultInStatus != null)
                     instruction.AreaStatus = resultInStatus.Status;
+            }
+
+            if (newStatus.LastLongitude != 0 || newStatus.LastLatitude != 0)
+            {
+                LastPosition = new Coordinate(
+                  (newStatus.LastLongitude / 180) * Math.PI,
+                  (newStatus.LastLatitude / 180) * Math.PI);
+
+                if (GetNextInstruction().AreaStatus == AreaResult.Types.Status.InProgress)
+                    SetStartTreatmentMode(StartTreatmentParameters.Modes.LastPositionContinued);
+                else
+                    SetStartTreatmentMode(StartTreatmentParameters.Modes.FirstEntry);
             }
 
             StartParameters.UpdateAvailableModes(GetNextInstruction(), HasProgress);
@@ -270,7 +279,7 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             StartParameters.SelectedMode = mode;
             UpdateStartCoordinate();
-            NotifyPropertyChanged("StartParameters");
+            StartModeChanged?.Invoke(this, new StartModeChangedEventArgs() { NewMode = mode });
         }
 
         private void UpdateStartCoordinate()
@@ -279,59 +288,95 @@ namespace ACE_Mission_Control.Core.Models
 
             if (instruction == null)
             {
-                StartCoordinate = null;
+                StartParameters.StartCoordinate = null;
+                NotifyPropertyChanged("StartParameters");
                 return;
             }
                 
             switch (StartParameters.SelectedMode)
             {
                 case StartTreatmentParameters.Modes.FirstEntry:
-                    StartCoordinate = instruction.AreaEntryCoordinate;
+                    StartParameters.StartCoordinate = instruction.AreaEntryCoordinate;
+                    StartParameters.StopAndTurn = false;
+                    NotifyPropertyChanged("StartParameters");
                     break;
                 case StartTreatmentParameters.Modes.SelectedWaypoint:
                     SetStartCoordToBoundWaypoint();
                     break;
                 case StartTreatmentParameters.Modes.LastPositionWaypoint:
-                    SetStartCoordToBoundWaypoint();
+                    if (boundStartCoordinateID == null)
+                    {
+                        CreateWaypointAndSetStartCoord(instruction, LastPosition);
+                    }
+                    else
+                    {
+                        var boundIDCoord = instruction.TreatmentRoute.Waypoints.FirstOrDefault(p => p.ID == boundStartCoordinateID);
+                        if (boundIDCoord == null)
+                        {
+                            CreateWaypointAndSetStartCoord(instruction, LastPosition);
+                        }
+                        else
+                        {
+                            if (WaypointRoute.IsCoordinateInArea(boundIDCoord, LastPosition, instruction.Swath))
+                                StartParameters.StartCoordinate = boundIDCoord.Coordinate;
+                            else
+                                CreateWaypointAndSetStartCoord(instruction, LastPosition);
+                        }
+                    }
                     break;
                 case StartTreatmentParameters.Modes.LastPositionContinued:
-                    StartCoordinate = LastPosition;
+                    StartParameters.StartCoordinate = LastPosition;
+                    StartParameters.StopAndTurn = true;
+                    NotifyPropertyChanged("StartParameters");
                     break;
             }
         }
 
+        private async void CreateWaypointAndSetStartCoord(TreatmentInstruction instruction, Coordinate position)
+        {
+            var preceedingWaypoint = instruction.TreatmentRoute.FindWaypointPreceedingCoordinate(position, instruction.Swath);
+            if (preceedingWaypoint == null)
+                return;
+            var newWaypoint = await UGCSClient.InsertWaypointAlongRoute(instruction.TreatmentRoute.Id, preceedingWaypoint.ID, position.X, position.Y);
+            boundStartCoordinateID = newWaypoint.ID;
+            StartParameters.StartCoordinate = newWaypoint.Coordinate;
+            StartParameters.StopAndTurn = newWaypoint.TurnType == "STOP_AND_TURN";
+            NotifyPropertyChanged("StartParameters");
+        }
+
         private void SetStartCoordToBoundWaypoint()
         {
-            var idCoordinates = GetNextInstruction().TreatmentRoute.IDCoordinates;
-            var boundPair = idCoordinates.FirstOrDefault(p => p.ID == boundStartCoordinateID);
+            var waypoints = GetNextInstruction().TreatmentRoute.Waypoints;
+            var boundCoord = waypoints.FirstOrDefault(p => p.ID == boundStartCoordinateID);
 
-            if (boundPair != null)
+            if (boundCoord != null)
             {
-                StartCoordinate = boundPair.Coordinate;
+                StartParameters.StartCoordinate = boundCoord.Coordinate;
+                StartParameters.StopAndTurn = boundCoord.TurnType == "STOP_AND_TURN";
             }
             else
             {
-                boundStartCoordinateID = idCoordinates.First().ID;
-                StartCoordinate = idCoordinates.First().Coordinate;
+                boundStartCoordinateID = waypoints.First().ID;
+                StartParameters.StartCoordinate = waypoints.First().Coordinate;
+                StartParameters.StopAndTurn = waypoints.First().TurnType == "STOP_AND_TURN";
             }
+
+            NotifyPropertyChanged("StartParameters");
         }
 
         public void SetSelectedWaypoint(string waypointID)
         {
             boundStartCoordinateID = waypointID;
             UpdateStartCoordinate();
-            // Pretend StartParameters changed to trigger a map update
-            // This is bad insider knowledge
-            NotifyPropertyChanged("StartParameters");
         }
 
-        public string GetStartCoordianteString()
+        public string GetStartCoordinateString()
         {
             // Returns in radians - latitude then longitude
             string entryString = string.Format(
                 "{0},{1}",
-                StartCoordinate.X,
-                StartCoordinate.Y);
+                StartParameters.StartCoordinate.X,
+                StartParameters.StartCoordinate.Y);
             return entryString;
         }
 
@@ -347,6 +392,11 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             return null;
+        }
+
+        public List<TreatmentInstruction> GetRemainingInstructions()
+        {
+            return TreatmentInstructions.Where(i => i.Enabled && i.AreaStatus != Pbdrone.AreaResult.Types.Status.Finished).ToList();
         }
 
         private void OnboardComputerClient_PropertyChanged(object sender, PropertyChangedEventArgs e)

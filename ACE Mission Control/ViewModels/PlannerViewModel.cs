@@ -165,9 +165,9 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.InstructionUpdated += Mission_InstructionUpdated;
 
             if (AttachedDrone.Mission.Activated)
-                MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
+                MissionActivatedText = "Planner_DeactivateButton".GetLocalized();
             else
-                MissionActivatedText = "Mission_ActivateButton".GetLocalized();
+                MissionActivatedText = "Planner_ActivateButton".GetLocalized();
         }
 
         private async void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -187,9 +187,9 @@ namespace ACE_Mission_Control.ViewModels
                         break;
                     case "Activated":
                         if (AttachedDrone.Mission.Activated)
-                            MissionActivatedText = "Mission_DeactivateButton".GetLocalized();
+                            MissionActivatedText = "Planner_DeactivateButton".GetLocalized();
                         else
-                            MissionActivatedText = "Mission_ActivateButton".GetLocalized();
+                            MissionActivatedText = "Planner_ActivateButton".GetLocalized();
                         break;
                     case "TreatmentDuration":
                         TreatmentDuration = AttachedDrone.Mission.TreatmentDuration.ToString();
@@ -382,13 +382,13 @@ namespace ACE_Mission_Control.ViewModels
 
             layer.MapElements.Clear();
 
-            var nextInstructions = TreatmentInstructions.Where(i => i.Enabled && i.AreaStatus != Pbdrone.AreaResult.Types.Status.Finished).ToList();
+            var nextInstructions = AttachedDrone.Mission.GetRemainingInstructions();
 
             // Add a MapIcon for each waypoint in the first instruction's route if in SelectedWaypoint mode
             if (AttachedDrone.Mission.StartParameters.SelectedMode == StartTreatmentParameters.Modes.SelectedWaypoint)
             {
                 var firstInstruction = AttachedDrone.Mission.GetNextInstruction();
-                foreach (IDCoordinate idCoord in firstInstruction.TreatmentRoute.IDCoordinates)
+                foreach (Waypoint idCoord in firstInstruction.TreatmentRoute.Waypoints)
                 {
                     MapIcon waypointIcon = new MapIcon();
                     waypointIcon.Location = CoordToGeopoint(idCoord.Coordinate.X, idCoord.Coordinate.Y);
@@ -407,7 +407,7 @@ namespace ACE_Mission_Control.ViewModels
                     AttachedDrone.Mission.LastPosition.X,
                     AttachedDrone.Mission.LastPosition.Y);
                 lastPosIcon.Image = FlagImage;
-                lastPosIcon.NormalizedAnchorPoint = new Windows.Foundation.Point(0.5, 1);
+                lastPosIcon.NormalizedAnchorPoint = new Windows.Foundation.Point(0.15, 1);
                 lastPosIcon.Title = "Planner_MapLastPositionLabel".GetLocalized();
                 lastPosIcon.ZIndex = -1;
                 layer.MapElements.Add(lastPosIcon);
@@ -424,7 +424,7 @@ namespace ACE_Mission_Control.ViewModels
 
                 if (isFirstInstruction)
                 {
-                    var startCoord = AttachedDrone.Mission.StartCoordinate;
+                    var startCoord = AttachedDrone.Mission.StartParameters.StartCoordinate;
                     startIcon.Location = CoordToGeopoint(startCoord.X, startCoord.Y);
                 }
                 else

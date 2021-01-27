@@ -5,11 +5,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:ACE_Mission_Control.Views"
     xmlns:helper="using:ACE_Mission_Control.Helpers"
+    xmlns:ace="using:ACE_Mission_Control.Core.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
     <Page.Resources>
         <helper:AlertToString x:Key="AlertToString" />
+        <helper:MissionStageToString x:Key="MissionStageToString" />
+        <helper:MissionActivatedToString x:Key="MissionActivatedToString" />
+        <helper:MissionActivatedToColour x:Key="MissionActivatedToColour" />
     </Page.Resources>
     <Grid 
         x:Name="ContentArea"
@@ -44,9 +48,15 @@
                 Style="{ThemeResource SubtitleTextBlockStyle}"
                 Margin="4,0,0,0"/>
             <TextBlock
-                x:Name="OBCStatusTextBlock"
                 VerticalAlignment="Center"
-                Text="{x:Bind ViewModel.OBCStatusText, Mode=OneWay}"
+                Text="{x:Bind ViewModel.AttachedDrone.Mission.Stage, Mode=OneWay, Converter={StaticResource MissionStageToString}}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Margin="4,2,0,0"/>
+            <TextBlock
+                VerticalAlignment="Center"
+                Text="{x:Bind ViewModel.AttachedDrone.Mission.Activated, Mode=OneWay, Converter={StaticResource MissionActivatedToString}}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Foreground="{x:Bind ViewModel.AttachedDrone.Mission.Activated, Mode=OneWay, Converter={StaticResource MissionActivatedToColour}}"
                 Margin="4,0,0,0"/>
         </StackPanel>
 
@@ -115,18 +125,17 @@
         <Border Grid.Row="0" Grid.Column="2" BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>
         <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Vertical" Margin="8,0,0,0">
             <TextBlock
-                x:Uid="Main_MissionPlannerHeader"
+                x:Uid="Main_UGCSHeader"
                 Style="{ThemeResource SubtitleTextBlockStyle}"
                 Margin="4,0,0,0"/>
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Margin="4,2,0,0">
-                <SymbolIcon Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Symbol="Clock"/>
                 <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
                        VerticalAlignment="Center"
-                       Text="{x:Bind ViewModel.UGCSMissionRetrieveText}"
-                       Margin="4,0,0,0"
+                       Text="{x:Bind ace:UGCSClient.ConnectionMessage, Mode=OneWay}"
+                       Style="{StaticResource CaptionTextBlockStyle}"
                        Height="20"/>
             </StackPanel>
         </StackPanel>

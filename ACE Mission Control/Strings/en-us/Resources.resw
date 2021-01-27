@@ -196,8 +196,8 @@
   <data name="Main_ConsolePivotItem.Header" xml:space="preserve">
     <value>Console</value>
   </data>
-  <data name="Main_MissionPlannerHeader.Text" xml:space="preserve">
-    <value>Mission Planner</value>
+  <data name="Main_UGCSHeader.Text" xml:space="preserve">
+    <value>UGCS Status</value>
   </data>
   <data name="Main_MissionStatusHeader.Text" xml:space="preserve">
     <value>Mission Status</value>
@@ -358,5 +358,44 @@ This mode will automatically place a waypoint at the drone's last position for y
   </data>
   <data name="Planner_MapLastPositionLabel" xml:space="preserve">
     <value>Last Position</value>
+  </data>
+  <data name="AreaStatus_Finished" xml:space="preserve">
+    <value>Finished</value>
+  </data>
+  <data name="AreaStatus_InProgress" xml:space="preserve">
+    <value>In Progress</value>
+  </data>
+  <data name="AreaStatus_NotStarted" xml:space="preserve">
+    <value>Not Started</value>
+  </data>
+  <data name="MissionActivated_False" xml:space="preserve">
+    <value>Deactivated</value>
+  </data>
+  <data name="MissionActivated_True" xml:space="preserve">
+    <value>Activated</value>
+  </data>
+  <data name="MissionStage_Complete" xml:space="preserve">
+    <value>Mission Complete</value>
+  </data>
+  <data name="MissionStage_Enroute" xml:space="preserve">
+    <value>Enroute to Mission Area</value>
+  </data>
+  <data name="MissionStage_Executing" xml:space="preserve">
+    <value>Executing Mission</value>
+  </data>
+  <data name="MissionStage_NotActivated" xml:space="preserve">
+    <value>Waiting for Activation</value>
+  </data>
+  <data name="MissionStage_Override" xml:space="preserve">
+    <value>Manual Override</value>
+  </data>
+  <data name="MissionStage_Ready" xml:space="preserve">
+    <value>Ready for Take-off</value>
+  </data>
+  <data name="MissionStage_Returning" xml:space="preserve">
+    <value>Returning to Home Point</value>
+  </data>
+  <data name="Planner_SetupAreaStatusLabel.Text" xml:space="preserve">
+    <value>Status: </value>
   </data>
 </root>

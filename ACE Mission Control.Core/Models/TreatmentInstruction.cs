@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pbdrone;
+using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -94,6 +95,18 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private float swath;
+        public float Swath
+        {
+            get => swath;
+            private set
+            {
+                if (swath == value)
+                    return;
+                swath = value;
+            }
+        }
+
         // Save the last enabled state so we can put enabled back into the user's preffered state if they fix the CanBeEnabled problem
         private bool lastEnabledState;
 
@@ -101,6 +114,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             TreatmentPolygon = treatmentArea;
             AreaStatus = AreaResult.Types.Status.NotStarted;
+            // Swath is generally half of the side distance (metres)
+            Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
 
             Enabled = true;
             lastEnabledState = true;
@@ -164,6 +179,26 @@ namespace ACE_Mission_Control.Core.Models
             }
             // Returns in radians
             return vertString;
+        }
+
+        public string GetEntryCoordianteString()
+        {
+            // Returns in radians - latitude,longitude
+            string entryString = string.Format(
+                "{0},{1}",
+                AreaEntryCoordinate.Y,
+                AreaEntryCoordinate.X);
+            return entryString;
+        }
+
+        public string GetExitCoordinateString()
+        {
+            // Returns in radians - latitude,longitude
+            string entryString = string.Format(
+                "{0},{1}",
+                AreaExitCoordinate.Y,
+                AreaExitCoordinate.X);
+            return entryString;
         }
     }
 }

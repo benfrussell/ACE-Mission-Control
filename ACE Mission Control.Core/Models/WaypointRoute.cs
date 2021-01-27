@@ -23,21 +23,21 @@ namespace ACE_Mission_Control.Core.Models
 
         public string Name;
 
-        private readonly IEnumerable<IDCoordinate> idCoordinates;
-        public IEnumerable<IDCoordinate> IDCoordinates => idCoordinates;
+        private readonly List<Waypoint> waypoints;
+        public List<Waypoint> Waypoints => waypoints;
 
-
-        public WaypointRoute(int id, string name, long modifiedTime, IEnumerable<IDCoordinate> coords) : base(coords.Select(c => c.Coordinate).ToArray())
+        // Expects radians in Long Lat format
+        public WaypointRoute(int id, string name, long modifiedTime, List<Waypoint> coords) : base(coords.Select(c => c.Coordinate).ToArray())
         {
             Id = id;
             Name = name;
             LastModificationTime = modifiedTime;
-            idCoordinates = coords;
+            waypoints = coords;
         }
 
         public static WaypointRoute CreateFromUGCSRoute(Route route)
         {
-            List<IDCoordinate> coords = new List<IDCoordinate>();
+            List<Waypoint> coords = new List<Waypoint>();
 
             // UGCS Waypoints: A waypoint route is represented by a series of segments with single figure points
             foreach (SegmentDefinition segment in route.Segments)
@@ -46,7 +46,8 @@ namespace ACE_Mission_Control.Core.Models
                     continue;
 
                 var point = segment.Figure.Points[0];
-                coords.Add(new IDCoordinate(segment.Uuid, new Coordinate(point.Longitude, point.Latitude)));
+                var turnType = segment.ParameterValues.FirstOrDefault(p => p.Name == "wpTurnType")?.Value;
+                coords.Add(new Waypoint(segment.Uuid, turnType, new Coordinate(point.Longitude, point.Latitude)));
             }
 
             return new WaypointRoute(route.Id, route.Name, route.LastModificationTime, coords);
@@ -67,7 +68,8 @@ namespace ACE_Mission_Control.Core.Models
 
         private static bool IsFigureWaypoint(Figure figure)
         {
-            return (figure.Type == FigureType.FT_POINT ||
+            return figure != null &&
+                (figure.Type == FigureType.FT_POINT ||
                 figure.Type == FigureType.FT_TAKEOFF_POINT ||
                 figure.Type == FigureType.FT_LANDING_POINT) &&
                 figure.Points[0].LongitudeSpecified &&
@@ -83,12 +85,6 @@ namespace ACE_Mission_Control.Core.Models
                 waypoints = waypoints.Reverse();
 
             var intersector = new RobustLineIntersector();
-
-            var firstSegment = waypoints.First();
-            var firstLong = (firstSegment.P0[0] / Math.PI) * 180;
-            var firstLat = (firstSegment.P0[0] / Math.PI) * 180;
-            var secondLong = (firstSegment.P0[0] / Math.PI) * 180;
-            var secondLat = (firstSegment.P0[0] / Math.PI) * 180;
 
             foreach (LineSegment waypointSegment in waypoints)
             {
@@ -112,6 +108,36 @@ namespace ACE_Mission_Control.Core.Models
             return null;
         }
 
+        public Waypoint FindCoordinateInArea(Coordinate areaCentre, float areaMetres)
+        {
+            var bufferRadiansDist = AviationFormularyApproxRadiansDiff(areaCentre, areaMetres, 0);
+            Geometry bufferedPoint = Factory.CreatePoint(areaCentre).Buffer(bufferRadiansDist);
+
+            foreach (Waypoint coord in Waypoints)
+            {
+                var coordAsPoint = Factory.CreatePoint(coord.Coordinate);
+                if (bufferedPoint.Intersects(coordAsPoint))
+                    return coord;
+            }
+
+            return null;
+        }
+
+        public Waypoint FindWaypointPreceedingCoordinate(Coordinate coord, float bufferMetres)
+        {
+            var bufferRadiansDist = AviationFormularyApproxRadiansDiff(coord, bufferMetres, 0);
+            Geometry bufferedPoint = Factory.CreatePoint(coord).Buffer(bufferRadiansDist);
+            
+            foreach (Tuple<Waypoint, Waypoint> pair in GetIDCoordinatePairs())
+            {
+                var lineString = Factory.CreateLineString(new Coordinate[] {pair.Item1.Coordinate, pair.Item2.Coordinate});
+                if (bufferedPoint.Intersects(lineString))
+                    return pair.Item1;
+            }
+
+            return null;
+        }
+
         public IEnumerable<LineSegment> GetLineSegments()
         {
             for (int i = 0; i < NumPoints - 1; i++)
@@ -120,6 +146,46 @@ namespace ACE_Mission_Control.Core.Models
                 var nextCoord = Coordinates[i + 1];
                 yield return new LineSegment(coord, nextCoord);
             }
+        }
+
+        public IEnumerable<Tuple<Waypoint, Waypoint>> GetIDCoordinatePairs()
+        {
+            for (int i = 0; i < NumPoints - 1; i++)
+            {
+                var coord = Waypoints[i];
+                var nextCoord = Waypoints[i + 1];
+                yield return new Tuple<Waypoint, Waypoint>(coord, nextCoord);
+            }
+        }
+
+        public static bool IsCoordinateInArea(Waypoint coordinate, Coordinate areaCentre, float areaMetres)
+        {
+            var bufferRadiansDist = AviationFormularyApproxRadiansDiff(areaCentre, areaMetres, 0);
+            Geometry bufferedPoint = new Point(areaCentre).Buffer(bufferRadiansDist);
+
+            var coordAsPoint = new Point(coordinate.Coordinate);
+            if (bufferedPoint.Intersects(coordAsPoint))
+                return true;
+
+            return false;
+        }
+
+        // Approximates the difference in radians from the coordinate to another position specified by north-east offset in metres
+        // Only reliable for very short distances
+        private static double AviationFormularyApproxRadiansDiff(Coordinate coord, float northMetres, float eastMetres)
+        {
+            double longDeg = (coord.X / Math.PI) * 180;
+            double latDeg = (coord.Y / Math.PI) * 180;
+
+            //Earth’s radius, sphere
+            var R = 6378137;
+
+            // Coordinate difference in radians
+            double dLat = northMetres / R;
+            double dLon = eastMetres / (R * Math.Cos(Math.PI * latDeg / 180));
+
+            // Return the length of the difference
+            return Math.Sqrt((dLon * dLon) + (dLat * dLat));
         }
 
         //public string GetVerticesString()

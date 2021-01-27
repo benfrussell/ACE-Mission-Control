@@ -16,19 +16,6 @@ namespace ACE_Mission_Control.ViewModels
             get { return AttachedDrone.Name; }
         }
 
-        private string _obcStatusText;
-        public string OBCStatusText
-        {
-            get => _obcStatusText;
-            set
-            {
-                if (value == _obcStatusText)
-                    return;
-                _obcStatusText = value;
-                RaisePropertyChanged("OBCStatusText");
-            }
-        }
-
         private string _obcDirectorConnectedText;
         public string OBCDirectorConnectedText
         {
@@ -107,13 +94,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private string _ugcsMissionRetrieveText;
-        public string UGCSMissionRetrieveText
-        {
-            set { _ugcsMissionRetrieveText = value; }
-            get { return _ugcsMissionRetrieveText; }
-        }
-
         public MainViewModel()
         {
         }
@@ -122,7 +102,8 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
-            OBCStatusText = AttachedDrone.Mission.Stage.ToString();
+            AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
+            UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
             SetDirectorConnectedText();
             SetChaperoneConnectedText();
             SetDroneConnectedText();
@@ -189,17 +170,32 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                if (e.PropertyName == "MissionStage")
-                    OBCStatusText = AttachedDrone.Mission.Stage.ToString();
-                else if (e.PropertyName == "InterfaceState")
+                if (e.PropertyName == "InterfaceState")
                     SetDroneConnectedText();
             });
         }
+
+        private void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Stage")
+                RaisePropertyChanged("Stage");
+            else if (e.PropertyName == "Activated")
+                RaisePropertyChanged("Activated");
+        }
+
+        private void UGCSClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ConnectionMessage")
+                RaisePropertyChanged("ConnectionMessage");
+        }
+
 
         protected override void DroneUnattaching()
         {
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
+            AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
+            UGCSClient.StaticPropertyChanged -= UGCSClient_StaticPropertyChanged;
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)

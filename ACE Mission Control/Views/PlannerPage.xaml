@@ -12,7 +12,10 @@
     xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+    <Page.Resources>
+        <helper:AreaStatusToString x:Key="AreaStatusToString" />
+        <helper:AreaStatusToColour x:Key="AreaStatusToColour" />
+    </Page.Resources>
     <Grid Background="{ThemeResource SystemChromeLowColor}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -68,17 +71,17 @@
                                 BorderBrush="{ThemeResource SystemChromeHighColor}"
                                 BorderThickness="0,0,0,1"/>
                         <TextBlock Grid.Column="0"
-                                   Margin="4,0,0,0"
+                                   Margin="4,0,0,2"
                                    x:Uid="Planner_SetupTreatmentEnabledHeader"
                                    HorizontalAlignment="Left"
                                    FontWeight="SemiBold"/>
                         <TextBlock Grid.Column="1"
-                                   Margin="4,0,0,0"
+                                   Margin="4,0,0,2"
                                    x:Uid="Planner_SetupAreaNameHeader"
                                    HorizontalAlignment="Left"
                                    FontWeight="SemiBold"/>
                         <TextBlock Grid.Column="2"
-                                   Margin="4,0,0,0"
+                                   Margin="4,0,0,2"
                                    x:Uid="Planner_SetupWaypointRouteHeader"
                                    HorizontalAlignment="Left"
                                    FontWeight="SemiBold"/>
@@ -94,8 +97,12 @@
                                 <ColumnDefinition Width="200" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition MinHeight="60"/>
+                                <RowDefinition MinHeight="55"/>
                             </Grid.RowDefinitions>
+
+                            <Border Grid.ColumnSpan="3"
+                                    BorderBrush="{ThemeResource SystemChromeHighColor}"
+                                    BorderThickness="0,0,0,1"/>
 
                             <CheckBox Grid.Column="0"
                                       Margin="20,0,0,0"
@@ -105,14 +112,31 @@
                                     <TextBlock x:Uid="Planner_TreatmentEnabledCheckboxTooltip"/>
                                 </ToolTipService.ToolTip>
                             </CheckBox>
+
+                            <StackPanel Orientation="Vertical"
+                                        VerticalAlignment="Center"
+                                        Grid.Column="1"
+                                        Margin="4,0,0,0">
+                                <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                           FontWeight="SemiBold"/>
+                                
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock x:Uid="Planner_SetupAreaStatusLabel"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Grid.Column="1"
+                                               FontWeight="Light"/>
+                                    <TextBlock Grid.Column="1"
+                                               Margin="2,1,0,0"
+                                               Text="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource AreaStatusToString}}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource AreaStatusToColour}}"
+                                               FontWeight="Light"/>
+                                </StackPanel>
+                            </StackPanel>
                             
-                            <TextBlock Grid.Column="1"
-                                       Margin="4,0,0,0"
-                                       VerticalAlignment="Center"
-                                       Text="{x:Bind Name, Mode=OneWay}"/>
 
                             <ComboBox x:Name="WaypointRouteComboBox" Grid.Column="2"
-                                      Margin="4,0,4,0"
+                                      Margin="4,0,8,0"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Center"
                                       IsEnabled="{x:Bind CanBeEnabled, Mode=OneWay}"
@@ -209,10 +233,10 @@
                 <StackPanel
                     Orientation="Vertical">
                     <TextBlock x:Uid="Planner_SetStartMode"
-                               Margin="8,0,0,4"/>
+                               Margin="8,0,8,4"/>
                     <ComboBox x:Name="StartModeComboBox"
-                              Margin="8,0,0,0"
-                              Width="200"
+                              Margin="8,0,8,0"
+                              Width="180"
                               HorizontalAlignment="Stretch"
                               SelectedIndex="{x:Bind ViewModel.AttachedDrone.Mission.StartParameters.SelectedModeInt, Mode=OneWay}"
                               Style="{ThemeResource ACEComboBox}">

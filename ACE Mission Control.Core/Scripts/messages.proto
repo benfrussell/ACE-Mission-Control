@@ -77,7 +77,7 @@ message ACEError {
 // Code 7
 message MissionStatus { 
 	enum Stage {
-		NO_MISSION = 0;
+		NOT_ACTIVATED = 0;
 		READY = 1; 
 		// Stage 2 and 3 are the only times that we receive high-rate telemetry
 		ENROUTE = 2;

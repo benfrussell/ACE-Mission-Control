@@ -19,7 +19,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (List<WaypointRouteIntercept> intercepts in Values)
             {
-                var interceptToRemove = intercepts.First(i => ids.Contains(i.WaypointRoute.Id));
+                var interceptToRemove = intercepts.FirstOrDefault(i => ids.Contains(i.WaypointRoute.Id));
                 if (interceptToRemove != null)
                     intercepts.Remove(interceptToRemove);
             }

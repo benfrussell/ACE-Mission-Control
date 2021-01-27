@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetTopologySuite.Geometries;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -30,9 +31,34 @@ namespace ACE_Mission_Control.Core.Models
         private bool lastPositionContinuedModeAvailable;
         public bool LastPositionContinuedModeAvailable { get => lastPositionContinuedModeAvailable; private set => lastPositionContinuedModeAvailable = value; }
 
+        private Coordinate startCoordinate;
+        public Coordinate StartCoordinate
+        {
+            get => startCoordinate;
+            set
+            {
+                if (startCoordinate == value)
+                    return;
+                startCoordinate = value;
+            }
+        }
+
+        private bool stopAndTurn;
+        public bool StopAndTurn
+        {
+            get => stopAndTurn;
+            set
+            {
+                if (stopAndTurn == value)
+                    return;
+                stopAndTurn = value;
+            }
+        }
+
         public StartTreatmentParameters()
         {
             SelectedMode = Modes.FirstEntry;
+            StopAndTurn = false;
         }
 
         public void UpdateAvailableModes(TreatmentInstruction nextInstruction, bool missionHasProgress)

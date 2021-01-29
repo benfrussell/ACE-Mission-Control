@@ -15,6 +15,8 @@ namespace ACE_Mission_Control.Core.Models
             LastPositionContinued = 3
         }
 
+        public event EventHandler<EventArgs> StartParametersChangedEvent;
+
         public Modes SelectedMode;
 
         public int SelectedModeInt { get => (int)SelectedMode; }
@@ -35,10 +37,8 @@ namespace ACE_Mission_Control.Core.Models
         public Coordinate StartCoordinate
         {
             get => startCoordinate;
-            set
+            protected set
             {
-                if (startCoordinate == value)
-                    return;
                 startCoordinate = value;
             }
         }
@@ -47,10 +47,8 @@ namespace ACE_Mission_Control.Core.Models
         public bool StopAndTurn
         {
             get => stopAndTurn;
-            set
+            protected set
             {
-                if (stopAndTurn == value)
-                    return;
                 stopAndTurn = value;
             }
         }
@@ -67,6 +65,16 @@ namespace ACE_Mission_Control.Core.Models
             SelectedWaypointModeAvailable = nextInstruction == null || nextInstruction.HasValidTreatmentRoute();
             LastPositionWaypointModeAvailable = missionHasProgress;
             LastPositionContinuedModeAvailable = missionHasProgress;
+        }
+
+        public void SetStartParameters(Coordinate coordinate, bool stopAndTurnMode)
+        {
+            bool anyChanges = StartCoordinate == null || coordinate.X != StartCoordinate.X || coordinate.Y != StartCoordinate.Y || stopAndTurnMode != StopAndTurn;
+            StartCoordinate = coordinate;
+            StopAndTurn = stopAndTurn;
+
+            if (anyChanges)
+                StartParametersChangedEvent?.Invoke(this, new EventArgs());
         }
     }
 }

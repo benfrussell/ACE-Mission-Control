@@ -58,6 +58,11 @@
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Foreground="{x:Bind ViewModel.AttachedDrone.Mission.Activated, Mode=OneWay, Converter={StaticResource MissionActivatedToColour}}"
                 Margin="4,0,0,0"/>
+            <TextBlock
+                x:Uid="Main_SyncronizedLabel"
+                Visibility="{x:Bind ViewModel.AttachedDrone.Synchronized, Mode=OneWay}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Margin="4,0,0,0" />
         </StackPanel>
 
         <Border Grid.Row="0" Grid.Column="1" BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>

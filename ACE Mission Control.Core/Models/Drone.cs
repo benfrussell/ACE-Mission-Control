@@ -8,6 +8,22 @@ using Pbdrone;
 
 namespace ACE_Mission_Control.Core.Models
 {
+    public class Command
+    {
+        public string Input { get; set; }
+        // Is this command sent automatically
+        public bool AutoCommand { get; set; }
+        // Is this command sent to sync the director and mission control
+        public bool SyncCommand { get; set; }
+
+        public Command(string input, bool autoCommand = false, bool syncCommand = false)
+        {
+            Input = input;
+            AutoCommand = autoCommand;
+            SyncCommand = syncCommand;
+        }
+    }
+
     public class Drone : INotifyPropertyChanged
     {
         public static List<string> ChaperoneCommandList = new List<string> { "get_error", "check_director", "start_director", "force_stop_payload" };
@@ -33,7 +49,6 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 _interfaceState = value;
                 NotifyPropertyChanged();
-                NotifyPropertyChanged("MissionCanToggleActivation");
             }
         }
 
@@ -94,57 +109,83 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private bool _synchronized;
+        public bool Synchronized
+        {
+            get { return _synchronized; }
+            set
+            {
+                if (_synchronized == value)
+                    return;
+                _synchronized = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool _canManuallySynchronize;
+        public bool CanManuallySynchronize
+        {
+            get { return _canManuallySynchronize; }
+            set
+            {
+                if (_canManuallySynchronize == value)
+                    return;
+                _canManuallySynchronize = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public int ID;
 
         public OnboardComputerClient OBCClient;
         public ObservableCollection<AlertEntry> AlertLog;
-        private Queue<string> directorCommandQueue;
-        private Queue<string> chaperoneCommandQueue;
-        private bool checkCommandsSent;
-        private List<string> unsentStartModeCommands;
+
+        private Queue<Command> directorCommandQueue;
+        private Queue<Command> chaperoneCommandQueue;
+        private Command lastCommandSent;
+
+        private int syncCommandsSent;
+        private bool syncFailed;
 
         public Drone(int id, string name, string clientHostname)
         {
-            directorCommandQueue = new Queue<string>();
-            chaperoneCommandQueue = new Queue<string>();
-            unsentStartModeCommands = new List<string>();
+            directorCommandQueue = new Queue<Command>();
+            chaperoneCommandQueue = new Queue<Command>();
 
             ID = id;
             Name = name;
             AlertLog = new ObservableCollection<AlertEntry>();
             ManualCommandsOnly = false;
             InterfaceState = InterfaceStatus.Types.State.Offline;
+            Synchronized = false;
+            CanManuallySynchronize = false;
+            syncCommandsSent = 0;
 
             OBCClient = new OnboardComputerClient(this, clientHostname);
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             OBCClient.DirectorMonitorClient.MessageReceivedEvent += DirectorMonitorClient_MessageReceivedEvent;
             OBCClient.DirectorRequestClient.PropertyChanged += DirectorRequestClient_PropertyChanged;
+            OBCClient.DirectorRequestClient.ResponseReceivedEvent += DirectorRequestClient_ResponseReceivedEvent;
 
             Mission = new Mission(this, OBCClient);
             Mission.PropertyChanged += Mission_PropertyChanged;
+            Mission.StartParameters.StartParametersChangedEvent += StartParameters_StartParametersChangedEvent;
+        }
 
+        private void StartParameters_StartParametersChangedEvent(object sender, EventArgs e)
+        {
+            if (Synchronized && Mission.MissionSet)
+            {
+                // Send start mode commands right away if synchronized
+                // If not synchronized, they will be sent during synchronization
+                SendStartModeCommands(false);
+            }
         }
 
         private void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "StartParameters")
-            {
-                var entryCommand = $"set_entry -entry {Mission.GetStartCoordinateString()} -radians";
-                var flyThroughCommand = Mission.StartParameters.StopAndTurn ? "set_fly_through -on" : "set_fly_through -off";
-
-                if (OBCClient.IsDirectorConnected)
-                {
-                    SendCommand(entryCommand);
-                    SendCommand(flyThroughCommand);
-                }
-                else
-                {
-                    // If the director isn't connected, buffer the last start mode related commands to be sent when reconnected
-                    unsentStartModeCommands.Clear();
-                    unsentStartModeCommands.Add(entryCommand);
-                    unsentStartModeCommands.Add(flyThroughCommand);
-                }
-            }
+            if (e.PropertyName == "MissionSet" && Mission.MissionSet)
+                SendStartModeCommands(false);
         }
 
         private void DirectorRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -158,47 +199,87 @@ namespace ACE_Mission_Control.Core.Models
 
         private void CommandsReadied()
         {
-            if (checkCommandsSent && directorCommandQueue.Count > 0)
+            // A sync is in progress is syncCommandsSent is greater than 0
+            if ((Synchronized || syncCommandsSent > 0) && directorCommandQueue.Count > 0)
                 SendCommand(directorCommandQueue.Dequeue());
-            else if (!checkCommandsSent)
-                SendCheckCommands();
+            else if (!Synchronized && syncCommandsSent == 0)
+                Synchronize();
+        }
+
+        private void SendStartModeCommands(bool manuallySent = false)
+        {
+            var entryCommand = $"set_entry -entry {Mission.GetStartCoordinateString()} -radians";
+            var flyThroughCommand = Mission.StartParameters.StopAndTurn ? "set_fly_through -off" : "set_fly_through -on";
+
+            // Only send these commands if the mission is set
+            if (!Mission.MissionSet)
+                return;
+
+            var wasActivated = Mission.Activated;
+            if (Mission.Activated)
+            {
+                syncCommandsSent++;
+                SendCommand("deactivate_mission", true, true);
+            }
+
+            syncCommandsSent += 2;
+            // If the command is sent right away then we call it a manual command
+            SendCommand(entryCommand, !manuallySent, true);
+            SendCommand(flyThroughCommand, !manuallySent, true);
+
+            if (wasActivated)
+            {
+                syncCommandsSent++;
+                SendCommand("activate_mission", true, true);
+            }
         }
 
         // Check commands update the state of the Onboard Computer with Mission Control
         // They're sent everytime a connection to the director is re-established
-        private void SendCheckCommands()
+        public void Synchronize(bool manualSyncronize = false)
         {
-            if (ManualCommandsOnly)
-                return;
-            SendCommand("check_interface");
-            SendCommand("check_mission_config");
+            syncFailed = false;
+            // Manual syncs are allowed when a sync failure occurs until another sync attempt is made
+            CanManuallySynchronize = false;
+            syncCommandsSent += 3;
+            SendCommand("check_interface", !manualSyncronize, true);
+            SendCommand("check_mission_config", !manualSyncronize, true);
+            SendCommand("check_mission_status", !manualSyncronize, true);
+            // The mission status might trigger a start mode update anyway but better safe than sorry
+            if (manualSyncronize)
+                SendStartModeCommands(manualSyncronize);
+        }
 
-            // Also send unsent start mode commands - but before status, because status might change the start mode
-            foreach (string command in unsentStartModeCommands)
-                SendCommand(command);
-            unsentStartModeCommands.Clear();
-
-            SendCommand("check_mission_status");
-
-            checkCommandsSent = true;
+        public void SendCommand(string command, bool autoCommand = false, bool syncCommand = false)
+        {
+            SendCommand(new Command(command, autoCommand, syncCommand));
         }
 
         // TODO: Should probably handle this in OnboardComputerClient but keep this as an interface for the ViewModel?
-        public void SendCommand(string command)
+        public void SendCommand(Command command)
         {
-            string commandOnly = command.Split(' ')[0];
+            string cmdNameOnly = command.Input.Split(' ')[0];
             
-            // Commands are dumped if the client isn't connected, otherwise if the send fails the command is queued
+            if (command.AutoCommand && ManualCommandsOnly)
+            {
+                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommandError, $": command '{command}' was not sent in manual mode because it was an automatic command."));
+                return;
+            }
 
-            if (ChaperoneCommandList.Any(c => c == commandOnly))
+            // Don't allow any more sync commands if the sync failed
+            if (command.SyncCommand && syncFailed)
+                return;
+
+            // Commands are dumped if the client isn't connected, otherwise if the send fails the command is queued
+            if (ChaperoneCommandList.Any(c => c == cmdNameOnly))
             {
                 if (!OBCClient.IsChaperoneConnected)
                 {
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.CommandError, $": command '{command}' could not be sent because the chaperone isn't connected."));
                     return;
                 }
-                    
-                if (!SendCommandWithClient(OBCClient.ChaperoneRequestClient, command) && !ManualCommandsOnly)
+
+                if (!SendCommandWithClient(OBCClient.ChaperoneRequestClient, command))
                     chaperoneCommandQueue.Enqueue(command);
             }
             else
@@ -209,20 +290,32 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 }
 
-                if (!SendCommandWithClient(OBCClient.DirectorRequestClient, command) && !ManualCommandsOnly)
+                if (!SendCommandWithClient(OBCClient.DirectorRequestClient, command))
                     directorCommandQueue.Enqueue(command);
             }
 
         }
 
         // Returns success or failure
-        private bool SendCommandWithClient(RequestClient client, string command)
+        private bool SendCommandWithClient(RequestClient client, Command command)
         {
             if (!client.ReadyForCommand)
                 return false;
-            if (!client.SendCommand(command))
-                return false;
-            return true;
+
+            bool sendSuccessful = client.SendCommand(command.Input);
+
+            if (sendSuccessful)
+            {
+                if (command.SyncCommand)
+                {
+                    if (Synchronized)
+                        Synchronized = false;
+                }
+                lastCommandSent = command;
+                return true;
+            }
+
+            return false;
         }
 
         public void UploadMission()
@@ -269,9 +362,11 @@ namespace ACE_Mission_Control.Core.Models
                     break;
                 case ACEEnums.MessageType.MissionStatus:
                     var missionStatus = (MissionStatus)e.Message;
+                    Mission.UpdateMissionStatus(missionStatus);
                     break;
                 case ACEEnums.MessageType.MissionConfig:
                     var missionConfig = (MissionConfig)e.Message;
+                    Mission.UpdateMissionConfig(missionConfig);
                     break;
                 case ACEEnums.MessageType.CommandResponse:
                     var commandResponse = (CommandResponse)e.Message;
@@ -293,13 +388,11 @@ namespace ACE_Mission_Control.Core.Models
             if (e.PropertyName == "IsDirectorConnected")
             {
                 NotifyPropertyChanged("OBCCanBeTested");
-                NotifyPropertyChanged("MissionCanBeReset");
-                NotifyPropertyChanged("MissionCanBeModified");
-                NotifyPropertyChanged("MissionCanToggleActivation");
 
                 if (!OBCClient.IsDirectorConnected)
                 {
-                    checkCommandsSent = false;
+                    Synchronized = false;
+                    directorCommandQueue.Clear();
                     InterfaceState = InterfaceStatus.Types.State.Offline;
                 }
                 else
@@ -308,6 +401,31 @@ namespace ACE_Mission_Control.Core.Models
                         CommandsReadied();
                 }
             }
+        }
+
+        private void DirectorRequestClient_ResponseReceivedEvent(object sender, ResponseReceivedEventArgs e)
+        {
+            // Ping commands aren't sent by the drone class, so last command sent will be null for these
+            if (lastCommandSent == null)
+                return;
+
+            // Special handling for sync commands
+            if (lastCommandSent.SyncCommand && e.Line.Contains("(FAILURE)"))
+            {
+                // If a sync command fails then clear the Queue of all sync commands
+                directorCommandQueue = new Queue<Command>(directorCommandQueue.Where(c => c.SyncCommand == false));
+                syncCommandsSent = 0;
+                syncFailed = true;
+                CanManuallySynchronize = true;
+            }
+            else if (lastCommandSent.SyncCommand && e.Line.Contains("(SUCCESS)"))
+            {
+                syncCommandsSent--;
+                if (syncCommandsSent == 0)
+                    Synchronized = true;
+            }
+
+            lastCommandSent = null;
         }
 
         public void AddAlert(AlertEntry entry, bool blockDuplicates = false)

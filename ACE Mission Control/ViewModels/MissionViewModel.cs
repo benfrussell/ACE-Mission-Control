@@ -70,7 +70,7 @@ namespace ACE_Mission_Control.ViewModels
                 }
                 else if (e.PropertyName == "IsChaperoneConnected")
                 {
-                    RaisePropertyChanged("OBCChaperoneConnected");
+                    RaisePropertyChanged("IsChaperoneConnected");
                 }
             });
         }
@@ -83,6 +83,9 @@ namespace ACE_Mission_Control.ViewModels
                 {
                     case "OBCCanBeTested":
                         RaisePropertyChanged("OBCCanBeTested");
+                        break;
+                    case "CanManuallySynchronize":
+                        RaisePropertyChanged("CanManuallySynchronize");
                         break;
                 }
             });
@@ -158,6 +161,18 @@ namespace ACE_Mission_Control.ViewModels
         private void testInterfaceCommand()
         {
             AttachedDrone.SendCommand("test_interface");
+        }
+
+        public RelayCommand StopPayloadCommand => new RelayCommand(() => stopPayloadCommand());
+        private void stopPayloadCommand()
+        {
+            AttachedDrone.SendCommand("force_stop_payload");
+        }
+
+        public RelayCommand SynchronizeCommand => new RelayCommand(() => synchronizeCommand());
+        private void synchronizeCommand()
+        {
+            AttachedDrone.Synchronize(true);
         }
 
         public RelayCommand<DataGrid> AlertCopyCommand => new RelayCommand<DataGrid>((grid) => alertCopyCommand(grid));

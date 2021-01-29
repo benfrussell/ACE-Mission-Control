@@ -77,7 +77,7 @@
                         x:Uid="Mission_RestartOBC"
                         Margin="8,0,0,0"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsDirectorConnected, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsChaperoneConnected, Mode=OneWay}"
                         Command="{x:Bind ViewModel.RestartOBCCommand}"/>
                 <Button x:Name="TestPayloadButton"
                         x:Uid="Mission_TestPayload"
@@ -91,6 +91,16 @@
                         Style="{ThemeResource ACEButton}"
                         IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
                         Command="{x:Bind ViewModel.TestInterfaceCommand}"/>
+                <Button x:Uid="Mission_StopPayloadButton"
+                        Margin="8,0,0,0"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsChaperoneConnected, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.StopPayloadCommand}"/>
+                <Button x:Uid="Mission_SynchronizeButton"
+                        Margin="8,0,8,0"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.CanManuallySynchronize, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.SynchronizeCommand}"/>
             </StackPanel>
         </Grid>
 

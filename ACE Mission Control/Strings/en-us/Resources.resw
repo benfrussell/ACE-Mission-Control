@@ -398,4 +398,13 @@ This mode will automatically place a waypoint at the drone's last position for y
   <data name="Planner_SetupAreaStatusLabel.Text" xml:space="preserve">
     <value>Status: </value>
   </data>
+  <data name="Main_SyncronizedLabel.Text" xml:space="preserve">
+    <value>Synchronized</value>
+  </data>
+  <data name="Mission_StopPayloadButton.Content" xml:space="preserve">
+    <value>Force Stop Payload</value>
+  </data>
+  <data name="Mission_SynchronizeButton.Content" xml:space="preserve">
+    <value>Synchronize</value>
+  </data>
 </root>

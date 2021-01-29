@@ -172,6 +172,8 @@ namespace ACE_Mission_Control.ViewModels
             {
                 if (e.PropertyName == "InterfaceState")
                     SetDroneConnectedText();
+                else if (e.PropertyName == "Synchronized")
+                    RaisePropertyChanged("Synchronized");
             });
         }
 

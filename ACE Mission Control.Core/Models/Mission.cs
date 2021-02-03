@@ -71,17 +71,22 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool hasProgress;
-        public bool HasProgress
+        private bool droneHasProgress;
+        public bool DroneHasProgress
         {
-            get => hasProgress;
+            get => droneHasProgress;
             private set
             {
-                if (hasProgress == value)
+                if (droneHasProgress == value)
                     return;
-                hasProgress = value;
+                droneHasProgress = value;
                 NotifyPropertyChanged();
             }
+        }
+
+        public bool MissionControlHasProgress
+        {
+            get => TreatmentInstructions.Any(i => i.AreaStatus != AreaResult.Types.Status.NotStarted);
         }
 
         private Coordinate lastPosition;
@@ -109,7 +114,7 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
             }
         }
-        private void UpdateCanBeReset() { CanBeReset = HasProgress && CanBeModified && MissionSet; }
+        private void UpdateCanBeReset() { CanBeReset = CanBeModified && (MissionControlHasProgress || (DroneHasProgress && MissionSet)); }
 
         private bool canBeModified;
         public bool CanBeModified
@@ -229,7 +234,7 @@ namespace ACE_Mission_Control.Core.Models
             onboardComputer.PropertyChanged += OnboardComputerClient_PropertyChanged;
 
             Activated = false;
-            HasProgress = false;
+            DroneHasProgress = false;
 
             UpdateCanBeModified();
             UpdateCanBeReset();
@@ -238,7 +243,7 @@ namespace ACE_Mission_Control.Core.Models
             // test
             // LastPosition = new Coordinate(-1.32579946805, 0.791221070472);
 
-            StartParameters.UpdateAvailableModes(null, HasProgress);
+            StartParameters.UpdateAvailableModes(null, DroneHasProgress);
         }
 
         private void TreatmentInstructions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -254,7 +259,7 @@ namespace ACE_Mission_Control.Core.Models
             Activated = newStatus.Activated;
             UpdateCanBeModified();
 
-            HasProgress = newStatus.InProgress;
+            DroneHasProgress = newStatus.InProgress;
             UpdateCanBeReset();
 
             var updatedInstructions = new InstructionsUpdatedEventArgs();
@@ -264,11 +269,9 @@ namespace ACE_Mission_Control.Core.Models
                 var resultInStatus = newStatus.Results.FirstOrDefault(r => r.AreaID == instruction.TreatmentPolygon.Id);
                 if (resultInStatus != null && instruction.AreaStatus != resultInStatus.Status)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Updating instruction {instruction.Name} {resultInStatus.Status.ToString()}");
                     instruction.AreaStatus = resultInStatus.Status;
                     updatedInstructions.Instructions.Add(instruction);
-                }
-                    
+                }   
             }
 
             if (newStatus.Results.Count() > 1)
@@ -279,6 +282,8 @@ namespace ACE_Mission_Control.Core.Models
 
                 if (!originalIDs.SequenceEqual(resultIDs))
                     ReorderInstructionsByID(resultIDs);
+                else if (updatedInstructions.Instructions.Count > 0)
+                    InstructionUpdated?.Invoke(this, updatedInstructions);
             }
             else if (updatedInstructions.Instructions.Count > 0)
             {
@@ -291,7 +296,9 @@ namespace ACE_Mission_Control.Core.Models
                   (newStatus.LastLongitude / 180) * Math.PI,
                   (newStatus.LastLatitude / 180) * Math.PI);
 
-                if (GetNextInstruction().AreaStatus == AreaResult.Types.Status.InProgress)
+                var nextInstruction = GetNextInstruction();
+
+                if (nextInstruction != null && nextInstruction.AreaStatus == AreaResult.Types.Status.InProgress)
                     SetStartTreatmentMode(StartTreatmentParameters.Modes.LastPositionContinued);
                 else
                     SetStartTreatmentMode(StartTreatmentParameters.Modes.FirstEntry);
@@ -304,7 +311,7 @@ namespace ACE_Mission_Control.Core.Models
                 LastPosition = null;
             }
 
-            StartParameters.UpdateAvailableModes(GetNextInstruction(), HasProgress);
+            StartParameters.UpdateAvailableModes(GetNextInstruction(), DroneHasProgress);
             UpdateStartCoordinate();
         }
 
@@ -343,6 +350,26 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             StartParameters.SelectedMode = mode;
             UpdateStartCoordinate();
+        }
+
+        public void ResetProgress()
+        {
+            if (MissionControlHasProgress)
+            {
+                foreach (TreatmentInstruction instruction in TreatmentInstructions)
+                    instruction.AreaStatus = AreaResult.Types.Status.NotStarted;
+            }
+
+            if (DroneHasProgress && CanBeModified && MissionSet)
+            {
+                drone.SendCommand("reset_mission");
+            }
+            else
+            {
+                // If we're able to set a reset_mission command, then CanBeReset will be updated after the command response is received
+                // If not, update right away
+                UpdateCanBeReset();
+            }
         }
 
         private void UpdateStartCoordinate()
@@ -519,7 +546,7 @@ namespace ACE_Mission_Control.Core.Models
             }
                 
 
-            StartParameters.UpdateAvailableModes(GetNextInstruction(), HasProgress);
+            StartParameters.UpdateAvailableModes(GetNextInstruction(), DroneHasProgress);
             UpdateStartCoordinate();
 
             if (updatedInstructions.Instructions.Count > 0)

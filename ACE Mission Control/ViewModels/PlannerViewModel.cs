@@ -337,7 +337,7 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand ResetCommand => new RelayCommand(() => resetCommand());
         private void resetCommand()
         {
-            AttachedDrone.SendCommand("reset_mission");
+            AttachedDrone.Mission.ResetProgress();
         }
 
         public RelayCommand<ComboBoxItem> StartModeSelectionCommand => new RelayCommand<ComboBoxItem>((args) => startModeSelectionCommand(args));

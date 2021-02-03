@@ -5,6 +5,7 @@ using ACE_Mission_Control.ViewModels;
 using GalaSoft.MvvmLight.Messaging;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
@@ -61,19 +62,45 @@ namespace ACE_Mission_Control.Views
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, e.NavigationTransitionInfo);
             }
 
-            if (isInit)
-            {
-                // Things to do on every navigation
-            }
-            else
-            {
-                Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
-            }
+            Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
+            Messenger.Default.Register<AlertDataGridSizeChangeMessage>(this, (msg) => AlertDataGridSizeChange());
         }
 
         private void AlertGridScrollToBottom(object newItem)
         {
             AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
+        }
+
+        private void AlertDataGridSizeChange()
+        {
+            AlertDataGrid.UpdateLayout();
+            
+            //scroller.ChangeView
+        }
+
+        private ScrollViewer GetScrollViewer(DependencyObject element)
+        {
+            if (element is ScrollViewer)
+            {
+                return (ScrollViewer)element;
+            }
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+            {
+                var child = VisualTreeHelper.GetChild(element, i);
+
+                var result = GetScrollViewer(child);
+                if (result == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
     }
 }

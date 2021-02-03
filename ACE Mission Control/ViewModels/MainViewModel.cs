@@ -17,6 +17,7 @@ using Windows.UI.Xaml;
 namespace ACE_Mission_Control.ViewModels
 {
     public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
+    public class AlertDataGridSizeChangeMessage : MessageBase { }
 
     public class MainViewModel : DroneViewModelBase
     {
@@ -106,7 +107,14 @@ namespace ACE_Mission_Control.ViewModels
         private ObservableCollection<AlertEntry> _alerts;
         public ObservableCollection<AlertEntry> Alerts
         {
-            get { return _alerts; }
+            get => _alerts;
+            set
+            {
+                if (_alerts == value)
+                    return;
+                _alerts = value;
+                RaisePropertyChanged();
+            }
         }
 
         private GridLength frameHeight;
@@ -161,8 +169,8 @@ namespace ACE_Mission_Control.ViewModels
             {
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
                     foreach (AlertEntry entry in e.NewItems)
-                        _alerts.Add(entry);
-                var msg = new ScrollAlertDataGridMessage() { newEntry = _alerts[_alerts.Count - 1] };
+                        Alerts.Add(entry);
+                var msg = new ScrollAlertDataGridMessage() { newEntry = Alerts[Alerts.Count - 1] };
                 Messenger.Default.Send(msg);
             });
         }
@@ -301,26 +309,30 @@ namespace ACE_Mission_Control.ViewModels
         private void pivotSelectionChangedCommand(Pivot pivot)
         {
             var name = (pivot.SelectedItem as PivotItem).Name;
+            var gridHeightChanged = false;
 
             if (name == "MissionItem")
             {
                 FrameHeight = new GridLength(1, GridUnitType.Auto);
+                if (AlertGridHeight.Value == 80)
+                    gridHeightChanged = true;
                 AlertGridHeight = new GridLength(1, GridUnitType.Star);
             }
-            else if (name == "PlannerItem")
+            else if (name == "PlannerItem" || name == "ConfigItem" || name == "ConsoleItem")
             {
                 FrameHeight = new GridLength(1, GridUnitType.Star);
+                if (AlertGridHeight.Value != 80)
+                    gridHeightChanged = true;
                 AlertGridHeight = new GridLength(80);
             }
-            else if (name == "ConfigItem")
+
+            if (gridHeightChanged)
+                Messenger.Default.Send(new AlertDataGridSizeChangeMessage());
+
+            if (Alerts.Count > 0)
             {
-                FrameHeight = new GridLength(1, GridUnitType.Star);
-                AlertGridHeight = new GridLength(80);
-            }
-            else if (name == "ConsoleItem")
-            {
-                FrameHeight = new GridLength(1, GridUnitType.Star);
-                AlertGridHeight = new GridLength(80);
+                var alertScrollMsg = new ScrollAlertDataGridMessage() { newEntry = Alerts[Alerts.Count - 1] };
+                Messenger.Default.Send(alertScrollMsg);
             }
         }
     }

@@ -120,6 +120,19 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private int _selectedStartMode;
+        public int SelectedStartMode
+        {
+            get { return _selectedStartMode; }
+            set
+            {
+                if (_selectedStartMode == value)
+                    return;
+                _selectedStartMode = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private ObservableCollection<MapLayer> mapLayers;
         public ObservableCollection<MapLayer> MapLayers
         {
@@ -160,14 +173,37 @@ namespace ACE_Mission_Control.ViewModels
         protected override void DroneAttached(bool firstTime)
         {
             TreatmentInstructions = AttachedDrone.Mission.TreatmentInstructions;
+
             UpdatePlannerMapAreas();
+
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             AttachedDrone.Mission.InstructionUpdated += Mission_InstructionUpdated;
+            AttachedDrone.Mission.StartParameters.StartModeChangedEvent += StartParameters_StartModeChangedEvent;
+            AttachedDrone.Mission.StartParameters.StartParametersChangedEvent += StartParameters_StartParametersChangedEvent;
+
+            SelectedStartMode = AttachedDrone.Mission.StartParameters.SelectedModeInt;
 
             if (AttachedDrone.Mission.Activated)
                 MissionActivatedText = "Planner_DeactivateButton".GetLocalized();
             else
                 MissionActivatedText = "Planner_ActivateButton".GetLocalized();
+        }
+
+        private async void StartParameters_StartModeChangedEvent(object sender, EventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                SelectedStartMode = AttachedDrone.Mission.StartParameters.SelectedModeInt;
+                UpdatePlannerMapPoints();
+            });
+        }
+
+        private async void StartParameters_StartParametersChangedEvent(object sender, EventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                UpdatePlannerMapPoints();
+            });
         }
 
         private async void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -201,24 +237,36 @@ namespace ACE_Mission_Control.ViewModels
                     case "AvailablePayloads":
                         RaisePropertyChanged("AvailablePayloads");
                         break;
-                    case "StartParameters":
-                        RaisePropertyChanged("SelectedModeInt");
-                        UpdatePlannerMapPoints();
-                        break;
                 }
             });
         }
 
         private void Mission_InstructionUpdated(object sender, InstructionsUpdatedEventArgs e)
         {
-            // Force the binding to update by removing and re-adding the instruction
-            // This is dumb but the alternative seems to be making my own ObservableCollection class which is also dumb
-            foreach (TreatmentInstruction instruction in e.Instructions)
-            {
-                var indexOf = TreatmentInstructions.IndexOf(instruction);
-                TreatmentInstructions.RemoveAt(indexOf);
-                TreatmentInstructions.Insert(indexOf, instruction);
-            }
+            //if (e.Reorder)
+            //{
+            //    var unchangedInstructions = TreatmentInstructions.Where(i => !e.Instructions.Contains(i));
+
+            //    // Clear and re-add instructions in the new order. Any unaffected instructions are added to the end.
+            //    TreatmentInstructions.Clear();
+            //    foreach (TreatmentInstruction instruction in e.Instructions)
+            //        TreatmentInstructions.Add(instruction);
+
+            //    foreach (TreatmentInstruction instruction in unchangedInstructions)
+            //        TreatmentInstructions.Add(instruction);
+            //}
+            //else
+            //{
+                // Force the binding to update by removing and re-adding the instruction
+                // This is dumb but the alternative seems to be making my own ObservableCollection class which is also dumb
+                foreach (TreatmentInstruction instruction in e.Instructions)
+                {
+                    var indexOf = TreatmentInstructions.IndexOf(instruction);
+                    TreatmentInstructions.RemoveAt(indexOf);
+                    TreatmentInstructions.Insert(indexOf, instruction);
+                }
+            //}
+
             UpdatePlannerMapPoints();
             UpdatePlannerMapAreas();
         }
@@ -242,6 +290,8 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.Mission.InstructionUpdated -= Mission_InstructionUpdated;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
+            AttachedDrone.Mission.StartParameters.StartModeChangedEvent -= StartParameters_StartModeChangedEvent;
+            AttachedDrone.Mission.StartParameters.StartParametersChangedEvent -= StartParameters_StartParametersChangedEvent;
         }
 
         private bool isTreatmentDurationValid(string durationString)
@@ -358,7 +408,7 @@ namespace ACE_Mission_Control.ViewModels
                 polygon.Path = CoordsToGeopath(instruction.TreatmentPolygon.GetBasicCoordinates());
                 polygon.ZIndex = 1;
                 polygon.StrokeColor = colour;
-                polygon.StrokeThickness = 4;
+                polygon.StrokeThickness = 3;
                 polygon.StrokeDashed = false;
                 colour.A = 100;
                 polygon.FillColor = colour;

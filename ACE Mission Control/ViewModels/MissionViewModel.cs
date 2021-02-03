@@ -15,12 +15,6 @@ using Microsoft.Toolkit.Uwp.UI.Controls;
 
 namespace ACE_Mission_Control.ViewModels
 {
-    // --- Messages
-
-    public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
-
-    // --- Properties
-
     public class MissionViewModel : DroneViewModelBase
     {
         private bool _droneConnectionOn;
@@ -36,27 +30,18 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private ObservableCollection<AlertEntry> _alerts;
-        public ObservableCollection<AlertEntry> Alerts
-        {
-            get { return _alerts; }
-        }
-
         public MissionViewModel()
         {
-            _alerts = new ObservableCollection<AlertEntry>();
+            
         }
 
         protected override void DroneAttached(bool firstTime)
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
-            AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
 
             DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
                 AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
-
-            _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -87,26 +72,17 @@ namespace ACE_Mission_Control.ViewModels
                     case "CanManuallySynchronize":
                         RaisePropertyChanged("CanManuallySynchronize");
                         break;
-                }
-            });
-        }
+                    case "InterfaceState":
+                        DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting || AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
+                        break;
 
-        private async void AlertLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-                    foreach (AlertEntry entry in e.NewItems)
-                        _alerts.Add(entry);
-                var msg = new ScrollAlertDataGridMessage() { newEntry = _alerts[_alerts.Count - 1] };
-                Messenger.Default.Send(msg);
+                }
             });
         }
 
         protected override void DroneUnattaching()
         {
             AttachedDrone.OBCClient.PropertyChanged -= OBCClient_PropertyChanged;
-            AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
         }
 
@@ -173,22 +149,6 @@ namespace ACE_Mission_Control.ViewModels
         private void synchronizeCommand()
         {
             AttachedDrone.Synchronize(true);
-        }
-
-        public RelayCommand<DataGrid> AlertCopyCommand => new RelayCommand<DataGrid>((grid) => alertCopyCommand(grid));
-        private void alertCopyCommand(DataGrid grid)
-        {
-            string copiedText = "";
-            AlertToString alertConverter = new AlertToString();
-            foreach (object item in grid.SelectedItems)
-            {
-                var entry = (AlertEntry)item;
-                copiedText += entry.Timestamp.ToLongTimeString() + " " + alertConverter.Convert(entry, typeof(string), null, null) + "\n";
-            }
-            DataPackage dataPackage = new DataPackage();
-            dataPackage.RequestedOperation = DataPackageOperation.Copy;
-            dataPackage.SetText(copiedText);
-            Clipboard.SetContent(dataPackage);
         }
     }
 }

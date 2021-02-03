@@ -174,7 +174,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private void StartParameters_StartParametersChangedEvent(object sender, EventArgs e)
         {
-            if (Synchronized && Mission.MissionSet)
+            if (Synchronized && Mission.MissionSet && (Mission.Stage != MissionStatus.Types.Stage.Enroute && Mission.Stage != MissionStatus.Types.Stage.Executing))
             {
                 // Send start mode commands right away if synchronized
                 // If not synchronized, they will be sent during synchronization
@@ -193,7 +193,10 @@ namespace ACE_Mission_Control.Core.Models
             if (e.PropertyName == "ReadyForCommand" && OBCClient.DirectorRequestClient.ReadyForCommand)
             {
                 if (OBCClient.IsDirectorConnected)
+                {
+                    System.Diagnostics.Debug.WriteLine("READIED");
                     CommandsReadied();
+                }
             }
         }
 
@@ -201,37 +204,31 @@ namespace ACE_Mission_Control.Core.Models
         {
             // A sync is in progress is syncCommandsSent is greater than 0
             if ((Synchronized || syncCommandsSent > 0) && directorCommandQueue.Count > 0)
+            {
                 SendCommand(directorCommandQueue.Dequeue());
-            else if (!Synchronized && syncCommandsSent == 0)
+            }
+            else if (!Synchronized && (syncCommandsSent <= 0 || syncCommandsSent == int.MaxValue))
+            {
+                syncCommandsSent = 0;
                 Synchronize();
+            }
+                
         }
 
         private void SendStartModeCommands(bool manuallySent = false)
         {
-            var entryCommand = $"set_entry -entry {Mission.GetStartCoordinateString()} -radians";
-            var flyThroughCommand = Mission.StartParameters.StopAndTurn ? "set_fly_through -off" : "set_fly_through -on";
-
             // Only send these commands if the mission is set
             if (!Mission.MissionSet)
                 return;
 
-            var wasActivated = Mission.Activated;
-            if (Mission.Activated)
-            {
-                syncCommandsSent++;
-                SendCommand("deactivate_mission", true, true);
-            }
+            var command = $"set_entry -entry {Mission.GetStartCoordinateString()} -radians";
 
-            syncCommandsSent += 2;
-            // If the command is sent right away then we call it a manual command
-            SendCommand(entryCommand, !manuallySent, true);
-            SendCommand(flyThroughCommand, !manuallySent, true);
+            if (!Mission.StartParameters.StopAndTurn)
+                command += " -fly_through";
 
-            if (wasActivated)
-            {
-                syncCommandsSent++;
-                SendCommand("activate_mission", true, true);
-            }
+            syncCommandsSent += 1;
+            
+            SendCommand(command, !manuallySent, true);
         }
 
         // Check commands update the state of the Onboard Computer with Mission Control
@@ -242,9 +239,10 @@ namespace ACE_Mission_Control.Core.Models
             // Manual syncs are allowed when a sync failure occurs until another sync attempt is made
             CanManuallySynchronize = false;
             syncCommandsSent += 3;
-            SendCommand("check_interface", !manualSyncronize, true);
-            SendCommand("check_mission_config", !manualSyncronize, true);
+            // Mission status needs to be checked first because it tells us the most important information (activated, stage)
             SendCommand("check_mission_status", !manualSyncronize, true);
+            SendCommand("check_mission_config", !manualSyncronize, true);
+            SendCommand("check_interface", !manualSyncronize, true);
             // The mission status might trigger a start mode update anyway but better safe than sorry
             if (manualSyncronize)
                 SendStartModeCommands(manualSyncronize);
@@ -328,22 +326,33 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     if (firstCmd)
                     {
+                        System.Diagnostics.Debug.WriteLine($"Duration: {Mission.TreatmentDuration}");
+
                         string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -exit {3} -id {4} -radians",
                             instruction.GetTreatmentAreaString(),
                             Mission.TreatmentDuration,
                             Mission.GetStartCoordinateString(),
                             instruction.GetExitCoordinateString(),
                             instruction.TreatmentPolygon.Id);
+
+                        if (!Mission.StartParameters.StopAndTurn)
+                            uploadCmd += " -fly_through";
+
                         SendCommand(uploadCmd);
                         firstCmd = false;
                         continue;
                     }
 
-                    SendCommand(string.Format("add_area -data {0} -entry {1} -exit {2} -id {3} -radians",
+                    var areaCmd = string.Format("add_area -data {0} -entry {1} -exit {2} -id {3} -radians",
                         instruction.GetTreatmentAreaString(),
                         instruction.GetEntryCoordianteString(),
                         instruction.GetExitCoordinateString(),
-                        instruction.TreatmentPolygon.Id));
+                        instruction.TreatmentPolygon.Id);
+
+                    if (!Mission.StartParameters.StopAndTurn)
+                        areaCmd += " -fly_through";
+
+                    SendCommand(areaCmd);
                 }
             }
         }
@@ -378,6 +387,10 @@ namespace ACE_Mission_Control.Core.Models
                     var alert = new AlertEntry(responseLevel, alertType, alertInfo);
                     AddAlert(alert);
                     break;
+                case ACEEnums.MessageType.ACEError:
+                    if (syncCommandsSent > 0)
+                        HandleFailedSync();
+                    break;
                 default:
                     break;
             }
@@ -393,6 +406,7 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     Synchronized = false;
                     directorCommandQueue.Clear();
+                    syncCommandsSent = 0;
                     InterfaceState = InterfaceStatus.Types.State.Offline;
                 }
                 else
@@ -412,11 +426,7 @@ namespace ACE_Mission_Control.Core.Models
             // Special handling for sync commands
             if (lastCommandSent.SyncCommand && e.Line.Contains("(FAILURE)"))
             {
-                // If a sync command fails then clear the Queue of all sync commands
-                directorCommandQueue = new Queue<Command>(directorCommandQueue.Where(c => c.SyncCommand == false));
-                syncCommandsSent = 0;
-                syncFailed = true;
-                CanManuallySynchronize = true;
+                HandleFailedSync();
             }
             else if (lastCommandSent.SyncCommand && e.Line.Contains("(SUCCESS)"))
             {
@@ -426,6 +436,15 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             lastCommandSent = null;
+        }
+
+        private void HandleFailedSync()
+        {
+            // If a sync command fails then clear the Queue of all sync commands
+            directorCommandQueue = new Queue<Command>(directorCommandQueue.Where(c => c.SyncCommand == false));
+            syncCommandsSent = 0;
+            syncFailed = true;
+            CanManuallySynchronize = true;
         }
 
         public void AddAlert(AlertEntry entry, bool blockDuplicates = false)

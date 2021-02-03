@@ -30,8 +30,13 @@ namespace ACE_Mission_Control.Core.Models
 
         private WaypointRouteIntercept selectedInterceptRoute;
         public WaypointRoute TreatmentRoute 
-        { 
-            get => selectedInterceptRoute != null ? selectedInterceptRoute.WaypointRoute : null;
+        {
+            get
+            {
+                if (selectedInterceptRoute == null)
+                    RevalidateTreatmentRoute();
+                return selectedInterceptRoute != null ? selectedInterceptRoute.WaypointRoute : null;
+            } 
             set
             {
                 if (selectedInterceptRoute != null && selectedInterceptRoute.WaypointRoute == value)
@@ -47,6 +52,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             get
             {
+                if (selectedInterceptRoute == null)
+                    RevalidateTreatmentRoute();
                 if (selectedInterceptRoute != null)
                     return selectedInterceptRoute.EntryCoordinate;
                 return null;
@@ -57,6 +64,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             get
             {
+                if (selectedInterceptRoute == null)
+                    RevalidateTreatmentRoute();
                 if (selectedInterceptRoute != null)
                     return selectedInterceptRoute.ExitCoordinate;
                 return null;

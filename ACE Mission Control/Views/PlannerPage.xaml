@@ -18,14 +18,14 @@
     </Page.Resources>
     <Grid Background="{ThemeResource SystemChromeLowColor}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition />
+            <ColumnDefinition MinWidth="474" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*" />
-            <RowDefinition Height="160" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock x:Uid="Planner_Subtitle"
@@ -56,7 +56,6 @@
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
-
                     </Style>
                 </ListView.ItemContainerStyle>
 
@@ -171,26 +170,21 @@
             Margin="8,0,4,8"
             Grid.Row="2">
             <Grid.RowDefinitions>
-                <RowDefinition Height="20" />
                 <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
 
             <Border Grid.ColumnSpan="1"
-                    Grid.RowSpan="3"
+                    Grid.RowSpan="2"
+                    Margin="0,0,0,0"
                     Background="{ThemeResource SystemChromeMediumLowColor}"
                     BorderBrush="ForestGreen"
                     BorderThickness="3,0,0,0"/>
-            <TextBlock x:Uid="Planner_MissionControlHeader"
-                       Grid.Row="0"
-                       Grid.ColumnSpan="1"
-                       Margin="10,4,0,0"
-                       FontWeight="Bold"/>
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
-                Grid.Row="1"
-                Margin="10,8,0,0">
+                Grid.Row="0"
+                Margin="10,4,0,0">
                 <StackPanel
                     Orientation="Vertical">
                     <TextBlock
@@ -238,7 +232,7 @@
                               Margin="8,0,8,0"
                               Width="180"
                               HorizontalAlignment="Stretch"
-                              SelectedIndex="{x:Bind ViewModel.AttachedDrone.Mission.StartParameters.SelectedModeInt, Mode=OneWay}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedStartMode, Mode=OneWay}"
                               Style="{ThemeResource ACEComboBox}">
 
                         <ComboBoxItem x:Name="Planner_StartModeItem_FirstEntry"
@@ -327,8 +321,8 @@
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
-                Grid.Row="2"
-                Margin="10,0,0,0">
+                Grid.Row="1"
+                Margin="10,0,0,8">
                 <Button x:Name="UploadButton"
                         x:Uid="Planner_UploadButton"
                         Style="{ThemeResource ACEButton}"
@@ -361,7 +355,9 @@
                          ZoomInteractionMode="GestureAndControl"
                          ZoomLevel="15"
                          Layers="{x:Bind ViewModel.MapLayers, Mode=OneWay}"
-                         Center="{x:Bind ViewModel.MapCentre, Mode=OneWay}">
+                         Center="{x:Bind ViewModel.MapCentre, Mode=OneWay}"
+                         Style="AerialWithRoads"
+                         MapServiceToken="4l0tkAAsXEnnNSOK8679~ik4pAeyowqts0oKyLzbkjg~As5-mUredKyQUQkVkC2zR9xB2hFgDWVfvp_OP7MbrTfQbF4goOfA-Sfa3nSj1EJs">
             <i:Interaction.Behaviors>
                 <core:EventTriggerBehavior EventName="MapElementClick">
                     <core:InvokeCommandAction Command="{x:Bind ViewModel.MapElementClickedCommand}"/>

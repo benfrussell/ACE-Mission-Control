@@ -47,7 +47,7 @@ namespace ACE_Mission_Control.Views
             }
             else
             {
-                EntryMapControl.MapServiceToken = "Av_Cfm7_8qnq4khKZCRO5ywWQD0h2NDiuRVYZ1l2ArUEmrOM3ttdXQv6R_Wck_Lj";
+                
             }
 
             base.OnNavigatedTo(e);

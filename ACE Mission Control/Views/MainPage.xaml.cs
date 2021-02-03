@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using ACE_Mission_Control.Core.Models;
 using ACE_Mission_Control.ViewModels;
-
+using GalaSoft.MvvmLight.Messaging;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
@@ -15,6 +16,13 @@ namespace ACE_Mission_Control.Views
         {
             get { return ViewModelLocator.Current.MainViewModel; }
         }
+
+
+        public MainPage() : base()
+        {
+            this.InitializeComponent();
+        }
+
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -53,11 +61,19 @@ namespace ACE_Mission_Control.Views
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, e.NavigationTransitionInfo);
             }
 
-
+            if (isInit)
+            {
+                // Things to do on every navigation
+            }
+            else
+            {
+                Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
+            }
         }
-        public MainPage() : base()
+
+        private void AlertGridScrollToBottom(object newItem)
         {
-            this.InitializeComponent();
+            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
         }
     }
 }

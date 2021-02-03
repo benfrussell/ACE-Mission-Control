@@ -12,8 +12,13 @@ namespace ACE_Mission_Control.Core.Models
     public class InstructionsUpdatedEventArgs
     {
         public List<TreatmentInstruction> Instructions { get; set; }
+        public bool Reorder { get; set; }
 
-        public InstructionsUpdatedEventArgs() { Instructions = new List<TreatmentInstruction>(); }
+        public InstructionsUpdatedEventArgs() 
+        { 
+            Instructions = new List<TreatmentInstruction>();
+            Reorder = false;
+        }
     }
 
     public class StartModeChangedEventArgs
@@ -252,13 +257,33 @@ namespace ACE_Mission_Control.Core.Models
             HasProgress = newStatus.InProgress;
             UpdateCanBeReset();
 
+            var updatedInstructions = new InstructionsUpdatedEventArgs();
             // Update the treatment instruction statuses with any results that came from the mission status update
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
                 var resultInStatus = newStatus.Results.FirstOrDefault(r => r.AreaID == instruction.TreatmentPolygon.Id);
-                if (resultInStatus != null)
+                if (resultInStatus != null && instruction.AreaStatus != resultInStatus.Status)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Updating instruction {instruction.Name} {resultInStatus.Status.ToString()}");
                     instruction.AreaStatus = resultInStatus.Status;
+                    updatedInstructions.Instructions.Add(instruction);
+                }
+                    
             }
+
+            if (newStatus.Results.Count() > 1)
+            {
+                // If the order of results we get from the mission status is different than what we have, reorder
+                var resultIDs = newStatus.Results.Select(r => r.AreaID).ToList();
+                var originalIDs = TreatmentInstructions.Select(i => i.TreatmentPolygon.Id);
+
+                if (!originalIDs.SequenceEqual(resultIDs))
+                    ReorderInstructionsByID(resultIDs);
+            }
+            else if (updatedInstructions.Instructions.Count > 0)
+            {
+                InstructionUpdated?.Invoke(this, updatedInstructions);
+            }   
 
             if (newStatus.LastLongitude != 0 || newStatus.LastLatitude != 0)
             {
@@ -273,6 +298,9 @@ namespace ACE_Mission_Control.Core.Models
             }
             else
             {
+                // If we were on lastposition mode, but no last long or lat was provided, switch back to first entry
+                if (StartParameters.SelectedMode == StartTreatmentParameters.Modes.LastPositionContinued)
+                    SetStartTreatmentMode(StartTreatmentParameters.Modes.FirstEntry);
                 LastPosition = null;
             }
 
@@ -280,9 +308,25 @@ namespace ACE_Mission_Control.Core.Models
             UpdateStartCoordinate();
         }
 
+        // Takes a complete or partial list of instruction IDs and orders our list to match it
+        private void ReorderInstructionsByID(List<int> orderedIDs)
+        {
+            var originalIDs = TreatmentInstructions.Select(i => i.TreatmentPolygon.Id);
+            // Add any new IDs that exist in the original list to the ordered list, so OrderBy can find every ID somewhere
+            orderedIDs.AddRange(originalIDs.Except(orderedIDs));
+
+            var reorderedInstructions = TreatmentInstructions.OrderBy(i => orderedIDs.IndexOf(i.TreatmentPolygon.Id)).ToList();
+            TreatmentInstructions.Clear();
+            foreach (TreatmentInstruction instruction in reorderedInstructions)
+                TreatmentInstructions.Add(instruction);
+
+            InstructionUpdated?.Invoke(this, new InstructionsUpdatedEventArgs() { Instructions = TreatmentInstructions.ToList(), Reorder = true });
+        }
+
         public void UpdateMissionConfig(MissionConfig newConfig)
         {
             FlyThroughMode = newConfig.FlyThroughMode;
+            System.Diagnostics.Debug.WriteLine($"Duration: {newConfig.TreatmentDuration}");
             TreatmentDuration = newConfig.TreatmentDuration;
             AvailablePayloads = newConfig.AvailablePayloads.ToList();
             SelectedPayload = newConfig.SelectedPayload;
@@ -304,6 +348,8 @@ namespace ACE_Mission_Control.Core.Models
         private void UpdateStartCoordinate()
         {
             var instruction = GetNextInstruction();
+            if (instruction == null || !instruction.IsTreatmentRouteValid())
+                return;
 
             //if (instruction == null)
             //{
@@ -467,6 +513,7 @@ namespace ACE_Mission_Control.Core.Models
             foreach (AreaScanPolygon addedArea in e.updates.AddedRoutes)
             {
                 var newInstruction = new TreatmentInstruction(addedArea);
+                System.Diagnostics.Debug.WriteLine("added area ID is " + addedArea.Id);
                 newInstruction.EnabledChangedEvent += NewInstruction_EnabledChangedEvent;
                 TreatmentInstructions.Add(newInstruction);
             }

@@ -6,9 +6,18 @@ using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI;
+using System.Collections.ObjectModel;
+using GalaSoft.MvvmLight.Messaging;
+using GalaSoft.MvvmLight.Command;
+using Microsoft.Toolkit.Uwp.UI.Controls;
+using ACE_Mission_Control.Helpers;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.UI.Xaml;
 
 namespace ACE_Mission_Control.ViewModels
 {
+    public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
+
     public class MainViewModel : DroneViewModelBase
     {
         public string DroneName
@@ -94,19 +103,68 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private ObservableCollection<AlertEntry> _alerts;
+        public ObservableCollection<AlertEntry> Alerts
+        {
+            get { return _alerts; }
+        }
+
+        private GridLength frameHeight;
+        public GridLength FrameHeight
+        {
+            get => frameHeight;
+            set
+            {
+                if (value == frameHeight)
+                    return;
+                frameHeight = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private GridLength alertGridHeight;
+        public GridLength AlertGridHeight
+        {
+            get => alertGridHeight;
+            set
+            {
+                if (value == alertGridHeight)
+                    return;
+                alertGridHeight = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public MainViewModel()
         {
+            _alerts = new ObservableCollection<AlertEntry>();
         }
 
         protected override void DroneAttached(bool firstTime)
         {
+            _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
+
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
+            AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
+
             SetDirectorConnectedText();
             SetChaperoneConnectedText();
             SetDroneConnectedText();
+        }
+
+        private async void AlertLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                    foreach (AlertEntry entry in e.NewItems)
+                        _alerts.Add(entry);
+                var msg = new ScrollAlertDataGridMessage() { newEntry = _alerts[_alerts.Count - 1] };
+                Messenger.Default.Send(msg);
+            });
         }
 
         private void SetDirectorConnectedText()
@@ -198,6 +256,7 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
             UGCSClient.StaticPropertyChanged -= UGCSClient_StaticPropertyChanged;
+            AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -219,6 +278,50 @@ namespace ACE_Mission_Control.ViewModels
                     SetChaperoneConnectedText();
                 }
             });
+        }
+
+        public RelayCommand<DataGrid> AlertCopyCommand => new RelayCommand<DataGrid>((grid) => alertCopyCommand(grid));
+        private void alertCopyCommand(DataGrid grid)
+        {
+            string copiedText = "";
+            AlertToString alertConverter = new AlertToString();
+            foreach (object item in grid.SelectedItems)
+            {
+                var entry = (AlertEntry)item;
+                copiedText += entry.Timestamp.ToLongTimeString() + " " + alertConverter.Convert(entry, typeof(string), null, null) + "\n";
+            }
+            DataPackage dataPackage = new DataPackage();
+            dataPackage.RequestedOperation = DataPackageOperation.Copy;
+            dataPackage.SetText(copiedText);
+            Clipboard.SetContent(dataPackage);
+        }
+
+        public RelayCommand<Pivot> PivotSelectionChangedCommand => new RelayCommand<Pivot>((pivot) => pivotSelectionChangedCommand(pivot));
+
+        private void pivotSelectionChangedCommand(Pivot pivot)
+        {
+            var name = (pivot.SelectedItem as PivotItem).Name;
+
+            if (name == "MissionItem")
+            {
+                FrameHeight = new GridLength(1, GridUnitType.Auto);
+                AlertGridHeight = new GridLength(1, GridUnitType.Star);
+            }
+            else if (name == "PlannerItem")
+            {
+                FrameHeight = new GridLength(1, GridUnitType.Star);
+                AlertGridHeight = new GridLength(80);
+            }
+            else if (name == "ConfigItem")
+            {
+                FrameHeight = new GridLength(1, GridUnitType.Star);
+                AlertGridHeight = new GridLength(80);
+            }
+            else if (name == "ConsoleItem")
+            {
+                FrameHeight = new GridLength(1, GridUnitType.Star);
+                AlertGridHeight = new GridLength(80);
+            }
         }
     }
 }

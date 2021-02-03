@@ -184,9 +184,6 @@
   <data name="Mission_OBCHeader.Text" xml:space="preserve">
     <value>Onboard Computer</value>
   </data>
-  <data name="Planner_MissionControlHeader.Text" xml:space="preserve">
-    <value>Mission Parameters</value>
-  </data>
   <data name="Console_ActivateButton.Content" xml:space="preserve">
     <value>Activate Debug Console</value>
   </data>

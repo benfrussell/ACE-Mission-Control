@@ -12,16 +12,10 @@ using System.Threading.Tasks;
  * ShellViewModel.cs:       If the invoked item is a Drone object, navigate to the MainView page with the drone ID as a parameter.
  *                          OnFrameNavigate parses the drone ID parameter to get the drone name for the header.
  *                          
- * MainPage.xaml.cs:        OnNavigate parses the drone ID parameter or set it 0.
- *                          Navigate the subviews of MainPage with the drone ID as a parameter to load them.
- *                          Link the ViewModel to the page by executing the ViewModel's SetDroneID method with the drone ID as a parameter.
+ * DroneBasePage.xaml.cs:   OnNavigate parses the drone ID parameter or sets it 0. The drone ID is now available to all inheriting pages.
+ *                          The drone ID is assigned to a property in the DroneViewModelBase, so all view models have the drone.
  *                          
- * (SubView)Page.xaml.cs:   Same operations as MainPage.xaml.cs. ViewModel is linked with GetViewModel.
- *                          
- * DroneViewModelBase.cs:   SetDroneID sets the ID if it has not been set in this instance yet.
- *                          If it is set the DroneAttached abstract method is called.
- * 
- * (Page)ViewModel.cs:      The drone can be accessed at AttachedDrone as soon as DroneAttached() is called.
+ * DroneViewModelBase.cs:   After the DroneID is set, AttachedDrone or UnattachDrone is called for the inherting view models.
  */
 
 namespace ACE_Mission_Control.ViewModels

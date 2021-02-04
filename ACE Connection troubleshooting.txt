@@ -1,0 +1,21 @@
+Recommendation: Set up a static IP assignment on the router
+
+Each Pi should be set up to prioritize WiFi connections to a network named "gdg-hotspot" with password gdg12345. If you cannot connect to the Pi, start a hotspot on your phone with that name and restart the Pi.
+
+Ensure the director is running.
+
+On the Pi:
+- Check that the network you want to be connected to is in /etc/wpa_supplicant/wpa_supplicant.conf
+	- If you've just added the network, you can change the connected network with "wpa_cli -i wlan0 select_network X", where X is the network entry in the conf file, starting with 0 at the top.
+	- Alternatively, disable the hotspot and restart the Pi.
+- If ACE is running, check that the ports are open with "netstat -tuplen".
+	- ACE uses ports 5535, 5536, and 5537
+
+On Windows:
+- Connect to the router/modem using your internet browser and check if the Pi shows up as connected
+	- To find the IP address of your router/modem, open command prompt and enter "ipconfig /all", look under the Wireless LAN or Ethernet adapter for the "Default Gateway" entry
+	- It should show up as gdg-pi-X
+- Use an IP scanner to check if the Pi is visible on the network, such as "Angry IP Scanner"
+	- The Pi will be under the same IP range as your own computer and the router. For example, if the router is at 192.168.2.1, the Pi will be in the range of 192.168.2.0 to 192.168.2.255
+	- It should show up as gdg-pi-X
+- Try switching your current network connection between a "Private" and "Public" profile.

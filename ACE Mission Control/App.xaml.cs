@@ -30,7 +30,7 @@ namespace ACE_Mission_Control
         {
             // Do pre-load here.. I think
             DroneController.LoadUGCSDrones();
-            MissionData.StartUGCSPoller();
+            MissionRetriever.StartUGCSPoller();
 
             if (!args.PrelaunchActivated)
             {

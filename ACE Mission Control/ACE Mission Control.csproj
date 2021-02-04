@@ -142,9 +142,11 @@
     <Compile Include="Behaviors\NavigationViewHeaderBehavior.cs" />
     <Compile Include="Behaviors\NavigationViewHeaderMode.cs" />
     <Compile Include="Helpers\AlertLevelToColour.cs" />
+    <Compile Include="Helpers\MissionActivatedHelpers.cs" />
+    <Compile Include="Helpers\MissionStageHelpers.cs" />
+    <Compile Include="Helpers\AreaStatusHelpers.cs" />
     <Compile Include="Helpers\AlertToString.cs" />
     <Compile Include="Helpers\EnterKeyHelpers.cs" />
-    <Compile Include="Helpers\EnumToBooleanConverter.cs" />
     <Compile Include="Helpers\NavHelper.cs" />
     <Compile Include="Helpers\SettingsStorageExtensions.cs" />
     <Compile Include="Services\ActivationService.cs" />
@@ -286,6 +288,11 @@
     <Compile Include="Helpers\ResourceExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\Flag.png" />
+    <Content Include="Assets\Next.png" />
+    <Content Include="Assets\Point.png" />
+    <Content Include="Assets\Start.png" />
+    <Content Include="Assets\Stop.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

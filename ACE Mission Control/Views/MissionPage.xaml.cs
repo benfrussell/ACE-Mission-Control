@@ -26,8 +26,6 @@ namespace ACE_Mission_Control.Views
     /// </summary>
     public sealed partial class MissionPage : DroneBasePage
     {
-        private bool diagCanClose = false;
-
         private MissionViewModel ViewModel
         {
             get { return ViewModelLocator.Current.MissionViewModel; }
@@ -41,7 +39,6 @@ namespace ACE_Mission_Control.Views
             }
             else
             {
-                Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
             }
             base.OnNavigatedTo(e);
         }
@@ -51,11 +48,6 @@ namespace ACE_Mission_Control.Views
             this.InitializeComponent();
 
             Loaded += MissionPage_Loaded;
-        }
-
-        private void AlertGridScrollToBottom(object newItem)
-        {
-            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
         }
 
         private void MissionPage_Loaded(object sender, RoutedEventArgs e)

@@ -33,7 +33,7 @@
         IsPaneOpen="True"
         Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
         MenuItemsSource="{x:Bind ViewModel.MenuItems, Mode=OneWay}"
-        OpenPaneLength="225">
+        OpenPaneLength="200">
 
         <winui:NavigationView.PaneFooter>
             <Button Command="{x:Bind ViewModel.RefreshDroneListCommand}"
@@ -67,15 +67,13 @@
         </winui:NavigationView.PaneFooter>
 
         <i:Interaction.Behaviors>
-            <behaviors:NavigationViewHeaderBehavior
-                DefaultHeader="{x:Bind ViewModel.Header, Mode=OneWay}">
+            <behaviors:NavigationViewHeaderBehavior DefaultHeader="{x:Bind ViewModel.Header, Mode=OneWay}">
                 <behaviors:NavigationViewHeaderBehavior.DefaultHeaderTemplate>
                     <DataTemplate>
                         <Grid>
-                            <TextBlock
-                                Text="{Binding}"
-                                Style="{ThemeResource SubheaderTextBlockStyle}"
-                                Margin="{StaticResource SmallLeftRightMargin}" />
+                            <TextBlock Text="{Binding}"
+                                       Style="{ThemeResource SubheaderTextBlockStyle}"
+                                       Margin="0,0,0,0" />
                         </Grid>
                     </DataTemplate>
                 </behaviors:NavigationViewHeaderBehavior.DefaultHeaderTemplate>

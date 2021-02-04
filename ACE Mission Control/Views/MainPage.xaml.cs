@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using ACE_Mission_Control.Core.Models;
 using ACE_Mission_Control.ViewModels;
-
+using GalaSoft.MvvmLight.Messaging;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
@@ -15,6 +17,13 @@ namespace ACE_Mission_Control.Views
         {
             get { return ViewModelLocator.Current.MainViewModel; }
         }
+
+
+        public MainPage() : base()
+        {
+            this.InitializeComponent();
+        }
+
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -53,11 +62,45 @@ namespace ACE_Mission_Control.Views
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, e.NavigationTransitionInfo);
             }
 
-
+            Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
+            Messenger.Default.Register<AlertDataGridSizeChangeMessage>(this, (msg) => AlertDataGridSizeChange());
         }
-        public MainPage() : base()
+
+        private void AlertGridScrollToBottom(object newItem)
         {
-            this.InitializeComponent();
+            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
+        }
+
+        private void AlertDataGridSizeChange()
+        {
+            AlertDataGrid.UpdateLayout();
+            
+            //scroller.ChangeView
+        }
+
+        private ScrollViewer GetScrollViewer(DependencyObject element)
+        {
+            if (element is ScrollViewer)
+            {
+                return (ScrollViewer)element;
+            }
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+            {
+                var child = VisualTreeHelper.GetChild(element, i);
+
+                var result = GetScrollViewer(child);
+                if (result == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
     }
 }

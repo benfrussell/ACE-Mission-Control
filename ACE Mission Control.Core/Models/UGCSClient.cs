@@ -38,6 +38,8 @@ namespace ACE_Mission_Control.Core.Models
         public static event EventHandler<ReceivedVehicleListEventArgs> ReceivedVehicleListEvent;
         public static event EventHandler<ReceivedRecentRoutesEventArgs> ReceivedRecentRoutesEvent;
 
+        public delegate void ProcessObject(DomainObjectWrapper obj, out object result);
+
         private static System.Timers.Timer connectTimer;
         private static TcpClient tcpClient;
         private static MessageSender messageSender;
@@ -168,6 +170,51 @@ namespace ACE_Mission_Control.Core.Models
             return new ConnectionResult() { Success = true, Message = "Connected to UGCS" };
         }
 
+        public static async Task<Waypoint> InsertWaypointAlongRoute(int routeID, string preceedingSegmentUuid, double longitude, double latitude)
+        {
+            // First get the route & preceeding segment
+            DomainObjectWrapper obj = await RetrieveObjectAsync("Route", routeID);
+            if (obj.Route == null)
+                return null;
+
+            var route = obj.Route;
+
+            SegmentDefinition preceedingSegment = route.Segments.FirstOrDefault(s => s.Uuid == preceedingSegmentUuid);
+            if (preceedingSegment == null)
+                return null;
+
+            // Then add the waypoint
+            SegmentDefinition newSegment = new SegmentDefinition
+            {
+                Uuid = Guid.NewGuid().ToString(),
+                AlgorithmClassName = "com.ugcs.ucs.service.routing.impl.WaypointAlgorithm"
+            };
+            newSegment.ParameterValues.AddRange(preceedingSegment.ParameterValues);
+            newSegment.Figure = new Figure { Type = FigureType.FT_POINT };
+
+            FigurePoint newPoint = preceedingSegment.Figure.Points[0].Clone();
+            newPoint.Longitude = longitude;
+            newPoint.Latitude = latitude;
+
+            newSegment.Figure.Points.Add(newPoint);
+
+            route.Segments.Insert(route.Segments.IndexOf(preceedingSegment) + 1, newSegment);
+
+            // Then send an update request
+            CreateOrUpdateObjectRequest request = new CreateOrUpdateObjectRequest()
+            {
+                ClientId = clientID,
+                Object = new DomainObjectWrapper().Put(route, "Route"),
+                WithComposites = true,
+                ObjectType = "Route",
+                AcquireLock = true
+            };
+            var response = await Task.Run(() => RequestAndWait<CreateOrUpdateObjectResponse>(request));
+
+            var turnType = newSegment.ParameterValues.FirstOrDefault(p => p.Name == "wpTurnType")?.Value;
+            return new Waypoint(newSegment.Uuid, turnType, longitude, latitude);
+        }
+
         public static void RequestVehicleList()
         {
             RetrieveAndProcessObjectList("Vehicle", (objects) => ReceivedVehicleListEvent(
@@ -252,6 +299,21 @@ namespace ACE_Mission_Control.Core.Models
                     new SendOrPostCallback((_) => processCallback(response.Object)),
                     null
                 );
+        }
+
+        private static Task<DomainObjectWrapper> RetrieveObjectAsync(string objectType, int objectID)
+        {
+            if (!IsConnected)
+                throw new Exception($"Trying to retrieve {objectType} object from UGCS but UGCS is not connected.");
+
+            GetObjectRequest request = new GetObjectRequest
+            {
+                ClientId = clientID,
+                ObjectId = objectID,
+                ObjectType = objectType
+            };
+
+            return Task.Run(() => RequestAndWait<GetObjectResponse>(request).Object);
         }
 
         private static void HandleDisconnect()

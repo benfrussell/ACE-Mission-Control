@@ -1,60 +1,18 @@
 ﻿using NetTopologySuite.Geometries;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
+using Pbdrone;
+using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
     public class TreatmentInstruction
     {
-        // Static TreatmentInstruction members
-
-        // Precalculated list of all possible AreaScan / WaypointRoute intercepts
-        private static Dictionary<int, List<WaypointRouteIntercept>> AreaScanWaypointRouteIntercepts = new Dictionary<int, List<WaypointRouteIntercept>>();
-
-        public static void RemoveAreaScansByIDs(List<int> ids)
-        {
-            foreach (int id in ids)
-            {
-                AreaScanWaypointRouteIntercepts.Remove(id);
-            }
-        }
-
-        public static void RemoveWaypointRoutesByIDs(List<int> ids)
-        {
-            foreach (List<WaypointRouteIntercept> intercepts in AreaScanWaypointRouteIntercepts.Values)
-            {
-                var interceptToRemove = intercepts.First(i => ids.Contains(i.WaypointRoute.Id));
-                if (interceptToRemove != null)
-                    intercepts.Remove(interceptToRemove);
-            }
-        }
-
-        public static void AddTreatmentRouteIntercepts(AreaScanPolygon polygon, List<WaypointRoute> routesToCheck)
-        {
-            var validTreatmentRoutes = (from route in routesToCheck where route.Intersects(polygon) select route).ToList();
-            System.Diagnostics.Debug.WriteLine($"{polygon.Name} finding entry and then exit coordinate");
-            // TODO: For some reason it can't get an entry and exit point on the same LineSegment
-            List<WaypointRouteIntercept> routesIntercepts = validTreatmentRoutes.ConvertAll(
-                r =>
-                {
-                    return new WaypointRouteIntercept()
-                    {
-                        WaypointRoute = r,
-                        EntryCoordinate = r.CalcIntersectWithArea(polygon),
-                        ExitCoordinate = r.CalcIntersectWithArea(polygon, reverse: true)
-                    };
-                });
-
-            if (!AreaScanWaypointRouteIntercepts.ContainsKey(polygon.Id))
-                AreaScanWaypointRouteIntercepts[polygon.Id] = new List<WaypointRouteIntercept>();
-            AreaScanWaypointRouteIntercepts[polygon.Id].AddRange(routesIntercepts);
-        }
-
-        // Dynamic TreatmentInstruction members
+        // This seems to be the easiest way to notify that this single property changed
+        public event EventHandler<EventArgs> EnabledChangedEvent;
+        
+        public static WaypointRouteInterceptCollection InterceptCollection = new WaypointRouteInterceptCollection();
 
         private AreaScanPolygon treatmentPolygon;
         public AreaScanPolygon TreatmentPolygon 
@@ -72,85 +30,105 @@ namespace ACE_Mission_Control.Core.Models
 
         private WaypointRouteIntercept selectedInterceptRoute;
         public WaypointRoute TreatmentRoute 
-        { 
-            get => selectedInterceptRoute != null ? selectedInterceptRoute.WaypointRoute : null;
+        {
+            get
+            {
+                if (selectedInterceptRoute == null)
+                    RevalidateTreatmentRoute();
+                return selectedInterceptRoute != null ? selectedInterceptRoute.WaypointRoute : null;
+            } 
             set
             {
                 if (selectedInterceptRoute != null && selectedInterceptRoute.WaypointRoute == value)
                     return;
-                selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
+                selectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
             }
         }
-        public Tuple<double, double> PayloadUnlockCoordinate
+
+        private AreaResult.Types.Status areaStatus;
+        public AreaResult.Types.Status AreaStatus { get => areaStatus; set => areaStatus = value; }
+
+        public Coordinate AreaEntryCoordinate
         {
             get
             {
+                if (selectedInterceptRoute == null)
+                    RevalidateTreatmentRoute();
                 if (selectedInterceptRoute != null)
-                    return new Tuple<double, double>(
-                        selectedInterceptRoute.EntryCoordinate.X,
-                        selectedInterceptRoute.EntryCoordinate.Y);
+                    return selectedInterceptRoute.EntryCoordinate;
                 return null;
             }
         }
-        public Tuple<double, double> PayloadLockCoordinate
+
+        public Coordinate AreaExitCoordinate
         {
             get
             {
+                if (selectedInterceptRoute == null)
+                    RevalidateTreatmentRoute();
                 if (selectedInterceptRoute != null)
-                    return new Tuple<double, double>(
-                        selectedInterceptRoute.ExitCoordinate.X,
-                        selectedInterceptRoute.ExitCoordinate.Y);
+                    return selectedInterceptRoute.ExitCoordinate;
                 return null;
             }
         }
 
         public IEnumerable<WaypointRoute> ValidTreatmentRoutes
         {
-            get => AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].Select(r => r.WaypointRoute);
-        }
-
-        private bool autoCalcUnlock = true;
-        public bool AutoCalcUnlock 
-        { 
-            get => autoCalcUnlock;
-            set
-            {
-                if (autoCalcUnlock == value)
-                    return;
-                autoCalcUnlock = value;
-            }
-        }
-
-        private bool autoCalcLock = true;
-        public bool AutoCalcLock 
-        { 
-            get => autoCalcLock; 
-            set
-            {
-                if (autoCalcLock == value)
-                    return;
-                autoCalcLock = value;
-            }
+            get => InterceptCollection[TreatmentPolygon.Id].Select(r => r.WaypointRoute);
         }
 
         public string Name { get => TreatmentPolygon.Name; }
 
-        private bool doTreatment;
-        public bool DoTreatment 
-        { 
-            get => doTreatment;
-            set
+        private bool canBeEnabled;
+        public bool CanBeEnabled
+        {
+            get => canBeEnabled;
+            private set
             {
-                if (doTreatment == value)
+                if (canBeEnabled == value)
                     return;
-                doTreatment = value;
+                canBeEnabled = value;
             }
         }
+
+        private bool enabled;
+        public bool Enabled 
+        { 
+            get => enabled;
+            set
+            {
+                if (enabled == value)
+                    return;
+                enabled = value;
+                EnabledChangedEvent?.Invoke(this, new EventArgs());
+            }
+        }
+
+        private float swath;
+        public float Swath
+        {
+            get => swath;
+            private set
+            {
+                if (swath == value)
+                    return;
+                swath = value;
+            }
+        }
+
+        // Save the last enabled state so we can put enabled back into the user's preffered state if they fix the CanBeEnabled problem
+        private bool lastEnabledState;
 
         public TreatmentInstruction(AreaScanPolygon treatmentArea)
         {
             TreatmentPolygon = treatmentArea;
-            DoTreatment = true;
+            AreaStatus = AreaResult.Types.Status.NotStarted;
+            // Swath is generally half of the side distance (metres)
+            Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
+
+            Enabled = true;
+            lastEnabledState = true;
+
             RevalidateTreatmentRoute();
         }
 
@@ -160,19 +138,42 @@ namespace ACE_Mission_Control.Core.Models
             RevalidateTreatmentRoute();
         }
 
+        public bool HasValidTreatmentRoute()
+        {
+            return selectedInterceptRoute != null;
+        }
+
         public bool IsTreatmentRouteValid()
         {
-            return AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].Contains(selectedInterceptRoute);
+            return InterceptCollection[TreatmentPolygon.Id].Contains(selectedInterceptRoute);
         }
 
         public bool RevalidateTreatmentRoute()
         {
+            var routeUpdated = false;
+
             if (!IsTreatmentRouteValid())
             {
-                selectedInterceptRoute = AreaScanWaypointRouteIntercepts[TreatmentPolygon.Id].FirstOrDefault();
-                return true;
+                selectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault();
+                routeUpdated = true;
             }
-            return false;
+
+            if (selectedInterceptRoute == null)
+            {
+                CanBeEnabled = false;
+                lastEnabledState = Enabled;
+                Enabled = false;
+            }
+            else
+            {
+                if (CanBeEnabled == false)
+                {
+                    CanBeEnabled = true;
+                    Enabled = lastEnabledState;
+                }
+            }
+
+            return routeUpdated;
         }
 
         public string GetTreatmentAreaString()
@@ -189,13 +190,23 @@ namespace ACE_Mission_Control.Core.Models
             return vertString;
         }
 
-        public string GetUnlockCoordianteString()
+        public string GetEntryCoordianteString()
         {
-            // Returns in radians - latitude then longitude
+            // Returns in radians - latitude,longitude
             string entryString = string.Format(
                 "{0},{1}",
-                PayloadUnlockCoordinate.Item2,
-                PayloadUnlockCoordinate.Item1);
+                AreaEntryCoordinate.Y,
+                AreaEntryCoordinate.X);
+            return entryString;
+        }
+
+        public string GetExitCoordinateString()
+        {
+            // Returns in radians - latitude,longitude
+            string entryString = string.Format(
+                "{0},{1}",
+                AreaExitCoordinate.Y,
+                AreaExitCoordinate.X);
             return entryString;
         }
     }

@@ -1,0 +1,29 @@
+ACE Bug List
+
+1. Drone interface dies while the director is active
+2. Mission Control requests start_interface
+3. Director throws an error because the interface timed out.
+The director automatically restarts the interface, but without sending a interface_status message.
+Connect drone toggle fails to send start_interface because OBCClient says director is not connected.
+
+When director throws an error during synchronize, sync commands are never processed and an error with the sync is not detected.
+
+Sometimes the waypoint route disappears from the combobox inexplicably. Seems like the combo box sets it to null. Two-way bad?
+
+Sometimes reordering instructions does fuck all. Drag and drop bad?
+
+Sometimes the treatment areas are not grabbed 
+	- Areas are added to the TreatmentInstructions - it's just the polygon is not drawn on the map
+
+Need to be able to detect when the drone is RTL. Cycling activation while returning will mess up the state
+
+Doesn't check the chaperone state ever past initial connection connection
+
+Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
+
+Stopped and return timer doesn't work
+
+Disconnection causes three disconnect messages in MissionControl
+
+
+Prepare manual with stage transition map

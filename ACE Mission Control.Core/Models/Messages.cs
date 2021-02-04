@@ -35,38 +35,38 @@ namespace Pbdrone {
             "EgoOVEhSRUFEX0ZBSUxVUkUQAxISCg5USFJFQURfVElNRU9VVBAEInIKDEZs",
             "aWdodFN0YXR1cxIxCgxmbGlnaHRfc3RhdGUYASABKA4yGy5wYmRyb25lLkZs",
             "aWdodFN0YXR1cy5TdGF0ZSIvCgVTdGF0ZRILCgdTVE9QUEVEEAASDQoJT05f",
-            "R1JPVU5EEAESCgoGSU5fQUlSEAIibAoNQ29udHJvbERldmljZRI1Cg5jb250",
-            "cm9sX2RldmljZRgBIAEoDjIdLnBiZHJvbmUuQ29udHJvbERldmljZS5EZXZp",
-            "Y2UiJAoGRGV2aWNlEgYKAlJDEAASCAoETVNESxABEggKBE9TREsQAiKWAQoJ",
-            "VGVsZW1ldHJ5EhEKCWxvbmdpdHVkZRgBIAEoARIQCghsYXRpdHVkZRgCIAEo",
-            "ARIQCghhbHRpdHVkZRgDIAEoAhISCgpzYXRlbGxpdGVzGAQgASgFEg0KBXZl",
-            "bF94GAUgASgCEg0KBXZlbF95GAYgASgCEg8KB2FjY2VsX3gYByABKAISDwoH",
-            "YWNjZWxfeRgIIAEoAiIgCg1GbGlnaHRBbm9tYWx5Eg8KB2Fub21hbHkYASAD",
-            "KAkiLAoIQUNFRXJyb3ISEQoJdGltZXN0YW1wGAEgASgJEg0KBWVycm9yGAIg",
-            "ASgJIuMCCg1NaXNzaW9uU3RhdHVzEjMKDW1pc3Npb25fc3RhZ2UYASABKA4y",
-            "HC5wYmRyb25lLk1pc3Npb25TdGF0dXMuU3RhZ2USEQoJYWN0aXZhdGVkGAIg",
-            "ASgIEhMKC2luX3Byb2dyZXNzGAMgASgIEhYKDmxhc3RfbG9uZ2l0dWRlGAQg",
-            "ASgBEhUKDWxhc3RfbGF0aXR1ZGUYBSABKAESFQoNbGFzdF9hbHRpdHVkZRgG",
-            "IAEoAhILCgNsb2cYByABKAkSDgoGZXJyb3JzGAggASgIEiQKB3Jlc3VsdHMY",
-            "CSADKAsyEy5wYmRyb25lLkFyZWFSZXN1bHQibAoFU3RhZ2USEQoNTk9UX0FD",
-            "VElWQVRFRBAAEgkKBVJFQURZEAESCwoHRU5ST1VURRACEg0KCUVYRUNVVElO",
-            "RxADEg0KCVJFVFVSTklORxAEEgwKCE9WRVJSSURFEAUSDAoIQ09NUExFVEUQ",
-            "BiKKAQoNTWlzc2lvbkNvbmZpZxIaChJ0cmVhdG1lbnRfZHVyYXRpb24YASAB",
-            "KAUSGAoQZmx5X3Rocm91Z2hfbW9kZRgCIAEoCBIYChBzZWxlY3RlZF9wYXls",
-            "b2FkGAMgASgFEhoKEmF2YWlsYWJsZV9wYXlsb2FkcxgEIAMoCRINCgVhcmVh",
-            "cxgFIAMoBSJICg9Db21tYW5kUmVzcG9uc2USDwoHY29tbWFuZBgBIAEoCRIS",
-            "CgpzdWNjZXNzZnVsGAIgASgIEhAKCHJlc3BvbnNlGAMgASgJIoIBCgpBcmVh",
-            "UmVzdWx0Eg4KBmFyZWFJRBgBIAEoBRIqCgZzdGF0dXMYAiABKA4yGi5wYmRy",
-            "b25lLkFyZWFSZXN1bHQuU3RhdHVzIjgKBlN0YXR1cxIPCgtOT1RfU1RBUlRF",
-            "RBAAEg8KC0lOX1BST0dSRVNTEAESDAoIRklOSVNIRUQQAmIGcHJvdG8z"));
+            "R1JPVU5EEAESCgoGSU5fQUlSEAIiOgoNQ29udHJvbERldmljZRIRCglhdXRv",
+            "X21vZGUYAiABKAgSFgoOcmV0dXJuX3RvX2hvbWUYAyABKAgipQEKCVRlbGVt",
+            "ZXRyeRIRCglsb25naXR1ZGUYASABKAESEAoIbGF0aXR1ZGUYAiABKAESEAoI",
+            "YWx0aXR1ZGUYAyABKAISEgoKc2F0ZWxsaXRlcxgEIAEoBRINCgV2ZWxfeBgF",
+            "IAEoAhINCgV2ZWxfeRgGIAEoAhINCgV2ZWxfehgJIAEoAhIPCgdhY2NlbF94",
+            "GAcgASgCEg8KB2FjY2VsX3kYCCABKAIiIAoNRmxpZ2h0QW5vbWFseRIPCgdh",
+            "bm9tYWx5GAEgAygJIiwKCEFDRUVycm9yEhEKCXRpbWVzdGFtcBgBIAEoCRIN",
+            "CgVlcnJvchgCIAEoCSLjAgoNTWlzc2lvblN0YXR1cxIzCg1taXNzaW9uX3N0",
+            "YWdlGAEgASgOMhwucGJkcm9uZS5NaXNzaW9uU3RhdHVzLlN0YWdlEhEKCWFj",
+            "dGl2YXRlZBgCIAEoCBITCgtpbl9wcm9ncmVzcxgDIAEoCBIWCg5sYXN0X2xv",
+            "bmdpdHVkZRgEIAEoARIVCg1sYXN0X2xhdGl0dWRlGAUgASgBEhUKDWxhc3Rf",
+            "YWx0aXR1ZGUYBiABKAISCwoDbG9nGAcgASgJEg4KBmVycm9ycxgIIAEoCBIk",
+            "CgdyZXN1bHRzGAkgAygLMhMucGJkcm9uZS5BcmVhUmVzdWx0ImwKBVN0YWdl",
+            "EhEKDU5PVF9BQ1RJVkFURUQQABIJCgVSRUFEWRABEgsKB0VOUk9VVEUQAhIN",
+            "CglFWEVDVVRJTkcQAxINCglSRVRVUk5JTkcQBBIMCghPVkVSUklERRAFEgwK",
+            "CENPTVBMRVRFEAYiigEKDU1pc3Npb25Db25maWcSGgoSdHJlYXRtZW50X2R1",
+            "cmF0aW9uGAEgASgFEhgKEGZseV90aHJvdWdoX21vZGUYAiABKAgSGAoQc2Vs",
+            "ZWN0ZWRfcGF5bG9hZBgDIAEoBRIaChJhdmFpbGFibGVfcGF5bG9hZHMYBCAD",
+            "KAkSDQoFYXJlYXMYBSADKAUiSAoPQ29tbWFuZFJlc3BvbnNlEg8KB2NvbW1h",
+            "bmQYASABKAkSEgoKc3VjY2Vzc2Z1bBgCIAEoCBIQCghyZXNwb25zZRgDIAEo",
+            "CSKCAQoKQXJlYVJlc3VsdBIOCgZhcmVhSUQYASABKAUSKgoGc3RhdHVzGAIg",
+            "ASgOMhoucGJkcm9uZS5BcmVhUmVzdWx0LlN0YXR1cyI4CgZTdGF0dXMSDwoL",
+            "Tk9UX1NUQVJURUQQABIPCgtJTl9QUk9HUkVTUxABEgwKCEZJTklTSEVEEAJi",
+            "BnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Heartbeat), global::Pbdrone.Heartbeat.Parser, new[]{ "Arrhythmia" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.InterfaceStatus), global::Pbdrone.InterfaceStatus.Parser, new[]{ "InterfaceState", "FailureType", "FailureOutput", "ActiveMode" }, null, new[]{ typeof(global::Pbdrone.InterfaceStatus.Types.State), typeof(global::Pbdrone.InterfaceStatus.Types.FailState) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.FlightStatus), global::Pbdrone.FlightStatus.Parser, new[]{ "FlightState" }, null, new[]{ typeof(global::Pbdrone.FlightStatus.Types.State) }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ControlDevice), global::Pbdrone.ControlDevice.Parser, new[]{ "ControlDevice_" }, null, new[]{ typeof(global::Pbdrone.ControlDevice.Types.Device) }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Telemetry), global::Pbdrone.Telemetry.Parser, new[]{ "Longitude", "Latitude", "Altitude", "Satellites", "VelX", "VelY", "AccelX", "AccelY" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ControlDevice), global::Pbdrone.ControlDevice.Parser, new[]{ "AutoMode", "ReturnToHome" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Telemetry), global::Pbdrone.Telemetry.Parser, new[]{ "Longitude", "Latitude", "Altitude", "Satellites", "VelX", "VelY", "VelZ", "AccelX", "AccelY" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.FlightAnomaly), global::Pbdrone.FlightAnomaly.Parser, new[]{ "Anomaly" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ACEError), global::Pbdrone.ACEError.Parser, new[]{ "Timestamp", "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionStatus), global::Pbdrone.MissionStatus.Parser, new[]{ "MissionStage", "Activated", "InProgress", "LastLongitude", "LastLatitude", "LastAltitude", "Log", "Errors", "Results" }, null, new[]{ typeof(global::Pbdrone.MissionStatus.Types.Stage) }, null, null),
@@ -621,7 +621,8 @@ namespace Pbdrone {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ControlDevice(ControlDevice other) : this() {
-      controlDevice_ = other.controlDevice_;
+      autoMode_ = other.autoMode_;
+      returnToHome_ = other.returnToHome_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -630,14 +631,25 @@ namespace Pbdrone {
       return new ControlDevice(this);
     }
 
-    /// <summary>Field number for the "control_device" field.</summary>
-    public const int ControlDevice_FieldNumber = 1;
-    private global::Pbdrone.ControlDevice.Types.Device controlDevice_ = global::Pbdrone.ControlDevice.Types.Device.Rc;
+    /// <summary>Field number for the "auto_mode" field.</summary>
+    public const int AutoModeFieldNumber = 2;
+    private bool autoMode_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Pbdrone.ControlDevice.Types.Device ControlDevice_ {
-      get { return controlDevice_; }
+    public bool AutoMode {
+      get { return autoMode_; }
       set {
-        controlDevice_ = value;
+        autoMode_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "return_to_home" field.</summary>
+    public const int ReturnToHomeFieldNumber = 3;
+    private bool returnToHome_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool ReturnToHome {
+      get { return returnToHome_; }
+      set {
+        returnToHome_ = value;
       }
     }
 
@@ -654,14 +666,16 @@ namespace Pbdrone {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (ControlDevice_ != other.ControlDevice_) return false;
+      if (AutoMode != other.AutoMode) return false;
+      if (ReturnToHome != other.ReturnToHome) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (ControlDevice_ != global::Pbdrone.ControlDevice.Types.Device.Rc) hash ^= ControlDevice_.GetHashCode();
+      if (AutoMode != false) hash ^= AutoMode.GetHashCode();
+      if (ReturnToHome != false) hash ^= ReturnToHome.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -675,9 +689,13 @@ namespace Pbdrone {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (ControlDevice_ != global::Pbdrone.ControlDevice.Types.Device.Rc) {
-        output.WriteRawTag(8);
-        output.WriteEnum((int) ControlDevice_);
+      if (AutoMode != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(AutoMode);
+      }
+      if (ReturnToHome != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(ReturnToHome);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -687,8 +705,11 @@ namespace Pbdrone {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (ControlDevice_ != global::Pbdrone.ControlDevice.Types.Device.Rc) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ControlDevice_);
+      if (AutoMode != false) {
+        size += 1 + 1;
+      }
+      if (ReturnToHome != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -701,8 +722,11 @@ namespace Pbdrone {
       if (other == null) {
         return;
       }
-      if (other.ControlDevice_ != global::Pbdrone.ControlDevice.Types.Device.Rc) {
-        ControlDevice_ = other.ControlDevice_;
+      if (other.AutoMode != false) {
+        AutoMode = other.AutoMode;
+      }
+      if (other.ReturnToHome != false) {
+        ReturnToHome = other.ReturnToHome;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -715,26 +739,17 @@ namespace Pbdrone {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 8: {
-            ControlDevice_ = (global::Pbdrone.ControlDevice.Types.Device) input.ReadEnum();
+          case 16: {
+            AutoMode = input.ReadBool();
+            break;
+          }
+          case 24: {
+            ReturnToHome = input.ReadBool();
             break;
           }
         }
       }
     }
-
-    #region Nested types
-    /// <summary>Container for nested types declared in the ControlDevice message type.</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static partial class Types {
-      public enum Device {
-        [pbr::OriginalName("RC")] Rc = 0,
-        [pbr::OriginalName("MSDK")] Msdk = 1,
-        [pbr::OriginalName("OSDK")] Osdk = 2,
-      }
-
-    }
-    #endregion
 
   }
 
@@ -772,6 +787,7 @@ namespace Pbdrone {
       satellites_ = other.satellites_;
       velX_ = other.velX_;
       velY_ = other.velY_;
+      velZ_ = other.velZ_;
       accelX_ = other.accelX_;
       accelY_ = other.accelY_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -848,6 +864,17 @@ namespace Pbdrone {
       }
     }
 
+    /// <summary>Field number for the "vel_z" field.</summary>
+    public const int VelZFieldNumber = 9;
+    private float velZ_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public float VelZ {
+      get { return velZ_; }
+      set {
+        velZ_ = value;
+      }
+    }
+
     /// <summary>Field number for the "accel_x" field.</summary>
     public const int AccelXFieldNumber = 7;
     private float accelX_;
@@ -889,6 +916,7 @@ namespace Pbdrone {
       if (Satellites != other.Satellites) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(VelX, other.VelX)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(VelY, other.VelY)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(VelZ, other.VelZ)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(AccelX, other.AccelX)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(AccelY, other.AccelY)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -903,6 +931,7 @@ namespace Pbdrone {
       if (Satellites != 0) hash ^= Satellites.GetHashCode();
       if (VelX != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(VelX);
       if (VelY != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(VelY);
+      if (VelZ != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(VelZ);
       if (AccelX != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(AccelX);
       if (AccelY != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(AccelY);
       if (_unknownFields != null) {
@@ -950,6 +979,10 @@ namespace Pbdrone {
         output.WriteRawTag(69);
         output.WriteFloat(AccelY);
       }
+      if (VelZ != 0F) {
+        output.WriteRawTag(77);
+        output.WriteFloat(VelZ);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -974,6 +1007,9 @@ namespace Pbdrone {
         size += 1 + 4;
       }
       if (VelY != 0F) {
+        size += 1 + 4;
+      }
+      if (VelZ != 0F) {
         size += 1 + 4;
       }
       if (AccelX != 0F) {
@@ -1010,6 +1046,9 @@ namespace Pbdrone {
       }
       if (other.VelY != 0F) {
         VelY = other.VelY;
+      }
+      if (other.VelZ != 0F) {
+        VelZ = other.VelZ;
       }
       if (other.AccelX != 0F) {
         AccelX = other.AccelX;
@@ -1058,6 +1097,10 @@ namespace Pbdrone {
           }
           case 69: {
             AccelY = input.ReadFloat();
+            break;
+          }
+          case 77: {
+            VelZ = input.ReadFloat();
             break;
           }
         }

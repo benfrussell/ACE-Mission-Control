@@ -117,7 +117,8 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         // Save the last enabled state so we can put enabled back into the user's preffered state if they fix the CanBeEnabled problem
-        private bool lastEnabledState;
+        // Starts as null and will only save the state after being enabled for the first time
+        private bool? lastEnabledState;
 
         public TreatmentInstruction(AreaScanPolygon treatmentArea)
         {
@@ -127,7 +128,7 @@ namespace ACE_Mission_Control.Core.Models
             Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
 
             Enabled = true;
-            lastEnabledState = true;
+            lastEnabledState = null;
 
             RevalidateTreatmentRoute();
         }
@@ -161,7 +162,8 @@ namespace ACE_Mission_Control.Core.Models
             if (selectedInterceptRoute == null)
             {
                 CanBeEnabled = false;
-                lastEnabledState = Enabled;
+                if (lastEnabledState != null)
+                    lastEnabledState = Enabled;
                 Enabled = false;
             }
             else
@@ -169,7 +171,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (CanBeEnabled == false)
                 {
                     CanBeEnabled = true;
-                    Enabled = lastEnabledState;
+                    Enabled = lastEnabledState ?? true;
                 }
             }
 

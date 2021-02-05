@@ -243,7 +243,7 @@ namespace ACE_Mission_Control.Core.Models
             // test
             // LastPosition = new Coordinate(-1.32579946805, 0.791221070472);
 
-            StartParameters.UpdateAvailableModes(null, DroneHasProgress);
+            StartParameters.UpdateAvailableModes(null, LastPosition != null);
         }
 
         private void TreatmentInstructions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -290,7 +290,7 @@ namespace ACE_Mission_Control.Core.Models
                 InstructionUpdated?.Invoke(this, updatedInstructions);
             }   
 
-            if (newStatus.LastLongitude != 0 || newStatus.LastLatitude != 0)
+            if (DroneHasProgress && newStatus.LastLongitude != 0 && newStatus.LastLatitude != 0)
             {
                 LastPosition = new Coordinate(
                   (newStatus.LastLongitude / 180) * Math.PI,
@@ -303,15 +303,15 @@ namespace ACE_Mission_Control.Core.Models
                 else
                     SetStartTreatmentMode(StartTreatmentParameters.Modes.FirstEntry);
             }
-            else
+            else if (!MissionControlHasProgress)
             {
-                // If we were on lastposition mode, but no last long or lat was provided, switch back to first entry
+                // If we were on lastposition mode and we don't know about any progress AND but no last long or lat was provided, switch back to first entry
                 if (StartParameters.SelectedMode == StartTreatmentParameters.Modes.LastPositionContinued)
                     SetStartTreatmentMode(StartTreatmentParameters.Modes.FirstEntry);
                 LastPosition = null;
             }
 
-            StartParameters.UpdateAvailableModes(GetNextInstruction(), DroneHasProgress);
+            StartParameters.UpdateAvailableModes(GetNextInstruction(), LastPosition != null);
             UpdateStartCoordinate();
         }
 
@@ -333,7 +333,6 @@ namespace ACE_Mission_Control.Core.Models
         public void UpdateMissionConfig(MissionConfig newConfig)
         {
             FlyThroughMode = newConfig.FlyThroughMode;
-            System.Diagnostics.Debug.WriteLine($"Duration: {newConfig.TreatmentDuration}");
             TreatmentDuration = newConfig.TreatmentDuration;
             AvailablePayloads = newConfig.AvailablePayloads.ToList();
             SelectedPayload = newConfig.SelectedPayload;
@@ -356,8 +355,21 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (MissionControlHasProgress)
             {
+                // We may null last position, so reset to the default mode
+                SetStartTreatmentMode(StartTreatmentParameters.Modes.FirstEntry);
+
+                var updatedInstructions = new InstructionsUpdatedEventArgs();
                 foreach (TreatmentInstruction instruction in TreatmentInstructions)
-                    instruction.AreaStatus = AreaResult.Types.Status.NotStarted;
+                {
+                    if (instruction.AreaStatus != AreaResult.Types.Status.NotStarted)
+                    {
+                        instruction.AreaStatus = AreaResult.Types.Status.NotStarted;
+                        updatedInstructions.Instructions.Add(instruction);
+                    }
+                }
+                LastPosition = null;
+                if (updatedInstructions.Instructions.Count > 0)
+                    InstructionUpdated?.Invoke(this, updatedInstructions);
             }
 
             if (DroneHasProgress && CanBeModified && MissionSet)
@@ -546,7 +558,7 @@ namespace ACE_Mission_Control.Core.Models
             }
                 
 
-            StartParameters.UpdateAvailableModes(GetNextInstruction(), DroneHasProgress);
+            StartParameters.UpdateAvailableModes(GetNextInstruction(), LastPosition != null);
             UpdateStartCoordinate();
 
             if (updatedInstructions.Instructions.Count > 0)

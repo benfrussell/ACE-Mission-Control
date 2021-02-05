@@ -83,7 +83,11 @@ namespace ACE_Mission_Control.Core.Models
 
         public void SetStartParameters(Coordinate coordinate, bool stopAndTurnMode)
         {
-            bool anyChanges = StartCoordinate == null || coordinate.X != StartCoordinate.X || coordinate.Y != StartCoordinate.Y || stopAndTurnMode != StopAndTurn;
+            bool anyChanges = 
+                StartCoordinate == null || 
+                (coordinate.X != StartCoordinate.X || coordinate.Y != StartCoordinate.Y) || 
+                stopAndTurnMode != StopAndTurn;
+            
             StartCoordinate = coordinate;
             StopAndTurn = stopAndTurnMode;
 

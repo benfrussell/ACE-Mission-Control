@@ -338,6 +338,9 @@ namespace ACE_Mission_Control.Core.Models
                         if (!Mission.StartParameters.StopAndTurn)
                             uploadCmd += " -fly_through";
 
+                        if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)
+                            uploadCmd += " -in_progress";
+
                         SendCommand(uploadCmd);
                         firstCmd = false;
                         continue;
@@ -351,6 +354,9 @@ namespace ACE_Mission_Control.Core.Models
 
                     if (!Mission.StartParameters.StopAndTurn)
                         areaCmd += " -fly_through";
+
+                    if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)
+                        areaCmd += " -in_progress";
 
                     SendCommand(areaCmd);
                 }

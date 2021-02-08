@@ -19,6 +19,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Notifications;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -133,6 +135,33 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private SolidColorBrush _startModeBorderColour;
+        public SolidColorBrush StartModeBorderColour
+        {
+            get { return _startModeBorderColour; }
+            set
+            {
+                if (_startModeBorderColour == value)
+                    return;
+                _startModeBorderColour = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool startModeError;
+        public bool StartModeError
+        {
+            get { return startModeError; }
+            set
+            {
+                if (startModeError == value)
+                    return;
+                startModeError = value;
+                RaisePropertyChanged();
+            }
+        }
+
+
         private ObservableCollection<MapLayer> mapLayers;
         public ObservableCollection<MapLayer> MapLayers
         {
@@ -160,14 +189,17 @@ namespace ACE_Mission_Control.ViewModels
         }
 
         private bool suppressPayloadCommand;
+        private bool startModeErrorNotificationSent;
 
         public PlannerViewModel()
         {
-            TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+            TreatmentDurationBorderColour = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+            StartModeBorderColour = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
             MapLayers = new ObservableCollection<MapLayer>();
             MapLayers.Add(new MapElementsLayer());
             MapLayers.Add(new MapElementsLayer());
             suppressPayloadCommand = false;
+            startModeErrorNotificationSent = false;
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -178,10 +210,9 @@ namespace ACE_Mission_Control.ViewModels
 
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             AttachedDrone.Mission.InstructionUpdated += Mission_InstructionUpdated;
-            AttachedDrone.Mission.StartParameters.StartModeChangedEvent += StartParameters_StartModeChangedEvent;
-            AttachedDrone.Mission.StartParameters.StartParametersChangedEvent += StartParameters_StartParametersChangedEvent;
+            AttachedDrone.Mission.StartParametersChangedEvent += Mission_StartParametersChangedEvent;
 
-            SelectedStartMode = AttachedDrone.Mission.StartParameters.SelectedModeInt;
+            SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
 
             if (AttachedDrone.Mission.Activated)
                 MissionActivatedText = "Planner_DeactivateButton".GetLocalized();
@@ -189,20 +220,12 @@ namespace ACE_Mission_Control.ViewModels
                 MissionActivatedText = "Planner_ActivateButton".GetLocalized();
         }
 
-        private async void StartParameters_StartModeChangedEvent(object sender, EventArgs e)
-        {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                SelectedStartMode = AttachedDrone.Mission.StartParameters.SelectedModeInt;
-                UpdatePlannerMapPoints();
-            });
-        }
-
-        private async void StartParameters_StartParametersChangedEvent(object sender, EventArgs e)
+        private async void Mission_StartParametersChangedEvent(object sender, EventArgs e)
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
                 UpdatePlannerMapPoints();
+                CheckStartModeError();
             });
         }
 
@@ -237,6 +260,10 @@ namespace ACE_Mission_Control.ViewModels
                     case "AvailablePayloads":
                         RaisePropertyChanged("AvailablePayloads");
                         break;
+                    case "StartMode":
+                        SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
+                        CheckStartModeError();
+                        break;
                 }
             });
         }
@@ -269,6 +296,45 @@ namespace ACE_Mission_Control.ViewModels
 
             UpdatePlannerMapPoints();
             UpdatePlannerMapAreas();
+            CheckStartModeError();
+        }
+
+        private void CheckStartModeError()
+        {
+            if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.Flythrough)
+            {
+                var nextInstruction = AttachedDrone.Mission.GetNextInstruction();
+                var startPosition = AttachedDrone.Mission.GetStartCoordinate();
+
+                // 7.5 metres is the hardcoded buffer for triggering entry in the drone 
+                if (!nextInstruction.TreatmentRoute.DoesRoutePassCoordinate(startPosition, 7.5f))
+                {
+                    StartModeError = true;
+                    StartModeBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
+
+                    if (!startModeErrorNotificationSent & !Window.Current.Visible)
+                    {
+                        // Construct the content
+                        var content = new ToastContentBuilder()
+                            .AddText("Planner_FlythroughErrorNotification_Title".GetLocalized())
+                            .AddText(string.Format("Planner_FlythroughErrorNotification_Content".GetLocalized(), AttachedDrone.Name))
+                            .GetToastContent();
+
+                        // Create the notification
+                        var notif = new ToastNotification(content.GetXml());
+
+                        // And show it!
+                        ToastNotificationManager.CreateToastNotifier().Show(notif);
+                        startModeErrorNotificationSent = true;
+                    }
+
+                    return;
+                }
+            }
+
+            StartModeError = false;
+            StartModeBorderColour = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+            startModeErrorNotificationSent = false;
         }
 
         public RelayCommand<ComboBox> WaypointRouteComboBox_SelectionChangedCommand => new RelayCommand<ComboBox>(args => WaypointRouteComboBox_SelectionChanged(args));
@@ -290,8 +356,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.Mission.InstructionUpdated -= Mission_InstructionUpdated;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
-            AttachedDrone.Mission.StartParameters.StartModeChangedEvent -= StartParameters_StartModeChangedEvent;
-            AttachedDrone.Mission.StartParameters.StartParametersChangedEvent -= StartParameters_StartParametersChangedEvent;
+            AttachedDrone.Mission.StartParametersChangedEvent -= Mission_StartParametersChangedEvent;
         }
 
         private bool isTreatmentDurationValid(string durationString)
@@ -343,9 +408,8 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand<ComboBoxItem> StartModeSelectionCommand => new RelayCommand<ComboBoxItem>((args) => startModeSelectionCommand(args));
         private void startModeSelectionCommand(ComboBoxItem item)
         {
-            var selectedMode = (StartTreatmentParameters.Modes)item.Tag;
-            if (selectedMode != AttachedDrone.Mission.StartParameters.SelectedMode)
-                AttachedDrone.Mission.SetStartTreatmentMode(selectedMode);
+            var selectedMode = (StartTreatmentParameters.Mode)item.Tag;
+            AttachedDrone.Mission.StartMode = selectedMode;
         }
 
         // -- Map Functions
@@ -435,7 +499,7 @@ namespace ACE_Mission_Control.ViewModels
             var nextInstructions = AttachedDrone.Mission.GetRemainingInstructions();
 
             // Add a MapIcon for each waypoint in the first instruction's route if in SelectedWaypoint mode
-            if (AttachedDrone.Mission.StartParameters.SelectedMode == StartTreatmentParameters.Modes.SelectedWaypoint)
+            if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.SelectedWaypoint)
             {
                 var firstInstruction = AttachedDrone.Mission.GetNextInstruction();
                 foreach (Waypoint idCoord in firstInstruction.TreatmentRoute.Waypoints)
@@ -474,7 +538,7 @@ namespace ACE_Mission_Control.ViewModels
 
                 if (isFirstInstruction)
                 {
-                    var startCoord = AttachedDrone.Mission.StartParameters.StartCoordinate;
+                    var startCoord = AttachedDrone.Mission.GetStartCoordinate();
                     startIcon.Location = CoordToGeopoint(startCoord.X, startCoord.Y);
                 }
                 else
@@ -497,7 +561,7 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand<MapElementClickEventArgs> MapElementClickedCommand => new RelayCommand<MapElementClickEventArgs>((args) => mapElementClickedCommand(args));
         private void mapElementClickedCommand(MapElementClickEventArgs args)
         {
-            if (AttachedDrone.Mission.StartParameters.SelectedMode != StartTreatmentParameters.Modes.SelectedWaypoint)
+            if (AttachedDrone.Mission.StartMode != StartTreatmentParameters.Mode.SelectedWaypoint)
                 return;
 
             foreach (MapElement element in args.MapElements)
@@ -505,7 +569,7 @@ namespace ACE_Mission_Control.ViewModels
                 if (args.MapElements[0].Tag == null)
                     continue;
 
-                AttachedDrone.Mission.SetSelectedWaypoint(args.MapElements[0].Tag as string);
+                AttachedDrone.Mission.SetSelectedStartWaypoint(args.MapElements[0].Tag as string);
                 break;
             }
             

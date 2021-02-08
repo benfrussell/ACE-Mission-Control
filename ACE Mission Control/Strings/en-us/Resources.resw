@@ -326,29 +326,27 @@
     <value>Treatment Start Mode</value>
   </data>
   <data name="Planner_StartModeItem_FirstEntry.Text" xml:space="preserve">
-    <value>Start at first entry</value>
+    <value>First Entry</value>
   </data>
   <data name="Planner_StartModeItem_FirstEntryTooltip.Text" xml:space="preserve">
     <value>When set, the drone will start treating as soon as it enters the treatment area.</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionContinued.Text" xml:space="preserve">
-    <value>Start at last position using continue mission</value>
+  <data name="Planner_StartModeItem_ContinueMission.Text" xml:space="preserve">
+    <value>Continue Mission</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionContinuedTooltip.Text" xml:space="preserve">
+  <data name="Planner_StartModeItem_ContinueMissionTooltip.Text" xml:space="preserve">
     <value>When set, the drone will start treating in the treatment area after stopping and starting at it's last position.
 
-This mode is compatible with the UGCS continue mission function.</value>
+This mode expects that you will use the UGCS continue mission function.</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionWaypoint.Text" xml:space="preserve">
-    <value>Start at last position using waypoint</value>
+  <data name="Planner_StartModeItem_InsertWaypoint.Text" xml:space="preserve">
+    <value>Insert Waypoint</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionWaypointTooltip.Text" xml:space="preserve">
-    <value>When set, the drone will start treating in the treatment area after it passes a waypoint placed at it's last position.
-
-This mode will automatically place a waypoint at the drone's last position for you.</value>
+  <data name="Planner_StartModeItem_InsertWaypointTooltip.Text" xml:space="preserve">
+    <value>When set, the drone will start treating in the treatment area at a waypoint automatically inserted at it's last position.</value>
   </data>
   <data name="Planner_StartModeItem_SelectedWaypoint.Text" xml:space="preserve">
-    <value>Start at selected waypoint</value>
+    <value>Selected Waypoint</value>
   </data>
   <data name="Planner_StartModeItem_SelectedWaypointTooltip.Text" xml:space="preserve">
     <value>When set, the drone will start treating in the treatment area after it passes the selected waypoint.</value>
@@ -403,5 +401,20 @@ This mode will automatically place a waypoint at the drone's last position for y
   </data>
   <data name="Mission_SynchronizeButton.Content" xml:space="preserve">
     <value>Synchronize</value>
+  </data>
+  <data name="Planner_FlythoughErrorFlyout.Text" xml:space="preserve">
+    <value>The route does not fly through the last position. The payload will not start!</value>
+  </data>
+  <data name="Planner_FlythroughErrorNotification_Content" xml:space="preserve">
+    <value>The start mode for {0} is set to Flythrough, but the route does not pass the last position. The payload will not start!</value>
+  </data>
+  <data name="Planner_FlythroughErrorNotification_Title" xml:space="preserve">
+    <value>ACE Mission Control: Flythough Error</value>
+  </data>
+  <data name="Planner_StartModeItem_Flythrough.Text" xml:space="preserve">
+    <value>Flythrough</value>
+  </data>
+  <data name="Planner_StartModeItem_FlythroughTooltip.Text" xml:space="preserve">
+    <value>When set, the drone will start treating after flying through it's last position.</value>
   </data>
 </root>

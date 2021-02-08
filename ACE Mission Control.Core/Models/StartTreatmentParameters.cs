@@ -2,50 +2,43 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Pbdrone;
+using System.Linq;
 
 namespace ACE_Mission_Control.Core.Models
 {
     public class StartTreatmentParameters
     {
-        public enum Modes
+        public enum Mode
         {
             FirstEntry = 0,
             SelectedWaypoint = 1,
-            LastPositionWaypoint = 2,
-            LastPositionContinued = 3
+            InsertWaypoint = 2,
+            ContinueMission = 3,
+            Flythrough = 4,
+            NotUsed = 5
         }
 
-        public event EventHandler<EventArgs> StartParametersChangedEvent;
+        public event EventHandler<EventArgs> SelectedModeChangedEvent;
 
-        public event EventHandler<EventArgs> StartModeChangedEvent;
-
-        private Modes selectedMode;
-
-        public Modes SelectedMode 
-        { 
+        private Mode selectedMode;
+        public Mode SelectedMode
+        {
             get => selectedMode;
             set
             {
                 if (value == selectedMode)
                     return;
                 selectedMode = value;
-                StartModeChangedEvent?.Invoke(this, new EventArgs());
+                SelectedModeChangedEvent?.Invoke(this, new EventArgs());
             }
         }
 
-        public int SelectedModeInt { get => (int)SelectedMode; }
+        private Mode defaultNoProgressMode;
+        public Mode DefaultNoProgressMode { get => defaultNoProgressMode; set => defaultNoProgressMode = value; }
 
-        private bool firstEntryModeAvailable;
-        public bool FirstEntryModeAvailable { get => firstEntryModeAvailable; private set => firstEntryModeAvailable = value; }
-
-        private bool selectedWaypointModeAvailable;
-        public bool SelectedWaypointModeAvailable { get => selectedWaypointModeAvailable; private set => selectedWaypointModeAvailable = value; }
-
-        private bool lastPositionWaypointModeAvailable;
-        public bool LastPositionWaypointModeAvailable { get => lastPositionWaypointModeAvailable; private set => lastPositionWaypointModeAvailable = value; }
-
-        private bool lastPositionContinuedModeAvailable;
-        public bool LastPositionContinuedModeAvailable { get => lastPositionContinuedModeAvailable; private set => lastPositionContinuedModeAvailable = value; }
+        private Mode defaultProgressMode;
+        public Mode DefaultProgressMode { get => defaultProgressMode; set => defaultProgressMode = value; }
 
         private Coordinate startCoordinate;
         public Coordinate StartCoordinate
@@ -67,32 +60,144 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        // Only store the ID of the coordinate because we should search and confirm it still exists everytime we need to use it
+        public string BoundStartWaypointID;
+
         public StartTreatmentParameters()
         {
-            SelectedMode = Modes.FirstEntry;
+            DefaultNoProgressMode = Mode.FirstEntry;
+            DefaultProgressMode = Mode.Flythrough;
+
+            SelectedMode = DefaultNoProgressMode;
             StopAndTurn = false;
         }
 
-        public void UpdateAvailableModes(TreatmentInstruction nextInstruction, bool missionHasProgress)
+        // Returns True for any changes, False for no changes
+        public bool UpdateParameters(TreatmentInstruction nextInstruction, Coordinate lastPosition, bool justReturned)
         {
-            FirstEntryModeAvailable = nextInstruction == null || nextInstruction.HasValidTreatmentRoute();
-            SelectedWaypointModeAvailable = nextInstruction == null || nextInstruction.HasValidTreatmentRoute();
-            LastPositionWaypointModeAvailable = false; // missionHasProgress;
-            LastPositionContinuedModeAvailable = missionHasProgress;
+            bool inProgress = nextInstruction != null && lastPosition != null && nextInstruction.AreaStatus == AreaResult.Types.Status.InProgress;
+
+            UpdateMode(inProgress, justReturned);
+
+            var originalStart = StartCoordinate?.Copy();
+            var originalTurnMode = StopAndTurn;
+
+            // Update the parameters based on mode
+
+            switch (SelectedMode)
+            {
+                case Mode.FirstEntry:
+                    StartCoordinate = nextInstruction.AreaEntryCoordinate;
+                    StopAndTurn = false;
+                    break;
+                case Mode.SelectedWaypoint:
+                    SetStartCoordToBoundWaypoint(nextInstruction);
+                    break;
+                case Mode.InsertWaypoint:
+                    if (BoundStartWaypointID == null)
+                    {
+                        CreateWaypointAndSetStartCoord(nextInstruction, lastPosition);
+                    }
+                    else
+                    {
+                        var boundWaypoint = nextInstruction.TreatmentRoute.Waypoints.FirstOrDefault(p => p.ID == BoundStartWaypointID);
+                        if (boundWaypoint == null)
+                        {
+                            CreateWaypointAndSetStartCoord(nextInstruction, lastPosition);
+                        }
+                        else
+                        {
+                            if (WaypointRoute.IsCoordinateInArea(boundWaypoint, lastPosition, nextInstruction.Swath))
+                            {
+                                StartCoordinate = boundWaypoint.Coordinate;
+                                StopAndTurn = boundWaypoint.TurnType == "STOP_AND_TURN";
+                            } 
+                            else
+                            {
+                                CreateWaypointAndSetStartCoord(nextInstruction, lastPosition);
+                            }
+                        }
+                    }
+                    break;
+                case Mode.ContinueMission:
+                    StartCoordinate = lastPosition;
+                    StopAndTurn = true;
+                    break;
+                case Mode.Flythrough:
+                    StartCoordinate = lastPosition;
+                    StopAndTurn = false;
+                    break;
+            }
+
+            bool anyChanges =
+                StartCoordinate == null ||
+                (originalStart == null || originalStart.X != StartCoordinate.X || originalStart.Y != StartCoordinate.Y) ||
+                originalTurnMode != StopAndTurn;
+
+            return anyChanges;
         }
 
-        public void SetStartParameters(Coordinate coordinate, bool stopAndTurnMode)
+        // Returns True for any changes, False for no changes
+        public void SetSelectedWaypoint(string waypointID, TreatmentInstruction nextInstruction)
         {
-            bool anyChanges = 
-                StartCoordinate == null || 
-                (coordinate.X != StartCoordinate.X || coordinate.Y != StartCoordinate.Y) || 
-                stopAndTurnMode != StopAndTurn;
-            
-            StartCoordinate = coordinate;
-            StopAndTurn = stopAndTurnMode;
+            BoundStartWaypointID = waypointID;
+            SetStartCoordToBoundWaypoint(nextInstruction);
+        }
 
-            if (anyChanges)
-                StartParametersChangedEvent?.Invoke(this, new EventArgs());
+        private bool DoesModeRequireProgress(Mode mode)
+        {
+            return mode == Mode.InsertWaypoint || mode == Mode.ContinueMission || mode == Mode.Flythrough;
+        }
+
+        // Applies any valid default and ensures the current mode is valid
+        private void UpdateMode(bool inProgress, bool justReturned)
+        {
+            if (inProgress)
+            {
+                if (justReturned && DefaultProgressMode != Mode.NotUsed)
+                    SelectedMode = DefaultProgressMode;
+            }
+            else
+            {
+                if (DoesModeRequireProgress(SelectedMode))
+                {
+                    if (DefaultNoProgressMode != Mode.NotUsed)
+                        SelectedMode = DefaultNoProgressMode;
+                    else
+                        SelectedMode = Mode.FirstEntry;
+                }
+            }
+        }
+
+        private async void CreateWaypointAndSetStartCoord(TreatmentInstruction instruction, Coordinate position)
+        {
+            var preceedingWaypoint = instruction.TreatmentRoute.FindWaypointPreceedingCoordinate(position, instruction.Swath);
+            if (preceedingWaypoint == null)
+                return;
+            var newWaypoint = await UGCSClient.InsertWaypointAlongRoute(instruction.TreatmentRoute.Id, preceedingWaypoint.ID, position.X, position.Y);
+
+            BoundStartWaypointID = newWaypoint.ID;
+
+            StartCoordinate = newWaypoint.Coordinate; 
+            StopAndTurn = newWaypoint.TurnType == "STOP_AND_TURN";
+        }
+
+        private void SetStartCoordToBoundWaypoint(TreatmentInstruction instruction)
+        {
+            var waypoints = instruction.TreatmentRoute.Waypoints;
+            var boundCoord = waypoints.FirstOrDefault(p => p.ID == BoundStartWaypointID);
+
+            if (boundCoord != null)
+            {
+                StartCoordinate = boundCoord.Coordinate;
+                StopAndTurn = boundCoord.TurnType == "STOP_AND_TURN";
+            }
+            else
+            {
+                BoundStartWaypointID = waypoints.First().ID;
+                StartCoordinate = waypoints.First().Coordinate;
+                StopAndTurn = waypoints.First().TurnType == "STOP_AND_TURN";
+            }
         }
     }
 }

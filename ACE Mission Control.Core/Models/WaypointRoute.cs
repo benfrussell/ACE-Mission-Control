@@ -138,6 +138,13 @@ namespace ACE_Mission_Control.Core.Models
             return null;
         }
 
+        public bool DoesRoutePassCoordinate(Coordinate coord, float bufferMetres)
+        {
+            var preceedingWaypoint = FindWaypointPreceedingCoordinate(coord, bufferMetres);
+            // If it has a preceeding waypoint, then the route does pass through the waypoint
+            return preceedingWaypoint != null;
+        }
+
         public IEnumerable<LineSegment> GetLineSegments()
         {
             for (int i = 0; i < NumPoints - 1; i++)

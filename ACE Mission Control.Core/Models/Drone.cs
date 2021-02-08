@@ -169,7 +169,7 @@ namespace ACE_Mission_Control.Core.Models
 
             Mission = new Mission(this, OBCClient);
             Mission.PropertyChanged += Mission_PropertyChanged;
-            Mission.StartParameters.StartParametersChangedEvent += StartParameters_StartParametersChangedEvent;
+            Mission.StartParametersChangedEvent += StartParameters_StartParametersChangedEvent;
         }
 
         private void StartParameters_StartParametersChangedEvent(object sender, EventArgs e)
@@ -223,7 +223,7 @@ namespace ACE_Mission_Control.Core.Models
 
             var command = $"set_entry -entry {Mission.GetStartCoordinateString()} -radians";
 
-            if (!Mission.StartParameters.StopAndTurn)
+            if (!Mission.StopAndTurnStartMode)
                 command += " -fly_through";
 
             syncCommandsSent += 1;
@@ -335,7 +335,7 @@ namespace ACE_Mission_Control.Core.Models
                             instruction.GetExitCoordinateString(),
                             instruction.TreatmentPolygon.Id);
 
-                        if (!Mission.StartParameters.StopAndTurn)
+                        if (!Mission.StopAndTurnStartMode)
                             uploadCmd += " -fly_through";
 
                         if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)
@@ -352,7 +352,7 @@ namespace ACE_Mission_Control.Core.Models
                         instruction.GetExitCoordinateString(),
                         instruction.TreatmentPolygon.Id);
 
-                    if (!Mission.StartParameters.StopAndTurn)
+                    if (!Mission.StopAndTurnStartMode)
                         areaCmd += " -fly_through";
 
                     if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)

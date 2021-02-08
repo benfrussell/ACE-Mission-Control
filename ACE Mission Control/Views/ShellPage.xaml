@@ -33,7 +33,7 @@
         IsPaneOpen="True"
         Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
         MenuItemsSource="{x:Bind ViewModel.MenuItems, Mode=OneWay}"
-        OpenPaneLength="200">
+        OpenPaneLength="180">
 
         <winui:NavigationView.PaneFooter>
             <Button Command="{x:Bind ViewModel.RefreshDroneListCommand}"

@@ -10,6 +10,7 @@
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
+    xmlns:behaviors="using:ACE_Mission_Control.Behaviors"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.Resources>
@@ -18,7 +19,7 @@
     </Page.Resources>
     <Grid Background="{ThemeResource SystemChromeLowColor}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition MinWidth="474" />
+            <ColumnDefinition Width="480" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
@@ -224,98 +225,148 @@
                                Foreground="{ThemeResource SystemErrorTextColor}"
                                Margin="16,0,0,0"/>
                 </StackPanel>
-                <StackPanel
-                    Orientation="Vertical">
+                <StackPanel Orientation="Vertical">
                     <TextBlock x:Uid="Planner_SetStartMode"
                                Margin="8,0,8,4"/>
-                    <ComboBox x:Name="StartModeComboBox"
-                              Margin="8,0,8,0"
-                              Width="180"
-                              HorizontalAlignment="Stretch"
-                              SelectedIndex="{x:Bind ViewModel.SelectedStartMode, Mode=OneWay}"
-                              Style="{ThemeResource ACEComboBox}">
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox x:Name="StartModeComboBox"
+                                  Margin="8,0,8,0"
+                                  Width="160"
+                                  HorizontalAlignment="Stretch"
+                                  SelectedIndex="{x:Bind ViewModel.SelectedStartMode, Mode=OneWay}"
+                                  Style="{ThemeResource ACEComboBox}">
 
-                        <ComboBoxItem x:Name="Planner_StartModeItem_FirstEntry"
-                                      IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.StartParameters.FirstEntryModeAvailable, Mode=OneWay}">
-                            <TextBlock x:Uid="Planner_StartModeItem_FirstEntry"/>
-                            <ToolTipService.ToolTip>
-                                <TextBlock x:Uid="Planner_StartModeItem_FirstEntryTooltip"
-                                           TextWrapping="Wrap"/>
-                            </ToolTipService.ToolTip>
+                            <ComboBoxItem x:Name="Planner_StartModeItem_FirstEntry">
+                                <TextBlock x:Uid="Planner_StartModeItem_FirstEntry"/>
+                                <ToolTipService.ToolTip>
+                                    <TextBlock x:Uid="Planner_StartModeItem_FirstEntryTooltip"
+                                               TextWrapping="Wrap"/>
+                                </ToolTipService.ToolTip>
 
-                            <ComboBoxItem.Tag>
-                                <x:Int32>0</x:Int32>
-                            </ComboBoxItem.Tag>
+                                <ComboBoxItem.Tag>
+                                    <x:Int32>0</x:Int32>
+                                </ComboBoxItem.Tag>
+
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Tapped">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                  CommandParameter="{x:Bind Planner_StartModeItem_FirstEntry}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </ComboBoxItem>
+
+                            <ComboBoxItem x:Name="Planner_StartModeItem_SelectedWaypoint">
+                                <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypoint"/>
+                                <ToolTipService.ToolTip>
+                                    <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypointTooltip"
+                                               TextWrapping="Wrap"/>
+                                </ToolTipService.ToolTip>
+
+                                <ComboBoxItem.Tag>
+                                    <x:Int32>1</x:Int32>
+                                </ComboBoxItem.Tag>
+
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Tapped">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                  CommandParameter="{x:Bind Planner_StartModeItem_SelectedWaypoint}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </ComboBoxItem>
+
+                            <ComboBoxItem x:Name="Planner_StartModeItem_InsertWaypoint"
+                                          IsEnabled="False">
+                                <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"/>
+                                <ToolTipService.ToolTip>
+                                    <TextBlock x:Uid="Planner_StartModeItem_InsertWaypointTooltip"
+                                               TextWrapping="Wrap"/>
+                                </ToolTipService.ToolTip>
+
+                                <ComboBoxItem.Tag>
+                                    <x:Int32>2</x:Int32>
+                                </ComboBoxItem.Tag>
+
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Tapped">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                  CommandParameter="{x:Bind Planner_StartModeItem_InsertWaypoint}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </ComboBoxItem>
+
+                            <ComboBoxItem x:Name="Planner_StartModeItem_ContinueMission"
+                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionControlHasProgress, Mode=OneWay}">
+                                <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"/>
+                                <ToolTipService.ToolTip>
+                                    <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
+                                               TextWrapping="Wrap"/>
+                                </ToolTipService.ToolTip>
+
+                                <ComboBoxItem.Tag>
+                                    <x:Int32>3</x:Int32>
+                                </ComboBoxItem.Tag>
+
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Tapped">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                              CommandParameter="{x:Bind Planner_StartModeItem_ContinueMission}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </ComboBoxItem>
+
+                            <ComboBoxItem x:Name="Planner_StartModeItem_Flythrough"
+                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionControlHasProgress, Mode=OneWay}">
+                                <TextBlock x:Uid="Planner_StartModeItem_Flythrough"/>
+                                <ToolTipService.ToolTip>
+                                    <TextBlock x:Uid="Planner_StartModeItem_FlythroughTooltip"
+                                               TextWrapping="Wrap"/>
+                                </ToolTipService.ToolTip>
+
+                                <ComboBoxItem.Tag>
+                                    <x:Int32>4</x:Int32>
+                                </ComboBoxItem.Tag>
+
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Tapped">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                  CommandParameter="{x:Bind Planner_StartModeItem_Flythrough}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </ComboBoxItem>
+
+                        </ComboBox>
+
+                        <SymbolIcon Symbol="Help"
+                                    Visibility="Visible">
+                            <FlyoutBase.AttachedFlyout>
+                                <Flyout>
+                                    <TextBlock x:Uid="Planner_FlythoughErrorFlyout" />
+                                </Flyout>
+                            </FlyoutBase.AttachedFlyout>
 
                             <i:Interaction.Behaviors>
                                 <core:EventTriggerBehavior EventName="Tapped">
-                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                              CommandParameter="{x:Bind Planner_StartModeItem_FirstEntry}"/>
+                                    <behaviors:ToggleFlyoutAction />
                                 </core:EventTriggerBehavior>
                             </i:Interaction.Behaviors>
-                        </ComboBoxItem>
+                        </SymbolIcon>
 
-                        <ComboBoxItem x:Name="Planner_StartModeItem_SelectedWaypoint"
-                                      IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.StartParameters.SelectedWaypointModeAvailable, Mode=OneWay}">
-                            <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypoint"/>
-                            <ToolTipService.ToolTip>
-                                <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypointTooltip"
-                                           TextWrapping="Wrap"/>
-                            </ToolTipService.ToolTip>
-                            
-                            <ComboBoxItem.Tag>
-                                <x:Int32>1</x:Int32>
-                            </ComboBoxItem.Tag>
-                            
-                            <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="Tapped">
-                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                              CommandParameter="{x:Bind Planner_StartModeItem_SelectedWaypoint}"/>
-                                </core:EventTriggerBehavior>
-                            </i:Interaction.Behaviors>
-                        </ComboBoxItem>
-
-                        <ComboBoxItem x:Name="Planner_StartModeItem_LastPositionWaypoint"
-                                      IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.StartParameters.LastPositionWaypointModeAvailable, Mode=OneWay}">
-                            <TextBlock x:Uid="Planner_StartModeItem_LastPositionWaypoint"/>
-                            <ToolTipService.ToolTip>
-                                <TextBlock x:Uid="Planner_StartModeItem_LastPositionWaypointTooltip"
-                                           TextWrapping="Wrap"/>
-                            </ToolTipService.ToolTip>
-
-                            <ComboBoxItem.Tag>
-                                <x:Int32>2</x:Int32>
-                            </ComboBoxItem.Tag>
+                        <SymbolIcon Symbol="Important"
+                                    Visibility="{x:Bind ViewModel.StartModeError, Mode=OneWay}">
+                            <FlyoutBase.AttachedFlyout>
+                                <Flyout>
+                                    <TextBlock x:Uid="Planner_FlythoughErrorFlyout" />
+                                </Flyout>
+                            </FlyoutBase.AttachedFlyout>
 
                             <i:Interaction.Behaviors>
                                 <core:EventTriggerBehavior EventName="Tapped">
-                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                              CommandParameter="{x:Bind Planner_StartModeItem_LastPositionWaypoint}"/>
+                                    <behaviors:ToggleFlyoutAction />
                                 </core:EventTriggerBehavior>
                             </i:Interaction.Behaviors>
-                        </ComboBoxItem>
+                        </SymbolIcon>
 
-                        <ComboBoxItem x:Name="Planner_StartModeItem_LastPositionContinued"
-                                      IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.StartParameters.LastPositionContinuedModeAvailable, Mode=OneWay}">
-                            <TextBlock x:Uid="Planner_StartModeItem_LastPositionContinued"/>
-                            <ToolTipService.ToolTip>
-                                <TextBlock x:Uid="Planner_StartModeItem_LastPositionContinuedTooltip"
-                                           TextWrapping="Wrap"/>
-                            </ToolTipService.ToolTip>
-
-                            <ComboBoxItem.Tag>
-                                <x:Int32>3</x:Int32>
-                            </ComboBoxItem.Tag>
-
-                            <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="Tapped">
-                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                          CommandParameter="{x:Bind Planner_StartModeItem_LastPositionContinued}"/>
-                                </core:EventTriggerBehavior>
-                            </i:Interaction.Behaviors>
-                        </ComboBoxItem>
-                        
-                    </ComboBox>
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
             <StackPanel

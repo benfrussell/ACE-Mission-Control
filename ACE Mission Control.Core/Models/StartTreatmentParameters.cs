@@ -79,6 +79,9 @@ namespace ACE_Mission_Control.Core.Models
 
             UpdateMode(inProgress, justReturned);
 
+            if (nextInstruction == null)
+                return false;
+
             var originalStart = StartCoordinate?.Copy();
             var originalTurnMode = StopAndTurn;
 

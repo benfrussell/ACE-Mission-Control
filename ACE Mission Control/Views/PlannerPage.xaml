@@ -336,35 +336,77 @@
 
                         </ComboBox>
 
-                        <SymbolIcon Symbol="Help"
-                                    Visibility="Visible">
-                            <FlyoutBase.AttachedFlyout>
-                                <Flyout>
-                                    <TextBlock x:Uid="Planner_FlythoughErrorFlyout" />
-                                </Flyout>
-                            </FlyoutBase.AttachedFlyout>
+                        <Viewbox MaxHeight="15"
+                                 MaxWidth="15">
+                            <SymbolIcon Symbol="Help"
+                                        Visibility="{x:Bind ViewModel.ShowStartModeInfo, Mode=OneWay}">
+                                <FlyoutBase.AttachedFlyout>
+                                    <Flyout>
+                                        <StackPanel Orientation="Vertical">
+                                            <TextBlock x:Uid="Planner_StartModeItem_FirstEntry"
+                                                       FontWeight="Bold"
+                                                       Margin="0,0,0,0"/>
+                                            <TextBlock x:Uid="Planner_StartModeItem_FirstEntryTooltip"
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="350"/>
+                                        
+                                            <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypoint"
+                                                       FontWeight="Bold"
+                                                       Margin="0,8,0,0"/>
+                                            <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypointTooltip"
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="350"/>
+                                        
+                                            <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"
+                                                       FontWeight="Bold"
+                                                       Margin="0,8,0,0"/>
+                                            <TextBlock x:Uid="Planner_StartModeItem_InsertWaypointTooltip"
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="350"/>
+                                        
+                                            <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"
+                                                       FontWeight="Bold"
+                                                       Margin="0,8,0,0"/>
+                                            <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="350"/>
+                                        
+                                            <TextBlock x:Uid="Planner_StartModeItem_Flythrough"
+                                                       FontWeight="Bold"
+                                                       Margin="0,8,0,0"/>
+                                            <TextBlock x:Uid="Planner_StartModeItem_FlythroughTooltip"
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="350"/>
+                                        </StackPanel>
+                                    </Flyout>
+                                </FlyoutBase.AttachedFlyout>
 
-                            <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="Tapped">
-                                    <behaviors:ToggleFlyoutAction />
-                                </core:EventTriggerBehavior>
-                            </i:Interaction.Behaviors>
-                        </SymbolIcon>
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Tapped">
+                                        <behaviors:ToggleFlyoutAction />
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </SymbolIcon>
+                        </Viewbox>
 
-                        <SymbolIcon Symbol="Important"
-                                    Visibility="{x:Bind ViewModel.StartModeError, Mode=OneWay}">
-                            <FlyoutBase.AttachedFlyout>
-                                <Flyout>
-                                    <TextBlock x:Uid="Planner_FlythoughErrorFlyout" />
-                                </Flyout>
-                            </FlyoutBase.AttachedFlyout>
+                        <Viewbox MaxHeight="15"
+                                 MaxWidth="15">
+                            <SymbolIcon Symbol="Important"
+                                    Visibility="{x:Bind ViewModel.StartModeError, Mode=OneWay}"
+                                    Foreground="{StaticResource SystemErrorTextColor}">
+                                <FlyoutBase.AttachedFlyout>
+                                    <Flyout>
+                                        <TextBlock x:Uid="Planner_FlythoughErrorFlyout" />
+                                    </Flyout>
+                                </FlyoutBase.AttachedFlyout>
 
-                            <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="Tapped">
-                                    <behaviors:ToggleFlyoutAction />
-                                </core:EventTriggerBehavior>
-                            </i:Interaction.Behaviors>
-                        </SymbolIcon>
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Tapped">
+                                        <behaviors:ToggleFlyoutAction />
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </SymbolIcon>
+                        </Viewbox>
 
                     </StackPanel>
                 </StackPanel>

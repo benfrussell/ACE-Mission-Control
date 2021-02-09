@@ -161,6 +161,19 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private bool showStartModeInfo;
+        public bool ShowStartModeInfo
+        {
+            get { return showStartModeInfo; }
+            set
+            {
+                if (showStartModeInfo == value)
+                    return;
+                showStartModeInfo = value;
+                RaisePropertyChanged();
+            }
+        }
+
 
         private ObservableCollection<MapLayer> mapLayers;
         public ObservableCollection<MapLayer> MapLayers
@@ -207,6 +220,7 @@ namespace ACE_Mission_Control.ViewModels
             TreatmentInstructions = AttachedDrone.Mission.TreatmentInstructions;
 
             UpdatePlannerMapAreas();
+            CheckStartModeError();
 
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             AttachedDrone.Mission.InstructionUpdated += Mission_InstructionUpdated;
@@ -307,8 +321,10 @@ namespace ACE_Mission_Control.ViewModels
                 var startPosition = AttachedDrone.Mission.GetStartCoordinate();
 
                 // 7.5 metres is the hardcoded buffer for triggering entry in the drone 
-                if (!nextInstruction.TreatmentRoute.DoesRoutePassCoordinate(startPosition, 7.5f))
+                if (nextInstruction != null && nextInstruction.HasValidTreatmentRoute() &&
+                    !nextInstruction.TreatmentRoute.DoesRoutePassCoordinate(startPosition, 7.5f))
                 {
+                    ShowStartModeInfo = false;
                     StartModeError = true;
                     StartModeBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
 
@@ -332,6 +348,7 @@ namespace ACE_Mission_Control.ViewModels
                 }
             }
 
+            ShowStartModeInfo = true;
             StartModeError = false;
             StartModeBorderColour = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
             startModeErrorNotificationSent = false;

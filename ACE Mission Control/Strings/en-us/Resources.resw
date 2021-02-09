@@ -335,9 +335,7 @@
     <value>Continue Mission</value>
   </data>
   <data name="Planner_StartModeItem_ContinueMissionTooltip.Text" xml:space="preserve">
-    <value>When set, the drone will start treating in the treatment area after stopping and starting at it's last position.
-
-This mode expects that you will use the UGCS continue mission function.</value>
+    <value>When set, the drone will start treating in the treatment area after stopping and starting at it's last position. This mode expects that you will use the UGCS continue mission function.</value>
   </data>
   <data name="Planner_StartModeItem_InsertWaypoint.Text" xml:space="preserve">
     <value>Insert Waypoint</value>

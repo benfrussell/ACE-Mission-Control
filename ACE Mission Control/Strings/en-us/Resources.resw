@@ -392,7 +392,7 @@
     <value>Status: </value>
   </data>
   <data name="Main_SyncronizedLabel.Text" xml:space="preserve">
-    <value>Synchronized</value>
+    <value>Status and Entry Synced</value>
   </data>
   <data name="Mission_StopPayloadButton.Content" xml:space="preserve">
     <value>Force Stop Payload</value>
@@ -414,5 +414,8 @@
   </data>
   <data name="Planner_StartModeItem_FlythroughTooltip.Text" xml:space="preserve">
     <value>When set, the drone will start treating after flying through it's last position.</value>
+  </data>
+  <data name="Planner_SetupTreatmentSyncedHeader.Text" xml:space="preserve">
+    <value>Synced</value>
   </data>
 </root>

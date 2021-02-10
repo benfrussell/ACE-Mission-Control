@@ -63,28 +63,32 @@
                 <ListView.Header>
                     <Grid Background="{ThemeResource SystemChromeLowColor}">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30"/>
                             <ColumnDefinition Width="60"/>
                             <ColumnDefinition />
                             <ColumnDefinition Width="200" />
                         </Grid.ColumnDefinitions>
-                        <Border Grid.ColumnSpan="3"
+                        <Border Grid.ColumnSpan="4"
                                 BorderBrush="{ThemeResource SystemChromeHighColor}"
                                 BorderThickness="0,0,0,1"/>
-                        <TextBlock Grid.Column="0"
+                        <TextBlock Grid.Column="1"
                                    Margin="4,0,0,2"
                                    x:Uid="Planner_SetupTreatmentEnabledHeader"
-                                   HorizontalAlignment="Left"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1"
+                                   HorizontalAlignment="Center"
+                                   FontWeight="SemiBold"
+                                   FontSize="12"/>
+                        <TextBlock Grid.Column="2"
                                    Margin="4,0,0,2"
                                    x:Uid="Planner_SetupAreaNameHeader"
                                    HorizontalAlignment="Left"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="2"
+                                   FontWeight="SemiBold"
+                                   FontSize="12"/>
+                        <TextBlock Grid.Column="3"
                                    Margin="4,0,0,2"
                                    x:Uid="Planner_SetupWaypointRouteHeader"
                                    HorizontalAlignment="Left"
-                                   FontWeight="SemiBold"/>
+                                   FontWeight="SemiBold"
+                                   FontSize="12"/>
                     </Grid>
                 </ListView.Header>
                 
@@ -92,6 +96,7 @@
                     <DataTemplate x:DataType="ace:TreatmentInstruction">
                         <Grid Background="{ThemeResource SystemChromeMediumLowColor}">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30"/>
                                 <ColumnDefinition Width="60"/>
                                 <ColumnDefinition />
                                 <ColumnDefinition Width="200" />
@@ -100,11 +105,35 @@
                                 <RowDefinition MinHeight="55"/>
                             </Grid.RowDefinitions>
 
-                            <Border Grid.ColumnSpan="3"
+                            <Border Grid.ColumnSpan="4"
                                     BorderBrush="{ThemeResource SystemChromeHighColor}"
                                     BorderThickness="0,0,0,1"/>
 
-                            <CheckBox Grid.Column="0"
+                            <StackPanel Orientation="Vertical"
+                                        VerticalAlignment="Center"
+                                        Margin="8,0,0,0">
+                                <Button x:Uid="Planner_TreatmentOrderUpButton"
+                                        HorizontalAlignment="Center"
+                                        Padding="1,1,1,1"
+                                        Margin="0,1,0,0">
+                                    <Viewbox MaxHeight="12">
+                                        <SymbolIcon Symbol="Upload"/>
+                                    </Viewbox>
+                                </Button>
+                                <TextBlock HorizontalAlignment="Center"
+                                           FontSize="12">1</TextBlock>
+                                <Button x:Uid="Planner_TreatmentOrderUpButton"
+                                        HorizontalAlignment="Center"
+                                        Padding="1,1,1,1"
+                                        Margin="0,0,0,2">
+                                    <Viewbox MaxHeight="12">
+                                        <SymbolIcon Symbol="Download"
+                                                    Rotation="180"/>
+                                    </Viewbox>
+                                </Button>
+                            </StackPanel>
+
+                            <CheckBox Grid.Column="1"
                                       Margin="20,0,0,0"
                                       IsEnabled="{x:Bind CanBeEnabled, Mode=OneWay}"
                                       IsChecked="{x:Bind Enabled, Mode=TwoWay}">
@@ -113,29 +142,35 @@
                                 </ToolTipService.ToolTip>
                             </CheckBox>
 
-                            <StackPanel Orientation="Vertical"
-                                        VerticalAlignment="Center"
-                                        Grid.Column="1"
-                                        Margin="4,0,0,0">
-                                <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                            <StackPanel Orientation="Horizontal"
+                                        Grid.Column="2">
+                                <StackPanel Orientation="Vertical"
+                                            VerticalAlignment="Center"
+                                            Grid.Column="2"
+                                            Margin="4,0,0,0">
+                                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"
                                            FontWeight="SemiBold"/>
-                                
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock x:Uid="Planner_SetupAreaStatusLabel"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Grid.Column="1"
-                                               FontWeight="Light"/>
-                                    <TextBlock Grid.Column="1"
-                                               Margin="2,1,0,0"
-                                               Text="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource AreaStatusToString}}"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource AreaStatusToColour}}"
-                                               FontWeight="Light"/>
-                                </StackPanel>
-                            </StackPanel>
-                            
 
-                            <ComboBox x:Name="WaypointRouteComboBox" Grid.Column="2"
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Uid="Planner_SetupAreaStatusLabel"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   FontWeight="Light"/>
+                                        <TextBlock Margin="2,1,0,0"
+                                                   Text="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource AreaStatusToString}}"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource AreaStatusToColour}}"
+                                                   FontWeight="Light"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Viewbox MaxWidth="15"
+                                     MaxHeight="15"
+                                     Margin="16,0,0,0">
+                                    <SymbolIcon Symbol="Cancel"/>
+                                </Viewbox>
+                            </StackPanel>
+
+
+                            <ComboBox x:Name="WaypointRouteComboBox" Grid.Column="3"
                                       Margin="4,0,8,0"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Center"

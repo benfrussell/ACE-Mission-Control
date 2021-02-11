@@ -318,13 +318,12 @@ namespace ACE_Mission_Control.Core.Models
 
         public void UploadMission()
         {
-            bool firstCmd = true;
             var instructions = Mission.GetRemainingInstructions();
             foreach (TreatmentInstruction instruction in instructions)
             {
                 if (instruction.Enabled)
                 {
-                    if (firstCmd)
+                    if (instruction.FirstInstruction)
                     {
                         System.Diagnostics.Debug.WriteLine($"Duration: {Mission.TreatmentDuration}");
 
@@ -342,7 +341,6 @@ namespace ACE_Mission_Control.Core.Models
                             uploadCmd += " -in_progress";
 
                         SendCommand(uploadCmd);
-                        firstCmd = false;
                         continue;
                     }
 

@@ -66,28 +66,28 @@ namespace ACE_Mission_Control.ViewModels
                 _treatmentDuration = value;
                 if (isTreatmentDurationValid(_treatmentDuration))
                 {
-                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+                    TreatmentDurationError = false;
                     TreatmentDurationValidText = "";
-                }
+                }   
                 else
                 {
-                    TreatmentDurationBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
+                    TreatmentDurationError = true;
                     TreatmentDurationValidText = "Mission_InvalidInteger".GetLocalized();
                 }
                 RaisePropertyChanged("TreatmentDuration");
             }
         }
 
-        private SolidColorBrush _treatmentDurationBorderColour;
-        public SolidColorBrush TreatmentDurationBorderColour
+        private bool _treatmentDurationError;
+        public bool TreatmentDurationError
         {
-            get { return _treatmentDurationBorderColour; }
+            get { return _treatmentDurationError; }
             set
             {
-                if (_treatmentDurationBorderColour == value)
+                if (_treatmentDurationError == value)
                     return;
-                _treatmentDurationBorderColour = value;
-                RaisePropertyChanged("TreatmentDurationBorderColour");
+                _treatmentDurationError = value;
+                RaisePropertyChanged();
             }
         }
 
@@ -135,19 +135,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private SolidColorBrush _startModeBorderColour;
-        public SolidColorBrush StartModeBorderColour
-        {
-            get { return _startModeBorderColour; }
-            set
-            {
-                if (_startModeBorderColour == value)
-                    return;
-                _startModeBorderColour = value;
-                RaisePropertyChanged();
-            }
-        }
-
         private bool startModeError;
         public bool StartModeError
         {
@@ -160,20 +147,6 @@ namespace ACE_Mission_Control.ViewModels
                 RaisePropertyChanged();
             }
         }
-
-        private bool showStartModeInfo;
-        public bool ShowStartModeInfo
-        {
-            get { return showStartModeInfo; }
-            set
-            {
-                if (showStartModeInfo == value)
-                    return;
-                showStartModeInfo = value;
-                RaisePropertyChanged();
-            }
-        }
-
 
         private ObservableCollection<MapLayer> mapLayers;
         public ObservableCollection<MapLayer> MapLayers
@@ -206,8 +179,8 @@ namespace ACE_Mission_Control.ViewModels
 
         public PlannerViewModel()
         {
-            TreatmentDurationBorderColour = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
-            StartModeBorderColour = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
+            StartModeError = false;
+            TreatmentDurationError = false;
             MapLayers = new ObservableCollection<MapLayer>();
             MapLayers.Add(new MapElementsLayer());
             MapLayers.Add(new MapElementsLayer());
@@ -220,10 +193,11 @@ namespace ACE_Mission_Control.ViewModels
             TreatmentInstructions = AttachedDrone.Mission.TreatmentInstructions;
 
             UpdatePlannerMapAreas();
+            UpdatePlannerMapPoints();
             CheckStartModeError();
 
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
-            AttachedDrone.Mission.InstructionUpdated += Mission_InstructionUpdated;
+            AttachedDrone.Mission.InstructionAreasUpdated += Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.StartParametersChangedEvent += Mission_StartParametersChangedEvent;
 
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
@@ -282,34 +256,10 @@ namespace ACE_Mission_Control.ViewModels
             });
         }
 
-        private void Mission_InstructionUpdated(object sender, InstructionsUpdatedEventArgs e)
+        private void Mission_InstructionAreasUpdated(object sender, InstructionAreasUpdatedEventArgs e)
         {
-            //if (e.Reorder)
-            //{
-            //    var unchangedInstructions = TreatmentInstructions.Where(i => !e.Instructions.Contains(i));
-
-            //    // Clear and re-add instructions in the new order. Any unaffected instructions are added to the end.
-            //    TreatmentInstructions.Clear();
-            //    foreach (TreatmentInstruction instruction in e.Instructions)
-            //        TreatmentInstructions.Add(instruction);
-
-            //    foreach (TreatmentInstruction instruction in unchangedInstructions)
-            //        TreatmentInstructions.Add(instruction);
-            //}
-            //else
-            //{
-                // Force the binding to update by removing and re-adding the instruction
-                // This is dumb but the alternative seems to be making my own ObservableCollection class which is also dumb
-                foreach (TreatmentInstruction instruction in e.Instructions)
-                {
-                    var indexOf = TreatmentInstructions.IndexOf(instruction);
-                    TreatmentInstructions.RemoveAt(indexOf);
-                    TreatmentInstructions.Insert(indexOf, instruction);
-                }
-            //}
-
-            UpdatePlannerMapPoints();
             UpdatePlannerMapAreas();
+            UpdatePlannerMapPoints();
             CheckStartModeError();
         }
 
@@ -324,9 +274,7 @@ namespace ACE_Mission_Control.ViewModels
                 if (nextInstruction != null && nextInstruction.HasValidTreatmentRoute() &&
                     !nextInstruction.TreatmentRoute.DoesRoutePassCoordinate(startPosition, 7.5f))
                 {
-                    ShowStartModeInfo = false;
                     StartModeError = true;
-                    StartModeBorderColour = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemErrorTextColor"]);
 
                     if (!startModeErrorNotificationSent & !Window.Current.Visible)
                     {
@@ -348,30 +296,13 @@ namespace ACE_Mission_Control.ViewModels
                 }
             }
 
-            ShowStartModeInfo = true;
             StartModeError = false;
-            StartModeBorderColour = new SolidColorBrush((Color)Application.Current.Resources["SystemBaseMediumHighColor"]);
             startModeErrorNotificationSent = false;
-        }
-
-        public RelayCommand<ComboBox> WaypointRouteComboBox_SelectionChangedCommand => new RelayCommand<ComboBox>(args => WaypointRouteComboBox_SelectionChanged(args));
-
-        // Not called when the selection changes to null
-        // Apparently this is called whenever anything is a added to the TreatmentInstructions collection
-        // This function is unintentionally driving many necessary updates to the planner map - so I'm just going to let it keep doing that
-        // TODO: Actually it doesn't ALWAYS update on drag and drop
-        // UWP ComboBoxes are WEIRD
-        private void WaypointRouteComboBox_SelectionChanged(ComboBox args)
-        {
-            if (args.DataContext != null)
-            {
-                UpdatePlannerMapPoints();
-            }
         }
 
         protected override void DroneUnattaching()
         {
-            AttachedDrone.Mission.InstructionUpdated -= Mission_InstructionUpdated;
+            AttachedDrone.Mission.InstructionAreasUpdated -= Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
             AttachedDrone.Mission.StartParametersChangedEvent -= Mission_StartParametersChangedEvent;
         }
@@ -429,17 +360,14 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.StartMode = selectedMode;
         }
 
-        // -- Map Functions
-
-        private static List<Color> MapColours = new List<Color>
+        public RelayCommand<TreatmentInstruction> ReorderInstructionUpCommand => new RelayCommand<TreatmentInstruction>((args) => reorderInstructionCommand(args, -1));
+        public RelayCommand<TreatmentInstruction> ReorderInstructionDownCommand => new RelayCommand<TreatmentInstruction>((args) => reorderInstructionCommand(args, 1));
+        private void reorderInstructionCommand(TreatmentInstruction instruction, int change)
         {
-            Colors.Orange,
-            Colors.DarkBlue,
-            Colors.Green,
-            Colors.Purple,
-            Colors.Gray,
-            Colors.LightBlue
-        };
+            AttachedDrone.Mission.ReorderInstruction(instruction, AttachedDrone.Mission.TreatmentInstructions.IndexOf(instruction) + change);
+        }
+
+        // -- Map Functions
 
         private static RandomAccessStreamReference StartImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Start.png"));
         private static RandomAccessStreamReference StopImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Stop.png"));
@@ -484,7 +412,7 @@ namespace ACE_Mission_Control.ViewModels
             {
                 if (!instruction.Enabled)
                     continue;
-                var colour = MapColours[colorIndex % MapColours.Count];
+                Color colour = (Color)(new InstructionNumberToColour().Convert(instruction.Order, typeof(Color), null, null));
                 MapPolygon polygon = new MapPolygon();
                 polygon.Path = CoordsToGeopath(instruction.TreatmentPolygon.GetBasicCoordinates());
                 polygon.ZIndex = 1;

@@ -352,13 +352,13 @@
   <data name="Planner_MapLastPositionLabel" xml:space="preserve">
     <value>Last Position</value>
   </data>
-  <data name="AreaStatus_Finished" xml:space="preserve">
+  <data name="Status_Finished" xml:space="preserve">
     <value>Finished</value>
   </data>
-  <data name="AreaStatus_InProgress" xml:space="preserve">
+  <data name="Status_InProgress" xml:space="preserve">
     <value>In Progress</value>
   </data>
-  <data name="AreaStatus_NotStarted" xml:space="preserve">
+  <data name="Status_NotStarted" xml:space="preserve">
     <value>Not Started</value>
   </data>
   <data name="MissionActivated_False" xml:space="preserve">
@@ -367,29 +367,29 @@
   <data name="MissionActivated_True" xml:space="preserve">
     <value>Activated</value>
   </data>
-  <data name="MissionStage_Complete" xml:space="preserve">
+  <data name="Stage_Complete" xml:space="preserve">
     <value>Mission Complete</value>
   </data>
-  <data name="MissionStage_Enroute" xml:space="preserve">
+  <data name="Stage_Enroute" xml:space="preserve">
     <value>Enroute to Mission Area</value>
   </data>
-  <data name="MissionStage_Executing" xml:space="preserve">
+  <data name="Stage_Executing" xml:space="preserve">
     <value>Executing Mission</value>
   </data>
-  <data name="MissionStage_NotActivated" xml:space="preserve">
+  <data name="Stage_NotActivated" xml:space="preserve">
     <value>Waiting for Activation</value>
   </data>
-  <data name="MissionStage_Override" xml:space="preserve">
+  <data name="Stage_Override" xml:space="preserve">
     <value>Manual Override</value>
   </data>
-  <data name="MissionStage_Ready" xml:space="preserve">
+  <data name="Stage_Ready" xml:space="preserve">
     <value>Ready for Take-off</value>
   </data>
-  <data name="MissionStage_Returning" xml:space="preserve">
+  <data name="Stage_Returning" xml:space="preserve">
     <value>Returning to Home Point</value>
   </data>
   <data name="Planner_SetupAreaStatusLabel.Text" xml:space="preserve">
-    <value>Status: </value>
+    <value>Progress: </value>
   </data>
   <data name="Main_SyncronizedLabel.Text" xml:space="preserve">
     <value>Status and Entry Synced</value>
@@ -417,5 +417,17 @@
   </data>
   <data name="Planner_SetupTreatmentSyncedHeader.Text" xml:space="preserve">
     <value>Synced</value>
+  </data>
+  <data name="Planner_SetupUploadStatusLabel.Text" xml:space="preserve">
+    <value>Upload Status:</value>
+  </data>
+  <data name="UploadStatus_Changes" xml:space="preserve">
+    <value>Changes Not Uploaded</value>
+  </data>
+  <data name="UploadStatus_NotUploaded" xml:space="preserve">
+    <value>Not Uploaded</value>
+  </data>
+  <data name="UploadStatus_Uploaded" xml:space="preserve">
+    <value>Uploaded</value>
   </data>
 </root>

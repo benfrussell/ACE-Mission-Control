@@ -14,7 +14,7 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <helper:MissionStageToString x:Key="MissionStageToString" />
+        <helper:EnumToResourceString x:Key="EnumToResourceString" />
         <helper:MissionActivatedToString x:Key="MissionActivatedToString" />
         <helper:MissionActivatedToColour x:Key="MissionActivatedToColour" />
         <helper:AlertToString x:Key="AlertToString" />
@@ -57,7 +57,7 @@
                 Margin="4,0,0,0"/>
             <TextBlock
                 VerticalAlignment="Center"
-                Text="{x:Bind ViewModel.AttachedDrone.Mission.Stage, Mode=OneWay, Converter={StaticResource MissionStageToString}}"
+                Text="{x:Bind ViewModel.AttachedDrone.Mission.Stage, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Margin="4,2,0,0"/>
             <TextBlock

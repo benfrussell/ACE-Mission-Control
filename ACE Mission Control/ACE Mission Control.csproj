@@ -146,9 +146,10 @@
     <Compile Include="Behaviors\NavigationViewHeaderMode.cs" />
     <Compile Include="Behaviors\FlyoutBehaviors.cs" />
     <Compile Include="Helpers\AlertLevelToColour.cs" />
+    <Compile Include="Helpers\BooleanHelpers.cs" />
+    <Compile Include="Helpers\EnumHelpers.cs" />
+    <Compile Include="Helpers\MapHelpers.cs" />
     <Compile Include="Helpers\MissionActivatedHelpers.cs" />
-    <Compile Include="Helpers\MissionStageHelpers.cs" />
-    <Compile Include="Helpers\AreaStatusHelpers.cs" />
     <Compile Include="Helpers\AlertToString.cs" />
     <Compile Include="Helpers\EnterKeyHelpers.cs" />
     <Compile Include="Helpers\NavHelper.cs" />

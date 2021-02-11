@@ -9,15 +9,13 @@ using NetTopologySuite.Geometries;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class InstructionsUpdatedEventArgs
+    public class InstructionAreasUpdatedEventArgs
     {
         public List<TreatmentInstruction> Instructions { get; set; }
-        public bool Reorder { get; set; }
 
-        public InstructionsUpdatedEventArgs() 
+        public InstructionAreasUpdatedEventArgs() 
         { 
             Instructions = new List<TreatmentInstruction>();
-            Reorder = false;
         }
     }
 
@@ -30,7 +28,7 @@ namespace ACE_Mission_Control.Core.Models
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public event EventHandler<InstructionsUpdatedEventArgs> InstructionUpdated;
+        public event EventHandler<InstructionAreasUpdatedEventArgs> InstructionAreasUpdated;
 
         public event EventHandler<EventArgs> StartParametersChangedEvent;
 
@@ -230,7 +228,6 @@ namespace ACE_Mission_Control.Core.Models
         {
             MissionRetriever.AreaScanPolygonsUpdated += MissionData_AreaScanPolygonsUpdated;
             TreatmentInstructions = new ObservableCollection<TreatmentInstruction>();
-            TreatmentInstructions.CollectionChanged += TreatmentInstructions_CollectionChanged;
             startParameters = new StartTreatmentParameters();
             startParameters.SelectedModeChangedEvent += StartParameters_SelectedModeChangedEvent;
 
@@ -252,16 +249,6 @@ namespace ACE_Mission_Control.Core.Models
             NotifyPropertyChanged("StartMode");
         }
 
-        private void TreatmentInstructions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add && !updatingInstructions)
-            {
-                bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
-                if (changes)
-                    StartParametersChangedEvent?.Invoke(this, new EventArgs());
-            }
-        }
-
         public void UpdateMissionStatus(MissionStatus newStatus)
         {
             bool justReturned = 
@@ -278,16 +265,12 @@ namespace ACE_Mission_Control.Core.Models
             DroneHasProgress = newStatus.InProgress;
             UpdateCanBeReset();
 
-            var updatedInstructions = new InstructionsUpdatedEventArgs();
             // Update the treatment instruction statuses with any results that came from the mission status update
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
                 var resultInStatus = newStatus.Results.FirstOrDefault(r => r.AreaID == instruction.TreatmentPolygon.Id);
                 if (resultInStatus != null && instruction.AreaStatus != resultInStatus.Status)
-                {
                     instruction.AreaStatus = resultInStatus.Status;
-                    updatedInstructions.Instructions.Add(instruction);
-                }   
             }
 
             if (newStatus.Results.Count() > 1)
@@ -298,13 +281,7 @@ namespace ACE_Mission_Control.Core.Models
 
                 if (!originalIDs.SequenceEqual(resultIDs))
                     ReorderInstructionsByID(resultIDs);
-                else if (updatedInstructions.Instructions.Count > 0)
-                    InstructionUpdated?.Invoke(this, updatedInstructions);
             }
-            else if (updatedInstructions.Instructions.Count > 0)
-            {
-                InstructionUpdated?.Invoke(this, updatedInstructions);
-            }   
 
             if (DroneHasProgress && newStatus.LastLongitude != 0 && newStatus.LastLatitude != 0)
             {
@@ -334,7 +311,49 @@ namespace ACE_Mission_Control.Core.Models
             foreach (TreatmentInstruction instruction in reorderedInstructions)
                 TreatmentInstructions.Add(instruction);
 
-            InstructionUpdated?.Invoke(this, new InstructionsUpdatedEventArgs() { Instructions = TreatmentInstructions.ToList(), Reorder = true });
+            UpdateInstructionOrderValues();
+
+            InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs() { Instructions = TreatmentInstructions.ToList() });
+        }
+
+        public void ReorderInstruction(TreatmentInstruction instruction, int newPosition)
+        {
+            var displacedInstruction = TreatmentInstructions.ElementAtOrDefault(newPosition);
+
+            TreatmentInstructions.Remove(instruction);
+            TreatmentInstructions.Insert(newPosition, instruction);
+
+            bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
+            if (changes)
+                StartParametersChangedEvent?.Invoke(this, new EventArgs());
+
+            UpdateInstructionOrderValues();
+
+            var updatedInstructions = new List<TreatmentInstruction> { instruction };
+            if (displacedInstruction != null)
+                updatedInstructions.Append(displacedInstruction);
+
+            InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = updatedInstructions });
+        }
+
+        private void UpdateInstructionOrderValues()
+        {
+            int order = 1;
+            int position = 1;
+
+            foreach (TreatmentInstruction instruction in TreatmentInstructions)
+            {
+                if (instruction.Enabled)
+                {
+                    instruction.SetOrder(order, order == 1, position == 1, position == TreatmentInstructions.Count);
+                    order++;
+                }
+                else
+                {
+                    instruction.SetOrder(null, false, position == 1, position == TreatmentInstructions.Count);
+                }
+                position++;
+            }
         }
 
         public void UpdateMissionConfig(MissionConfig newConfig)
@@ -354,16 +373,11 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (MissionControlHasProgress)
             {
-                // We may null last position, so reset to the default mode
-
-
-                var updatedInstructions = new InstructionsUpdatedEventArgs();
                 foreach (TreatmentInstruction instruction in TreatmentInstructions)
                 {
                     if (instruction.AreaStatus != AreaResult.Types.Status.NotStarted)
                     {
                         instruction.AreaStatus = AreaResult.Types.Status.NotStarted;
-                        updatedInstructions.Instructions.Add(instruction);
                     }
                 }
 
@@ -371,9 +385,6 @@ namespace ACE_Mission_Control.Core.Models
                 bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
                 if (changes)
                     StartParametersChangedEvent?.Invoke(this, new EventArgs());
-
-                if (updatedInstructions.Instructions.Count > 0)
-                    InstructionUpdated?.Invoke(this, updatedInstructions);
             }
 
             if (DroneHasProgress && CanBeModified && MissionSet)
@@ -464,7 +475,7 @@ namespace ACE_Mission_Control.Core.Models
                     TreatmentInstructions.Remove(removedInstruction);
             }
 
-            InstructionsUpdatedEventArgs updatedInstructions = new InstructionsUpdatedEventArgs();
+            InstructionAreasUpdatedEventArgs updatedInstructions = new InstructionAreasUpdatedEventArgs();
 
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
@@ -487,7 +498,8 @@ namespace ACE_Mission_Control.Core.Models
             foreach (AreaScanPolygon addedArea in e.updates.AddedRoutes)
             {
                 var newInstruction = new TreatmentInstruction(addedArea);
-                newInstruction.EnabledChangedEvent += NewInstruction_EnabledChangedEvent;
+                newInstruction.PropertyChanged += NewInstruction_PropertyChanged;
+                updatedInstructions.Instructions.Add(newInstruction);
                 TreatmentInstructions.Add(newInstruction);
             }
 
@@ -496,24 +508,31 @@ namespace ACE_Mission_Control.Core.Models
             if (changes)
                 StartParametersChangedEvent?.Invoke(this, new EventArgs());
 
+            UpdateInstructionOrderValues();
+
             if (updatedInstructions.Instructions.Count > 0)
             {
-                InstructionUpdated?.Invoke(this, updatedInstructions);
+                InstructionAreasUpdated?.Invoke(this, updatedInstructions);
             }
 
             updatingInstructions = false;
         }
 
-        private void NewInstruction_EnabledChangedEvent(object sender, EventArgs e)
+        private void NewInstruction_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            // If we allow this while updating instructions then it will update the start parameters for each instruction added / modified(potentially)
+            // When instructions are updated it will update the parameters just once at the end
             if (updatingInstructions)
                 return;
-            bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
-            if (changes)
-                StartParametersChangedEvent?.Invoke(this, new EventArgs());
-            InstructionUpdated?.Invoke(
-                this,
-                new InstructionsUpdatedEventArgs() { Instructions = new List<TreatmentInstruction> { sender as TreatmentInstruction } });
+
+            if (e.PropertyName == "Enabled")
+            {
+                bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
+                if (changes)
+                    StartParametersChangedEvent?.Invoke(this, new EventArgs());
+
+                UpdateInstructionOrderValues();
+            }
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

@@ -4,14 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using Pbdrone;
 using UGCS.Sdk.Protocol.Encoding;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class TreatmentInstruction
+    public class TreatmentInstruction : INotifyPropertyChanged
     {
-        // This seems to be the easiest way to notify that this single property changed
-        public event EventHandler<EventArgs> EnabledChangedEvent;
-        
+        public enum UploadStatus
+        {
+            NotUploaded = 0,
+            Changes = 1,
+            Uploaded = 2
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public static WaypointRouteInterceptCollection InterceptCollection = new WaypointRouteInterceptCollection();
 
         private AreaScanPolygon treatmentPolygon;
@@ -39,14 +47,25 @@ namespace ACE_Mission_Control.Core.Models
             } 
             set
             {
-                if (selectedInterceptRoute != null && selectedInterceptRoute.WaypointRoute == value)
+                if (value == null || (selectedInterceptRoute != null && selectedInterceptRoute.WaypointRoute == value))
                     return;
                 selectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
+                NotifyPropertyChanged();
             }
         }
 
         private AreaResult.Types.Status areaStatus;
-        public AreaResult.Types.Status AreaStatus { get => areaStatus; set => areaStatus = value; }
+        public AreaResult.Types.Status AreaStatus 
+        { 
+            get => areaStatus;
+            set
+            {
+                if (areaStatus == value)
+                    return;
+                areaStatus = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public Coordinate AreaEntryCoordinate
         {
@@ -77,6 +96,19 @@ namespace ACE_Mission_Control.Core.Models
             get => InterceptCollection[TreatmentPolygon.Id].Select(r => r.WaypointRoute);
         }
 
+        private UploadStatus currentUploadStatus;
+        public UploadStatus CurrentUploadStatus 
+        { 
+            get => currentUploadStatus; 
+            set
+            {
+                if (currentUploadStatus == value)
+                    return;
+                currentUploadStatus = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public string Name { get => TreatmentPolygon.Name; }
 
         private bool canBeEnabled;
@@ -88,6 +120,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (canBeEnabled == value)
                     return;
                 canBeEnabled = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -100,7 +133,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (enabled == value)
                     return;
                 enabled = value;
-                EnabledChangedEvent?.Invoke(this, new EventArgs());
+                NotifyPropertyChanged();
             }
         }
 
@@ -113,6 +146,60 @@ namespace ACE_Mission_Control.Core.Models
                 if (swath == value)
                     return;
                 swath = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        // Keep track of this positional data so reordering can be done easier in an item by item view
+        private int? order;
+        public int? Order 
+        {
+            get => order; 
+            private set
+            {
+                if (order == value)
+                    return;
+                order = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool firstInstruction;
+        public bool FirstInstruction
+        {
+            get => firstInstruction;
+            private set
+            {
+                if (firstInstruction == value)
+                    return;
+                firstInstruction = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool firstInList;
+        public bool FirstInList 
+        { 
+            get => firstInList; 
+            private set
+            {
+                if (firstInList == value)
+                    return;
+                firstInList = value;
+                NotifyPropertyChanged();
+            } 
+        }
+
+        private bool lastInList;
+        public bool LastInList
+        {
+            get => lastInList;
+            private set
+            {
+                if (lastInList == value)
+                    return;
+                lastInList = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -126,6 +213,12 @@ namespace ACE_Mission_Control.Core.Models
             AreaStatus = AreaResult.Types.Status.NotStarted;
             // Swath is generally half of the side distance (metres)
             Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
+            CurrentUploadStatus = UploadStatus.NotUploaded;
+
+            Order = null;
+            FirstInstruction = false;
+            FirstInList = false;
+            LastInList = false;
 
             Enabled = true;
             lastEnabledState = null;
@@ -135,8 +228,17 @@ namespace ACE_Mission_Control.Core.Models
 
         public void UpdateTreatmentArea(AreaScanPolygon treatmentArea)
         {
+            var nameChanged = TreatmentPolygon.Name != treatmentArea.Name;
+
             TreatmentPolygon = treatmentArea;
+            Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
+
+            if (nameChanged)
+                NotifyPropertyChanged("Name");
+
             RevalidateTreatmentRoute();
+            if (CurrentUploadStatus == UploadStatus.Uploaded)
+                CurrentUploadStatus = UploadStatus.Changes;
         }
 
         public bool HasValidTreatmentRoute()
@@ -153,9 +255,12 @@ namespace ACE_Mission_Control.Core.Models
         {
             var routeUpdated = false;
 
+            NotifyPropertyChanged("ValidTreatmentRoutes");
+
             if (!IsTreatmentRouteValid())
             {
                 selectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault();
+                NotifyPropertyChanged("TreatmentRoute");
                 routeUpdated = true;
             }
 
@@ -192,6 +297,20 @@ namespace ACE_Mission_Control.Core.Models
             return vertString;
         }
 
+        public void SetOrder(int? order, bool firstInstruction, bool firstItem, bool lastItem)
+        {
+            if (Order != order)
+            {
+                if (CurrentUploadStatus == UploadStatus.Uploaded)
+                    CurrentUploadStatus = UploadStatus.Changes;
+            }
+
+            Order = order;
+            FirstInstruction = firstInstruction;
+            FirstInList = firstItem;
+            LastInList = lastItem;
+        }
+
         public string GetEntryCoordianteString()
         {
             // Returns in radians - latitude,longitude
@@ -210,6 +329,11 @@ namespace ACE_Mission_Control.Core.Models
                 AreaExitCoordinate.Y,
                 AreaExitCoordinate.X);
             return entryString;
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -118,7 +118,7 @@
                                     BorderThickness="0,0,0,1"/>
 
                             <Border Grid.Column="0"
-                                    BorderBrush="{x:Bind Order, Converter={StaticResource InstructionNumberToColour}, Mode=OneWay}"
+                                    BorderBrush="{x:Bind ID, Converter={StaticResource InstructionNumberToColour}, Mode=OneWay}"
                                     Margin="4,4,0,4"
                                     BorderThickness="6,0,0,0"/>
 
@@ -246,7 +246,7 @@
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Grid.Row="0"
-                Margin="10,4,0,0">
+                Margin="10,4,0,8">
                 <StackPanel
                     Orientation="Vertical">
                     <TextBlock
@@ -284,10 +284,11 @@
                         Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                         helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"/>
                     
-                    <TextBlock Text="{x:Bind ViewModel.TreatmentDurationValidText, Mode=OneWay}"
+                    <TextBlock x:Uid="Planner_DurationError"
+                               Visibility="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay}"
                                Style="{ThemeResource CaptionTextBlockStyle}"
                                Foreground="{ThemeResource SystemErrorTextColor}"
-                               Margin="16,0,0,0"/>
+                               Margin="0,0,0,0"/>
                 </StackPanel>
                 
                 <StackPanel Orientation="Vertical">
@@ -496,7 +497,7 @@
                 <Button x:Name="UploadButton"
                         x:Uid="Planner_UploadButton"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanBeModified, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanUpload, Mode=OneWay}"
                         Command="{x:Bind ViewModel.UploadCommand}"/>
                 <Button x:Name="ActivateButton"
                         x:Uid="Planner_ActivateButton"

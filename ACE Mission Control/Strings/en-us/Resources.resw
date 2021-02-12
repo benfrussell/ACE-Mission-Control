@@ -418,6 +418,9 @@
   <data name="Planner_SetupTreatmentSyncedHeader.Text" xml:space="preserve">
     <value>Synced</value>
   </data>
+  <data name="Planner_DurationError.Text" xml:space="preserve">
+    <value>Invalid Duration</value>
+  </data>
   <data name="Planner_SetupUploadStatusLabel.Text" xml:space="preserve">
     <value>Upload Status:</value>
   </data>

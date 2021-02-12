@@ -177,6 +177,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private bool lastInstruction;
+        public bool LastInstruction
+        {
+            get => lastInstruction;
+            private set
+            {
+                if (lastInstruction == value)
+                    return;
+                lastInstruction = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         private bool firstInList;
         public bool FirstInList 
         { 
@@ -203,6 +216,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private int id;
+        public int ID
+        {
+            get => id;
+            private set
+            {
+                if (id == value)
+                    return;
+                id = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         // Save the last enabled state so we can put enabled back into the user's preffered state if they fix the CanBeEnabled problem
         // Starts as null and will only save the state after being enabled for the first time
         private bool? lastEnabledState;
@@ -210,6 +236,7 @@ namespace ACE_Mission_Control.Core.Models
         public TreatmentInstruction(AreaScanPolygon treatmentArea)
         {
             TreatmentPolygon = treatmentArea;
+            ID = treatmentArea.SequentialID;
             AreaStatus = AreaResult.Types.Status.NotStarted;
             // Swath is generally half of the side distance (metres)
             Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
@@ -297,7 +324,7 @@ namespace ACE_Mission_Control.Core.Models
             return vertString;
         }
 
-        public void SetOrder(int? order, bool firstInstruction, bool firstItem, bool lastItem)
+        public void SetOrder(int? order, bool firstInstruction, bool lastInstruction, bool firstItem, bool lastItem)
         {
             if (Order != order)
             {
@@ -307,6 +334,7 @@ namespace ACE_Mission_Control.Core.Models
 
             Order = order;
             FirstInstruction = firstInstruction;
+            LastInstruction = lastInstruction;
             FirstInList = firstItem;
             LastInList = lastItem;
         }

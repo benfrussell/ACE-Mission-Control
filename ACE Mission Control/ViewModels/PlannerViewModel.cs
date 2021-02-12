@@ -65,15 +65,9 @@ namespace ACE_Mission_Control.ViewModels
                     return;
                 _treatmentDuration = value;
                 if (isTreatmentDurationValid(_treatmentDuration))
-                {
                     TreatmentDurationError = false;
-                    TreatmentDurationValidText = "";
-                }   
                 else
-                {
                     TreatmentDurationError = true;
-                    TreatmentDurationValidText = "Mission_InvalidInteger".GetLocalized();
-                }
                 RaisePropertyChanged("TreatmentDuration");
             }
         }
@@ -88,19 +82,6 @@ namespace ACE_Mission_Control.ViewModels
                     return;
                 _treatmentDurationError = value;
                 RaisePropertyChanged();
-            }
-        }
-
-        private string _treatmentDurationValidText;
-        public string TreatmentDurationValidText
-        {
-            get { return _treatmentDurationValidText; }
-            set
-            {
-                if (_treatmentDurationValidText == value)
-                    return;
-                _treatmentDurationValidText = value;
-                RaisePropertyChanged("TreatmentDurationValidText");
             }
         }
 
@@ -176,16 +157,16 @@ namespace ACE_Mission_Control.ViewModels
 
         private bool suppressPayloadCommand;
         private bool startModeErrorNotificationSent;
+        private bool mapCentred;
 
         public PlannerViewModel()
         {
             StartModeError = false;
             TreatmentDurationError = false;
             MapLayers = new ObservableCollection<MapLayer>();
-            MapLayers.Add(new MapElementsLayer());
-            MapLayers.Add(new MapElementsLayer());
             suppressPayloadCommand = false;
             startModeErrorNotificationSent = false;
+            mapCentred = false;
         }
 
         protected override void DroneAttached(bool firstTime)
@@ -212,7 +193,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                UpdatePlannerMapPoints();
+                UpdatePlannerMapPoints(AttachedDrone.Mission.GetNextInstruction());
                 CheckStartModeError();
             });
         }
@@ -221,17 +202,10 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
+                RaisePropertyChanged(e.PropertyName);
+
                 switch (e.PropertyName)
                 {
-                    case "CanBeReset":
-                        RaisePropertyChanged("CanBeReset");
-                        break;
-                    case "CanBeModified":
-                        RaisePropertyChanged("CanBeModified");
-                        break;
-                    case "CanToggleActivation":
-                        RaisePropertyChanged("CanToggleActivation");
-                        break;
                     case "Activated":
                         if (AttachedDrone.Mission.Activated)
                             MissionActivatedText = "Planner_DeactivateButton".GetLocalized();
@@ -245,9 +219,6 @@ namespace ACE_Mission_Control.ViewModels
                         suppressPayloadCommand = true;
                         SelectedPayload = AttachedDrone.Mission.SelectedPayload;
                         break;
-                    case "AvailablePayloads":
-                        RaisePropertyChanged("AvailablePayloads");
-                        break;
                     case "StartMode":
                         SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
                         CheckStartModeError();
@@ -258,8 +229,8 @@ namespace ACE_Mission_Control.ViewModels
 
         private void Mission_InstructionAreasUpdated(object sender, InstructionAreasUpdatedEventArgs e)
         {
-            UpdatePlannerMapAreas();
-            UpdatePlannerMapPoints();
+            UpdatePlannerMapAreas(e.Instructions);
+            UpdatePlannerMapPoints(e.Instructions);
             CheckStartModeError();
         }
 
@@ -401,18 +372,37 @@ namespace ACE_Mission_Control.ViewModels
                 });
         }
 
+        private void AddMapLayersUntilIndex(int index)
+        {
+            var lastIndex = MapLayers.Count();
+            var layersToAdd = (index + 1) - MapLayers.Count();
+
+            if (layersToAdd <= 0)
+                return;
+
+            // Add map layers until it reaches the index
+            for (int i = 0; i < layersToAdd; i++)
+                MapLayers.Add(new MapElementsLayer());
+        }
+
         private void UpdatePlannerMapAreas()
         {
-            // Clear elements
-            ((MapElementsLayer)MapLayers[0]).MapElements.Clear();
+            UpdatePlannerMapAreas(AttachedDrone.Mission.TreatmentInstructions);
+        }
 
-            var colorIndex = 0;
-            // Make the area polygons
-            foreach (TreatmentInstruction instruction in TreatmentInstructions)
+        private void UpdatePlannerMapAreas(IEnumerable<TreatmentInstruction> instructions)
+        {
+            foreach (TreatmentInstruction instruction in instructions)
             {
-                if (!instruction.Enabled)
-                    continue;
-                Color colour = (Color)(new InstructionNumberToColour().Convert(instruction.Order, typeof(Color), null, null));
+                var layerIndex = instruction.ID * 2;
+
+                // Add the layer or clear elements at the existing layer
+                if (instruction.Enabled && MapLayers.ElementAtOrDefault(layerIndex) == null)
+                    AddMapLayersUntilIndex(layerIndex);
+                else
+                    ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Clear();
+
+                Color colour = (Color)(new InstructionNumberToColour().Convert(instruction.ID, typeof(Color), null, null));
                 MapPolygon polygon = new MapPolygon();
                 polygon.Path = CoordsToGeopath(instruction.TreatmentPolygon.GetBasicCoordinates());
                 polygon.ZIndex = 1;
@@ -421,70 +411,78 @@ namespace ACE_Mission_Control.ViewModels
                 polygon.StrokeDashed = false;
                 colour.A = 100;
                 polygon.FillColor = colour;
-                ((MapElementsLayer)MapLayers[0]).MapElements.Add(polygon);
-
-                colorIndex++;
-            }
-
-            // Centre the map
-            var areaLayerElements = ((MapElementsLayer)MapLayers[0]).MapElements;
-            if (areaLayerElements.Count > 0)
-            {
-                Geopoint centrePoint = new Geopoint(((MapPolygon)areaLayerElements[0]).Path.Positions[0]);
-                MapCentre = centrePoint;
+                ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Add(polygon);
             }
         }
 
         private void UpdatePlannerMapPoints()
         {
-            var layer = (MapElementsLayer)MapLayers[1];
+            UpdatePlannerMapPoints(AttachedDrone.Mission.TreatmentInstructions);
+        }
 
-            layer.MapElements.Clear();
+        private void UpdatePlannerMapPoints(TreatmentInstruction instruction)
+        {
+            UpdatePlannerMapPoints(new List<TreatmentInstruction> { instruction });
+        }
 
+        private void UpdatePlannerMapPoints(IEnumerable<TreatmentInstruction> instructions)
+        {
             var nextInstructions = AttachedDrone.Mission.GetRemainingInstructions();
 
-            // Add a MapIcon for each waypoint in the first instruction's route if in SelectedWaypoint mode
-            if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.SelectedWaypoint)
+            foreach (TreatmentInstruction instruction in instructions)
             {
-                var firstInstruction = AttachedDrone.Mission.GetNextInstruction();
-                foreach (Waypoint idCoord in firstInstruction.TreatmentRoute.Waypoints)
-                {
-                    MapIcon waypointIcon = new MapIcon();
-                    waypointIcon.Location = CoordToGeopoint(idCoord.Coordinate.X, idCoord.Coordinate.Y);
-                    waypointIcon.Image = PointImage;
-                    waypointIcon.Tag = idCoord.ID;
-                    waypointIcon.ZIndex = -2;
-                    layer.MapElements.Add(waypointIcon);
-                }
-            }
+                var layerIndex = (instruction.ID * 2) + 1;
 
-            // Add a MapIcon for the last position if there is a last position
-            if (AttachedDrone.Mission.LastPosition != null)
-            {
-                MapIcon lastPosIcon = new MapIcon();
-                lastPosIcon.Location = CoordToGeopoint(
-                    AttachedDrone.Mission.LastPosition.X,
-                    AttachedDrone.Mission.LastPosition.Y);
-                lastPosIcon.Image = FlagImage;
-                lastPosIcon.NormalizedAnchorPoint = new Windows.Foundation.Point(0.15, 1);
-                lastPosIcon.Title = "Planner_MapLastPositionLabel".GetLocalized();
-                lastPosIcon.ZIndex = -1;
-                layer.MapElements.Add(lastPosIcon);
-            }
+                // Add the layer or clear elements at the existing layer
+                if (instruction.Enabled && MapLayers.ElementAtOrDefault(layerIndex) == null)
+                    AddMapLayersUntilIndex(layerIndex);
+                else
+                    ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Clear();
 
-            for (int i = 0; i < nextInstructions.Count; i++)
-            {
-                var instruction = nextInstructions[i];
-                var isFirstInstruction = i == 0;
-                var isLastInstruction = i == nextInstructions.Count - 1;
+                var layer = (MapElementsLayer)MapLayers[layerIndex];
 
                 // Add a MapIcon for the starting point and each area entry point that follows
                 MapIcon startIcon = new MapIcon();
 
-                if (isFirstInstruction)
+                if (instruction.FirstInstruction)
                 {
+                    // Add a MapIcon for each waypoint in the first instruction's route if in SelectedWaypoint mode
+                    if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.SelectedWaypoint)
+                    {
+                        foreach (Waypoint idCoord in instruction.TreatmentRoute.Waypoints)
+                        {
+                            MapIcon waypointIcon = new MapIcon();
+                            waypointIcon.Location = CoordToGeopoint(idCoord.Coordinate.X, idCoord.Coordinate.Y);
+                            waypointIcon.Image = PointImage;
+                            waypointIcon.Tag = idCoord.ID;
+                            waypointIcon.ZIndex = -2;
+                            layer.MapElements.Add(waypointIcon);
+                        }
+                    }
+
+                    // Add a MapIcon for the last position if there is a last position
+                    if (AttachedDrone.Mission.LastPosition != null)
+                    {
+                        MapIcon lastPosIcon = new MapIcon();
+                        lastPosIcon.Location = CoordToGeopoint(
+                            AttachedDrone.Mission.LastPosition.X,
+                            AttachedDrone.Mission.LastPosition.Y);
+                        lastPosIcon.Image = FlagImage;
+                        lastPosIcon.NormalizedAnchorPoint = new Windows.Foundation.Point(0.15, 1);
+                        lastPosIcon.Title = "Planner_MapLastPositionLabel".GetLocalized();
+                        lastPosIcon.ZIndex = -1;
+                        layer.MapElements.Add(lastPosIcon);
+                    }
+
                     var startCoord = AttachedDrone.Mission.GetStartCoordinate();
-                    startIcon.Location = CoordToGeopoint(startCoord.X, startCoord.Y);
+                    var startGeopoint = CoordToGeopoint(startCoord.X, startCoord.Y);
+                    startIcon.Location = startGeopoint;
+
+                    if (!mapCentred)
+                    {
+                        MapCentre = startGeopoint;
+                        mapCentred = true;
+                    }
                 }
                 else
                 {
@@ -498,7 +496,7 @@ namespace ACE_Mission_Control.ViewModels
                 // Add a MapIcon for the exit point for each area
                 MapIcon stopIcon = new MapIcon();
                 stopIcon.Location = CoordToGeopoint(instruction.AreaExitCoordinate.X, instruction.AreaExitCoordinate.Y);
-                stopIcon.Image = isLastInstruction ? StopImage : NextImage;
+                stopIcon.Image = instruction.LastInstruction ? StopImage : NextImage;
                 layer.MapElements.Add(stopIcon);
             }
         }

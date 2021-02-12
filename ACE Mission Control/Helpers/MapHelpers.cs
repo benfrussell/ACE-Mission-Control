@@ -14,12 +14,12 @@ namespace ACE_Mission_Control.Helpers
     {
         private static List<Color> MapColours = new List<Color>
         {
-            Colors.Orange,
-            Colors.DarkBlue,
-            Colors.Green,
             Colors.Purple,
-            Colors.Gray,
-            Colors.LightBlue
+            Colors.Blue,
+            Colors.Green,
+            Colors.Yellow,
+            Colors.Orange,
+            Colors.Red
         };
 
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -32,7 +32,7 @@ namespace ACE_Mission_Control.Helpers
 
             var num = (int?)value;
 
-            var colour = num != null ? MapColours[((int)num - 1) % MapColours.Count] : Colors.Gray;
+            var colour = num != null ? MapColours[(int)num % (MapColours.Count - 1)] : Colors.Gray;
 
             if (targetType == typeof(Brush))
                 return new SolidColorBrush(colour);

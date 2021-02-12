@@ -10,7 +10,14 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class AreaScanPolygon : Polygon, IComparableRoute
     {
+        private static List<int> knownIdList = new List<int>();
+
+        // An ID assigned from a sequence, starting at 0 and incremented with each new UGCS ID seen
+        public int SequentialID { get; protected set; }
+
+        // An ID assigned by UGCS
         public int Id { get; protected set; }
+
         public long LastModificationTime { get; protected set; }
 
         public List<ParameterValue> Parameters;
@@ -20,6 +27,11 @@ namespace ACE_Mission_Control.Core.Models
         public AreaScanPolygon(int id, string name, long modifiedTime, LinearRing polygonPoints, List<ParameterValue> parameters) : base(polygonPoints)
         {
             Id = id;
+
+            if (!knownIdList.Contains(id))
+                knownIdList.Add(id);
+            SequentialID = knownIdList.IndexOf(id);
+
             Name = name;
             LastModificationTime = modifiedTime;
             Parameters = parameters;

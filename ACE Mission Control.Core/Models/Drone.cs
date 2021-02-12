@@ -10,17 +10,24 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class Command
     {
-        public string Input { get; set; }
+        public string Input { get; private set; }
+        public string Name { get; private set; }
+        public string Parameters { get; private set; }
         // Is this command sent automatically
-        public bool AutoCommand { get; set; }
+        public bool IsAutoCommand { get; private set; }
         // Is this command sent to sync the director and mission control
-        public bool SyncCommand { get; set; }
+        public bool IsSyncCommand { get; private set; }
+        public object Tag { get; private set; }
 
-        public Command(string input, bool autoCommand = false, bool syncCommand = false)
+        public Command(string input, bool autoCommand = false, bool syncCommand = false, object tag = null)
         {
             Input = input;
-            AutoCommand = autoCommand;
-            SyncCommand = syncCommand;
+            var splitInput = input.Split(' ');
+            Name = splitInput[0];
+            Parameters = input.Substring(Name.Length);
+            IsAutoCommand = autoCommand;
+            IsSyncCommand = syncCommand;
+            Tag = tag;
         }
     }
 
@@ -248,28 +255,26 @@ namespace ACE_Mission_Control.Core.Models
                 SendStartModeCommands(manualSyncronize);
         }
 
-        public void SendCommand(string command, bool autoCommand = false, bool syncCommand = false)
+        public void SendCommand(string command, bool autoCommand = false, bool syncCommand = false, object tag = null)
         {
-            SendCommand(new Command(command, autoCommand, syncCommand));
+            SendCommand(new Command(command, autoCommand, syncCommand, tag));
         }
 
         // TODO: Should probably handle this in OnboardComputerClient but keep this as an interface for the ViewModel?
         public void SendCommand(Command command)
         {
-            string cmdNameOnly = command.Input.Split(' ')[0];
-            
-            if (command.AutoCommand && ManualCommandsOnly)
+            if (command.IsAutoCommand && ManualCommandsOnly)
             {
                 AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommandError, $": command '{command}' was not sent in manual mode because it was an automatic command."));
                 return;
             }
 
             // Don't allow any more sync commands if the sync failed
-            if (command.SyncCommand && syncFailed)
+            if (command.IsSyncCommand && syncFailed)
                 return;
 
             // Commands are dumped if the client isn't connected, otherwise if the send fails the command is queued
-            if (ChaperoneCommandList.Any(c => c == cmdNameOnly))
+            if (ChaperoneCommandList.Any(c => c == command.Name))
             {
                 if (!OBCClient.IsChaperoneConnected)
                 {
@@ -304,7 +309,7 @@ namespace ACE_Mission_Control.Core.Models
 
             if (sendSuccessful)
             {
-                if (command.SyncCommand)
+                if (command.IsSyncCommand)
                 {
                     if (Synchronized)
                         Synchronized = false;
@@ -325,14 +330,12 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     if (instruction.FirstInstruction)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Duration: {Mission.TreatmentDuration}");
-
                         string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -exit {3} -id {4} -radians",
                             instruction.GetTreatmentAreaString(),
                             Mission.TreatmentDuration,
                             Mission.GetStartCoordinateString(),
                             instruction.GetExitCoordinateString(),
-                            instruction.TreatmentPolygon.Id);
+                            instruction.ID);
 
                         if (!Mission.StopAndTurnStartMode)
                             uploadCmd += " -fly_through";
@@ -340,7 +343,7 @@ namespace ACE_Mission_Control.Core.Models
                         if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)
                             uploadCmd += " -in_progress";
 
-                        SendCommand(uploadCmd);
+                        SendCommand(uploadCmd, tag: instruction.ID);
                         continue;
                     }
 
@@ -348,7 +351,7 @@ namespace ACE_Mission_Control.Core.Models
                         instruction.GetTreatmentAreaString(),
                         instruction.GetEntryCoordianteString(),
                         instruction.GetExitCoordinateString(),
-                        instruction.TreatmentPolygon.Id);
+                        instruction.ID);
 
                     if (!Mission.StopAndTurnStartMode)
                         areaCmd += " -fly_through";
@@ -356,7 +359,7 @@ namespace ACE_Mission_Control.Core.Models
                     if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)
                         areaCmd += " -in_progress";
 
-                    SendCommand(areaCmd);
+                    SendCommand(areaCmd, tag: instruction.ID);
                 }
             }
         }
@@ -428,15 +431,23 @@ namespace ACE_Mission_Control.Core.Models
                 return;
 
             // Special handling for sync commands
-            if (lastCommandSent.SyncCommand && e.Line.Contains("(FAILURE)"))
+            if (lastCommandSent.IsSyncCommand)
             {
-                HandleFailedSync();
+                if (e.Line.Contains("(FAILURE)"))
+                {
+                    HandleFailedSync();
+                }
+                else if (e.Line.Contains("(SUCCESS)"))
+                {
+                    syncCommandsSent--;
+                    if (syncCommandsSent == 0)
+                        Synchronized = true;
+                }
             }
-            else if (lastCommandSent.SyncCommand && e.Line.Contains("(SUCCESS)"))
+            else if (lastCommandSent.Name == "set_mission" || lastCommandSent.Name == "add_area")
             {
-                syncCommandsSent--;
-                if (syncCommandsSent == 0)
-                    Synchronized = true;
+                if (e.Line.Contains("(SUCCESS)"))
+                    Mission.SetInstructionUploaded((int)lastCommandSent.Tag);
             }
 
             lastCommandSent = null;
@@ -445,7 +456,7 @@ namespace ACE_Mission_Control.Core.Models
         private void HandleFailedSync()
         {
             // If a sync command fails then clear the Queue of all sync commands
-            directorCommandQueue = new Queue<Command>(directorCommandQueue.Where(c => c.SyncCommand == false));
+            directorCommandQueue = new Queue<Command>(directorCommandQueue.Where(c => c.IsSyncCommand == false));
             syncCommandsSent = 0;
             syncFailed = true;
             CanManuallySynchronize = true;

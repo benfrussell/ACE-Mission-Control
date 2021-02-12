@@ -131,6 +131,25 @@ namespace ACE_Mission_Control.Core.Models
         }
         private void UpdateCanToggleActivation() { CanToggleActivation = onboardComputer.IsDirectorConnected && drone.InterfaceState == InterfaceStatus.Types.State.Online && MissionSet; }
 
+        private bool canUpload;
+        public bool CanUpload
+        {
+            get => canUpload;
+            private set
+            {
+                if (canUpload == value)
+                    return;
+                canUpload = value;
+                NotifyPropertyChanged();
+            }
+        }
+        private void UpdateCanUpload() 
+        {
+            CanUpload =
+                CanBeModified &&
+                TreatmentInstructions.Any(i => i.Enabled && i.CurrentUploadStatus != TreatmentInstruction.UploadStatus.Uploaded);
+        }
+
         private bool missionSet;
         public bool MissionSet
         {
@@ -240,6 +259,7 @@ namespace ACE_Mission_Control.Core.Models
             DroneHasProgress = false;
 
             UpdateCanBeModified();
+            UpdateCanUpload();
             UpdateCanBeReset();
             UpdateCanToggleActivation();
         }
@@ -268,16 +288,20 @@ namespace ACE_Mission_Control.Core.Models
             // Update the treatment instruction statuses with any results that came from the mission status update
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
-                var resultInStatus = newStatus.Results.FirstOrDefault(r => r.AreaID == instruction.TreatmentPolygon.Id);
+                var resultInStatus = newStatus.Results.FirstOrDefault(r => r.AreaID == instruction.ID);
                 if (resultInStatus != null && instruction.AreaStatus != resultInStatus.Status)
                     instruction.AreaStatus = resultInStatus.Status;
+                else if (resultInStatus == null)
+                    instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.NotUploaded;
             }
+
+            UpdateCanUpload();
 
             if (newStatus.Results.Count() > 1)
             {
                 // If the order of results we get from the mission status is different than what we have, reorder
                 var resultIDs = newStatus.Results.Select(r => r.AreaID).ToList();
-                var originalIDs = TreatmentInstructions.Select(i => i.TreatmentPolygon.Id);
+                var originalIDs = TreatmentInstructions.Select(i => i.ID);
 
                 if (!originalIDs.SequenceEqual(resultIDs))
                     ReorderInstructionsByID(resultIDs);
@@ -302,11 +326,11 @@ namespace ACE_Mission_Control.Core.Models
         // Takes a complete or partial list of instruction IDs and orders our list to match it
         private void ReorderInstructionsByID(List<int> orderedIDs)
         {
-            var originalIDs = TreatmentInstructions.Select(i => i.TreatmentPolygon.Id);
+            var originalIDs = TreatmentInstructions.Select(i => i.ID);
             // Add any new IDs that exist in the original list to the ordered list, so OrderBy can find every ID somewhere
             orderedIDs.AddRange(originalIDs.Except(orderedIDs));
 
-            var reorderedInstructions = TreatmentInstructions.OrderBy(i => orderedIDs.IndexOf(i.TreatmentPolygon.Id)).ToList();
+            var reorderedInstructions = TreatmentInstructions.OrderBy(i => orderedIDs.IndexOf(i.ID)).ToList();
             TreatmentInstructions.Clear();
             foreach (TreatmentInstruction instruction in reorderedInstructions)
                 TreatmentInstructions.Add(instruction);
@@ -323,15 +347,15 @@ namespace ACE_Mission_Control.Core.Models
             TreatmentInstructions.Remove(instruction);
             TreatmentInstructions.Insert(newPosition, instruction);
 
+            UpdateInstructionOrderValues();
+
             bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
             if (changes)
                 StartParametersChangedEvent?.Invoke(this, new EventArgs());
 
-            UpdateInstructionOrderValues();
-
             var updatedInstructions = new List<TreatmentInstruction> { instruction };
             if (displacedInstruction != null)
-                updatedInstructions.Append(displacedInstruction);
+                updatedInstructions.Add(displacedInstruction);
 
             InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = updatedInstructions });
         }
@@ -340,17 +364,23 @@ namespace ACE_Mission_Control.Core.Models
         {
             int order = 1;
             int position = 1;
+            var lastInstructionID = TreatmentInstructions.Last(i => i.Enabled && i.AreaStatus != AreaResult.Types.Status.Finished).ID;
 
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
                 if (instruction.Enabled)
                 {
-                    instruction.SetOrder(order, order == 1, position == 1, position == TreatmentInstructions.Count);
+                    instruction.SetOrder(
+                        order, 
+                        order == 1, 
+                        instruction.ID == lastInstructionID, 
+                        position == 1, 
+                        position == TreatmentInstructions.Count);
                     order++;
                 }
                 else
                 {
-                    instruction.SetOrder(null, false, position == 1, position == TreatmentInstructions.Count);
+                    instruction.SetOrder(null, false, false, position == 1, position == TreatmentInstructions.Count);
                 }
                 position++;
             }
@@ -441,11 +471,22 @@ namespace ACE_Mission_Control.Core.Models
             return TreatmentInstructions.Where(i => i.Enabled && i.AreaStatus != Pbdrone.AreaResult.Types.Status.Finished).ToList();
         }
 
+        public void SetInstructionUploaded(int id)
+        {
+            var instruction = TreatmentInstructions.FirstOrDefault(i => i.ID == id);
+            if (instruction != null)
+            {
+                instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.Uploaded;
+                UpdateCanUpload();
+            }
+        }
+
         private void OnboardComputerClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "IsDirectorConnected")
             {
                 UpdateCanBeModified();
+                UpdateCanUpload();
                 UpdateCanToggleActivation();
             }
         }
@@ -460,6 +501,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 // Don't allow the user to affect the mission if the drone's state isn't syncronized to avoid trouble
                 UpdateCanBeModified();
+                UpdateCanUpload();
                 UpdateCanBeReset();
             }
         }
@@ -470,7 +512,7 @@ namespace ACE_Mission_Control.Core.Models
             // Remove all instructions that have removed polygons
             foreach (int removedID in e.updates.RemovedRouteIDs)
             {
-                var removedInstruction = TreatmentInstructions.FirstOrDefault(i => removedID == i.TreatmentPolygon.Id);
+                var removedInstruction = TreatmentInstructions.FirstOrDefault(i => removedID == i.ID);
                 if (removedInstruction != null)
                     TreatmentInstructions.Remove(removedInstruction);
             }
@@ -503,12 +545,11 @@ namespace ACE_Mission_Control.Core.Models
                 TreatmentInstructions.Add(newInstruction);
             }
 
+            UpdateInstructionOrderValues();
 
             bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
             if (changes)
                 StartParametersChangedEvent?.Invoke(this, new EventArgs());
-
-            UpdateInstructionOrderValues();
 
             if (updatedInstructions.Instructions.Count > 0)
             {
@@ -527,11 +568,14 @@ namespace ACE_Mission_Control.Core.Models
 
             if (e.PropertyName == "Enabled")
             {
+                UpdateInstructionOrderValues();
+
                 bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
                 if (changes)
                     StartParametersChangedEvent?.Invoke(this, new EventArgs());
 
-                UpdateInstructionOrderValues();
+                var updatedInstruction = new List<TreatmentInstruction> { sender as TreatmentInstruction };
+                InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = updatedInstruction });
             }
         }
 

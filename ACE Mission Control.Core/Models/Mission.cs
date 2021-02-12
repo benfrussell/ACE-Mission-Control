@@ -19,6 +19,13 @@ namespace ACE_Mission_Control.Core.Models
         }
     }
 
+    public class InstructionRouteUpdatedEventArgs
+    {
+        public TreatmentInstruction Instruction { get; set; }
+
+        public InstructionRouteUpdatedEventArgs() { }
+    }
+
     public class StartModeChangedEventArgs
     {
         public StartTreatmentParameters.Mode NewMode { get; set; }
@@ -29,6 +36,8 @@ namespace ACE_Mission_Control.Core.Models
         public event PropertyChangedEventHandler PropertyChanged;
 
         public event EventHandler<InstructionAreasUpdatedEventArgs> InstructionAreasUpdated;
+
+        public event EventHandler<InstructionRouteUpdatedEventArgs> InstructionRouteUpdated;
 
         public event EventHandler<EventArgs> StartParametersChangedEvent;
 
@@ -115,7 +124,7 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
             }
         }
-        private void UpdateCanBeModified() { CanBeModified = onboardComputer.IsDirectorConnected && !Activated && drone.Synchronized; }
+        private void UpdateCanBeModified() { CanBeModified = onboardComputer.IsDirectorConnected && !Activated && drone.Synchronization == Drone.SyncState.Synchronized; }
 
         private bool canToggleActivation;
         public bool CanToggleActivation
@@ -282,6 +291,9 @@ namespace ACE_Mission_Control.Core.Models
             Activated = newStatus.Activated;
             UpdateCanBeModified();
 
+            if (!MissionSet && newStatus.Results.Count > 0)
+                MissionSet = true;
+
             DroneHasProgress = newStatus.InProgress;
             UpdateCanBeReset();
 
@@ -290,9 +302,15 @@ namespace ACE_Mission_Control.Core.Models
             {
                 var resultInStatus = newStatus.Results.FirstOrDefault(r => r.AreaID == instruction.ID);
                 if (resultInStatus != null && instruction.AreaStatus != resultInStatus.Status)
+                {
                     instruction.AreaStatus = resultInStatus.Status;
+                    if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.NotUploaded)
+                        instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.PreviousUpload;
+                }
                 else if (resultInStatus == null)
+                {
                     instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.NotUploaded;
+                }
             }
 
             UpdateCanUpload();
@@ -312,6 +330,7 @@ namespace ACE_Mission_Control.Core.Models
                 LastPosition = new Coordinate(
                   (newStatus.LastLongitude / 180) * Math.PI,
                   (newStatus.LastLatitude / 180) * Math.PI);
+                NotifyPropertyChanged("MissionControlHasProgress");
             }
             else if (!MissionControlHasProgress)
             {
@@ -319,7 +338,7 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, justReturned);
-            if (changes)
+            if (changes || LastPosition != null)
                 StartParametersChangedEvent?.Invoke(this, new EventArgs());
         }
 
@@ -399,6 +418,12 @@ namespace ACE_Mission_Control.Core.Models
             UpdateCanToggleActivation();
         }
 
+        public void ResetStatus()
+        {
+            Activated = false;
+            Stage = MissionStatus.Types.Stage.NotActivated;
+        }
+
         public void ResetProgress()
         {
             if (MissionControlHasProgress)
@@ -415,6 +440,8 @@ namespace ACE_Mission_Control.Core.Models
                 bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
                 if (changes)
                     StartParametersChangedEvent?.Invoke(this, new EventArgs());
+
+                NotifyPropertyChanged("MissionControlHasProgress");
             }
 
             if (DroneHasProgress && CanBeModified && MissionSet)
@@ -497,7 +524,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 UpdateCanToggleActivation();
             }
-            else if (e.PropertyName == "Synchronized")
+            else if (e.PropertyName == "Synchronization")
             {
                 // Don't allow the user to affect the mission if the drone's state isn't syncronized to avoid trouble
                 UpdateCanBeModified();
@@ -526,6 +553,7 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     // Update treatment areas if they were modified
                     instruction.UpdateTreatmentArea(newTreatmentArea);
+                    UpdateCanUpload();
                     updatedInstructions.Instructions.Add(instruction);
                 }
                 else
@@ -568,14 +596,49 @@ namespace ACE_Mission_Control.Core.Models
 
             if (e.PropertyName == "Enabled")
             {
+                var previousFirst = TreatmentInstructions.FirstOrDefault(i => i.FirstInstruction);
+                var previousLast = TreatmentInstructions.LastOrDefault(i => i.LastInstruction);
+
                 UpdateInstructionOrderValues();
+                UpdateCanUpload();
 
-                bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
-                if (changes)
-                    StartParametersChangedEvent?.Invoke(this, new EventArgs());
+                var newFirst = TreatmentInstructions.FirstOrDefault(i => i.FirstInstruction);
+                var newLast = TreatmentInstructions.LastOrDefault(i => i.LastInstruction);
 
-                var updatedInstruction = new List<TreatmentInstruction> { sender as TreatmentInstruction };
-                InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = updatedInstruction });
+                var updatedInstructions = new List<TreatmentInstruction> { sender as TreatmentInstruction };
+
+                if (previousFirst != newFirst)
+                {
+                    bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
+                    if (changes)
+                        StartParametersChangedEvent?.Invoke(this, new EventArgs());
+                    if (sender == previousFirst)
+                        updatedInstructions.Add(newFirst);
+                    else
+                        updatedInstructions.Add(previousFirst);
+                }
+
+                if (previousLast != newLast)
+                {
+                    if (sender == previousLast)
+                        updatedInstructions.Add(newLast);
+                    else
+                        updatedInstructions.Add(previousLast);
+                }
+                
+                InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = updatedInstructions });
+            }
+            else if (e.PropertyName == "TreatmentRoute")
+            {
+                var instruction = sender as TreatmentInstruction;
+                if (instruction.FirstInstruction)
+                {
+                    bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
+                    if (changes)
+                        StartParametersChangedEvent?.Invoke(this, new EventArgs());
+                }
+
+                InstructionRouteUpdated?.Invoke(this, new InstructionRouteUpdatedEventArgs { Instruction = instruction });
             }
         }
 

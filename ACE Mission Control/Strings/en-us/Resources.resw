@@ -142,7 +142,7 @@
     <comment>The page is unknown or not registered in navigation service</comment>
   </data>
   <data name="Main_MissionPivotItem.Header" xml:space="preserve">
-    <value>Mission</value>
+    <value>Connection</value>
     <comment>First Pivot item title for Main</comment>
   </data>
   <data name="Main_ConfigPivotItem.Header" xml:space="preserve">
@@ -172,7 +172,7 @@
     <value>IP Address</value>
   </data>
   <data name="Planner_UploadButton.Content" xml:space="preserve">
-    <value>Upload Mission</value>
+    <value>Upload Areas</value>
     <comment>Mission upload button text</comment>
   </data>
   <data name="Config_ApplyButton.Content" xml:space="preserve">
@@ -392,7 +392,7 @@
     <value>Progress: </value>
   </data>
   <data name="Main_SyncronizedLabel.Text" xml:space="preserve">
-    <value>Status and Entry Synced</value>
+    <value>Synchronized</value>
   </data>
   <data name="Mission_StopPayloadButton.Content" xml:space="preserve">
     <value>Force Stop Payload</value>
@@ -425,12 +425,33 @@
     <value>Upload Status:</value>
   </data>
   <data name="UploadStatus_Changes" xml:space="preserve">
-    <value>Changes Not Uploaded</value>
+    <value>New Changes</value>
   </data>
   <data name="UploadStatus_NotUploaded" xml:space="preserve">
     <value>Not Uploaded</value>
   </data>
   <data name="UploadStatus_Uploaded" xml:space="preserve">
     <value>Uploaded</value>
+  </data>
+  <data name="Main_AwayOnMissionLabel.Text" xml:space="preserve">
+    <value>Away On Mission</value>
+  </data>
+  <data name="SyncState_NotSynchronized" xml:space="preserve">
+    <value>Not Synchronized</value>
+  </data>
+  <data name="SyncState_Paused" xml:space="preserve">
+    <value>Synchronizing Paused</value>
+  </data>
+  <data name="SyncState_Synchronized" xml:space="preserve">
+    <value>Synchronized</value>
+  </data>
+  <data name="SyncState_SynchronizeFailed" xml:space="preserve">
+    <value>Synchronize Failed</value>
+  </data>
+  <data name="SyncState_Synchronizing" xml:space="preserve">
+    <value>Synchronizing</value>
+  </data>
+  <data name="UploadStatus_PreviousUpload" xml:space="preserve">
+    <value>Previous Upload</value>
   </data>
 </root>

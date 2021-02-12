@@ -15,10 +15,12 @@
 
     <Page.Resources>
         <helper:EnumToResourceString x:Key="EnumToResourceString" />
+        <helper:EnumToRYGColour x:Key="EnumToRYGColour"/>
         <helper:MissionActivatedToString x:Key="MissionActivatedToString" />
         <helper:MissionActivatedToColour x:Key="MissionActivatedToColour" />
         <helper:AlertToString x:Key="AlertToString" />
         <helper:AlertLevelToColour x:Key="AlertLevelToColour" />
+        <helper:NegateBoolean x:Key="NegateBoolean" />
     </Page.Resources>
 
     <Grid 
@@ -67,8 +69,14 @@
                 Foreground="{x:Bind ViewModel.AttachedDrone.Mission.Activated, Mode=OneWay, Converter={StaticResource MissionActivatedToColour}}"
                 Margin="4,0,0,0"/>
             <TextBlock
-                x:Uid="Main_SyncronizedLabel"
-                Visibility="{x:Bind ViewModel.AttachedDrone.Synchronized, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                Text="{x:Bind ViewModel.AttachedDrone.Synchronization, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                Foreground="{x:Bind ViewModel.AttachedDrone.Synchronization,Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Margin="4,0,0,0" />
+            <TextBlock
+                x:Uid="Main_AwayOnMissionLabel"
+                Visibility="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay}"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Margin="4,0,0,0" />
         </StackPanel>

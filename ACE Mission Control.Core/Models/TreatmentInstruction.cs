@@ -15,7 +15,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             NotUploaded = 0,
             Changes = 1,
-            Uploaded = 2
+            PreviousUpload = 2,
+            Uploaded = 3
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

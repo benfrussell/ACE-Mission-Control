@@ -44,7 +44,8 @@
                 Background="{ThemeResource SystemChromeMediumLowColor}">
             <ListView x:Name="SetupMissionRoutesList"
                       ItemsSource="{x:Bind ViewModel.AttachedDrone.Mission.TreatmentInstructions, Mode=OneWay}"
-                      DataContext="{x:Bind ViewModel}">
+                      DataContext="{x:Bind ViewModel}"
+                      IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}">
 
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
@@ -268,27 +269,25 @@
                     </ComboBox>
                 </StackPanel>
                 
-                <StackPanel
-                    Orientation="Vertical">
-                    <TextBlock
-                        x:Uid="Planner_SetDuration"
-                        Margin="8,0,0,4"/>
+                <StackPanel Orientation="Vertical"
+                            Margin="8,0,0,0">
+                    <TextBlock x:Uid="Planner_SetDuration"
+                               Margin="0,0,0,4"/>
                     
                     <TextBox
                         IsSpellCheckEnabled="False"
                         MaxWidth="100"
-                        Margin="8,0,0,0"
                         Style="{ThemeResource ACETextBox}"
                         IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanBeModified, Mode=OneWay}"
                         BorderBrush="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
                         Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
-                        helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"/>
+                        helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"
+                        Margin="0,0,0,0"/>
                     
                     <TextBlock x:Uid="Planner_DurationError"
                                Visibility="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay}"
                                Style="{ThemeResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource SystemErrorTextColor}"
-                               Margin="0,0,0,0"/>
+                               Foreground="{ThemeResource SystemErrorTextColor}"/>
                 </StackPanel>
                 
                 <StackPanel Orientation="Vertical">
@@ -300,6 +299,7 @@
                                   Margin="8,0,8,0"
                                   Width="160"
                                   HorizontalAlignment="Stretch"
+                                  IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
                                   SelectedIndex="{x:Bind ViewModel.SelectedStartMode, Mode=OneWay}"
                                   BorderBrush="{x:Bind ViewModel.StartModeError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
                                   Style="{ThemeResource ACEComboBox}">
@@ -474,7 +474,9 @@
                                     Foreground="{StaticResource SystemErrorTextColor}">
                                 <FlyoutBase.AttachedFlyout>
                                     <Flyout>
-                                        <TextBlock x:Uid="Planner_FlythoughErrorFlyout" />
+                                        <TextBlock x:Uid="Planner_FlythoughErrorFlyout"
+                                                   MaxWidth="300"
+                                                   TextWrapping="Wrap"/>
                                     </Flyout>
                                 </FlyoutBase.AttachedFlyout>
 

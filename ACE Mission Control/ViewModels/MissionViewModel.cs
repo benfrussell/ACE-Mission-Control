@@ -30,6 +30,26 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private bool canManuallySynchronize;
+        public bool CanManuallySynchronize
+        {
+            get { return canManuallySynchronize; }
+            set
+            {
+                if (canManuallySynchronize == value)
+                    return;
+                canManuallySynchronize = value;
+                RaisePropertyChanged();
+            }
+        }
+        private void UpdateCanManuallySynchronize()
+        {
+            CanManuallySynchronize =
+                AttachedDrone.OBCClient.IsDirectorConnected &&
+                (AttachedDrone.Synchronization == Drone.SyncState.SynchronizeFailed ||
+                AttachedDrone.ManualCommandsOnly);
+        }
+
         public MissionViewModel()
         {
             
@@ -39,7 +59,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
-
+            UpdateCanManuallySynchronize();
             DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
                 AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
         }
@@ -52,6 +72,7 @@ namespace ACE_Mission_Control.ViewModels
                 {
                     RaisePropertyChanged("IsDirectorConnected");
                     connectDroneCommand();
+                    UpdateCanManuallySynchronize();
                 }
                 else if (e.PropertyName == "IsChaperoneConnected")
                 {
@@ -66,16 +87,12 @@ namespace ACE_Mission_Control.ViewModels
             {
                 switch (e.PropertyName)
                 {
-                    case "OBCCanBeTested":
-                        RaisePropertyChanged("OBCCanBeTested");
-                        break;
-                    case "CanManuallySynchronize":
-                        RaisePropertyChanged("CanManuallySynchronize");
-                        break;
                     case "InterfaceState":
                         DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting || AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
                         break;
-
+                    case "Synchronization":
+                        UpdateCanManuallySynchronize();
+                        break;
                 }
             });
         }
@@ -95,6 +112,7 @@ namespace ACE_Mission_Control.ViewModels
             {
                 AttachedDrone.OBCClient.StopTryingConnections();
                 AttachedDrone.OBCClient.Disconnect();
+                AttachedDrone.Mission.ResetStatus();
             }
             else
             {

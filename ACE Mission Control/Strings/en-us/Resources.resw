@@ -142,7 +142,7 @@
     <comment>The page is unknown or not registered in navigation service</comment>
   </data>
   <data name="Main_MissionPivotItem.Header" xml:space="preserve">
-    <value>Mission</value>
+    <value>Connection</value>
     <comment>First Pivot item title for Main</comment>
   </data>
   <data name="Main_ConfigPivotItem.Header" xml:space="preserve">
@@ -172,7 +172,7 @@
     <value>IP Address</value>
   </data>
   <data name="Planner_UploadButton.Content" xml:space="preserve">
-    <value>Upload Mission</value>
+    <value>Upload Areas</value>
     <comment>Mission upload button text</comment>
   </data>
   <data name="Config_ApplyButton.Content" xml:space="preserve">
@@ -326,43 +326,39 @@
     <value>Treatment Start Mode</value>
   </data>
   <data name="Planner_StartModeItem_FirstEntry.Text" xml:space="preserve">
-    <value>Start at first entry</value>
+    <value>First Entry</value>
   </data>
   <data name="Planner_StartModeItem_FirstEntryTooltip.Text" xml:space="preserve">
-    <value>When set, the drone will start treating as soon as it enters the treatment area.</value>
+    <value>The drone will start treating as soon as it enters the treatment area.</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionContinued.Text" xml:space="preserve">
-    <value>Start at last position using continue mission</value>
+  <data name="Planner_StartModeItem_ContinueMission.Text" xml:space="preserve">
+    <value>Continue Mission</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionContinuedTooltip.Text" xml:space="preserve">
-    <value>When set, the drone will start treating in the treatment area after stopping and starting at it's last position.
-
-This mode is compatible with the UGCS continue mission function.</value>
+  <data name="Planner_StartModeItem_ContinueMissionTooltip.Text" xml:space="preserve">
+    <value>The drone will start treating in the treatment area after stopping and starting at it's last position. This mode expects that you will use the UGCS continue mission function.</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionWaypoint.Text" xml:space="preserve">
-    <value>Start at last position using waypoint</value>
+  <data name="Planner_StartModeItem_InsertWaypoint.Text" xml:space="preserve">
+    <value>Insert Waypoint</value>
   </data>
-  <data name="Planner_StartModeItem_LastPositionWaypointTooltip.Text" xml:space="preserve">
-    <value>When set, the drone will start treating in the treatment area after it passes a waypoint placed at it's last position.
-
-This mode will automatically place a waypoint at the drone's last position for you.</value>
+  <data name="Planner_StartModeItem_InsertWaypointTooltip.Text" xml:space="preserve">
+    <value>The drone will start treating in the treatment area at a waypoint automatically inserted at it's last position.</value>
   </data>
   <data name="Planner_StartModeItem_SelectedWaypoint.Text" xml:space="preserve">
-    <value>Start at selected waypoint</value>
+    <value>Selected Waypoint</value>
   </data>
   <data name="Planner_StartModeItem_SelectedWaypointTooltip.Text" xml:space="preserve">
-    <value>When set, the drone will start treating in the treatment area after it passes the selected waypoint.</value>
+    <value>The drone will start treating in the treatment area after it passes the selected waypoint.</value>
   </data>
   <data name="Planner_MapLastPositionLabel" xml:space="preserve">
     <value>Last Position</value>
   </data>
-  <data name="AreaStatus_Finished" xml:space="preserve">
+  <data name="Status_Finished" xml:space="preserve">
     <value>Finished</value>
   </data>
-  <data name="AreaStatus_InProgress" xml:space="preserve">
+  <data name="Status_InProgress" xml:space="preserve">
     <value>In Progress</value>
   </data>
-  <data name="AreaStatus_NotStarted" xml:space="preserve">
+  <data name="Status_NotStarted" xml:space="preserve">
     <value>Not Started</value>
   </data>
   <data name="MissionActivated_False" xml:space="preserve">
@@ -371,29 +367,29 @@ This mode will automatically place a waypoint at the drone's last position for y
   <data name="MissionActivated_True" xml:space="preserve">
     <value>Activated</value>
   </data>
-  <data name="MissionStage_Complete" xml:space="preserve">
+  <data name="Stage_Complete" xml:space="preserve">
     <value>Mission Complete</value>
   </data>
-  <data name="MissionStage_Enroute" xml:space="preserve">
+  <data name="Stage_Enroute" xml:space="preserve">
     <value>Enroute to Mission Area</value>
   </data>
-  <data name="MissionStage_Executing" xml:space="preserve">
+  <data name="Stage_Executing" xml:space="preserve">
     <value>Executing Mission</value>
   </data>
-  <data name="MissionStage_NotActivated" xml:space="preserve">
+  <data name="Stage_NotActivated" xml:space="preserve">
     <value>Waiting for Activation</value>
   </data>
-  <data name="MissionStage_Override" xml:space="preserve">
+  <data name="Stage_Override" xml:space="preserve">
     <value>Manual Override</value>
   </data>
-  <data name="MissionStage_Ready" xml:space="preserve">
+  <data name="Stage_Ready" xml:space="preserve">
     <value>Ready for Take-off</value>
   </data>
-  <data name="MissionStage_Returning" xml:space="preserve">
+  <data name="Stage_Returning" xml:space="preserve">
     <value>Returning to Home Point</value>
   </data>
   <data name="Planner_SetupAreaStatusLabel.Text" xml:space="preserve">
-    <value>Status: </value>
+    <value>Progress: </value>
   </data>
   <data name="Main_SyncronizedLabel.Text" xml:space="preserve">
     <value>Synchronized</value>
@@ -403,5 +399,59 @@ This mode will automatically place a waypoint at the drone's last position for y
   </data>
   <data name="Mission_SynchronizeButton.Content" xml:space="preserve">
     <value>Synchronize</value>
+  </data>
+  <data name="Planner_FlythoughErrorFlyout.Text" xml:space="preserve">
+    <value>The route does not fly through the last position. The payload will not start!</value>
+  </data>
+  <data name="Planner_FlythroughErrorNotification_Content" xml:space="preserve">
+    <value>The start mode for {0} is set to Flythrough, but the route does not pass the last position. The payload will not start!</value>
+  </data>
+  <data name="Planner_FlythroughErrorNotification_Title" xml:space="preserve">
+    <value>ACE Mission Control: Flythough Error</value>
+  </data>
+  <data name="Planner_StartModeItem_Flythrough.Text" xml:space="preserve">
+    <value>Next Flythrough</value>
+  </data>
+  <data name="Planner_StartModeItem_FlythroughTooltip.Text" xml:space="preserve">
+    <value>The drone will start treating after flying through either it's last position inside the treatment area or the next entry into the treatment area.</value>
+  </data>
+  <data name="Planner_SetupTreatmentSyncedHeader.Text" xml:space="preserve">
+    <value>Synced</value>
+  </data>
+  <data name="Planner_DurationError.Text" xml:space="preserve">
+    <value>Invalid Duration</value>
+  </data>
+  <data name="Planner_SetupUploadStatusLabel.Text" xml:space="preserve">
+    <value>Upload Status:</value>
+  </data>
+  <data name="UploadStatus_Changes" xml:space="preserve">
+    <value>New Changes</value>
+  </data>
+  <data name="UploadStatus_NotUploaded" xml:space="preserve">
+    <value>Not Uploaded</value>
+  </data>
+  <data name="UploadStatus_Uploaded" xml:space="preserve">
+    <value>Uploaded</value>
+  </data>
+  <data name="Main_AwayOnMissionLabel.Text" xml:space="preserve">
+    <value>Away On Mission</value>
+  </data>
+  <data name="SyncState_NotSynchronized" xml:space="preserve">
+    <value>Not Synchronized</value>
+  </data>
+  <data name="SyncState_Paused" xml:space="preserve">
+    <value>Synchronizing Paused</value>
+  </data>
+  <data name="SyncState_Synchronized" xml:space="preserve">
+    <value>Synchronized</value>
+  </data>
+  <data name="SyncState_SynchronizeFailed" xml:space="preserve">
+    <value>Synchronize Failed</value>
+  </data>
+  <data name="SyncState_Synchronizing" xml:space="preserve">
+    <value>Synchronizing</value>
+  </data>
+  <data name="UploadStatus_PreviousUpload" xml:space="preserve">
+    <value>Previous Upload</value>
   </data>
 </root>

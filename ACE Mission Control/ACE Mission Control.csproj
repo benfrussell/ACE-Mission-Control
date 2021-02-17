@@ -42,7 +42,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -121,6 +121,9 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.9</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications">
+      <Version>6.1.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Uwp.UI.Controls.DataGrid">
       <Version>6.1.1</Version>
     </PackageReference>
@@ -141,10 +144,12 @@
     <Compile Include="Activation\ActivationHandler.cs" />
     <Compile Include="Behaviors\NavigationViewHeaderBehavior.cs" />
     <Compile Include="Behaviors\NavigationViewHeaderMode.cs" />
+    <Compile Include="Behaviors\FlyoutBehaviors.cs" />
     <Compile Include="Helpers\AlertLevelToColour.cs" />
+    <Compile Include="Helpers\BooleanHelpers.cs" />
+    <Compile Include="Helpers\EnumHelpers.cs" />
+    <Compile Include="Helpers\MapHelpers.cs" />
     <Compile Include="Helpers\MissionActivatedHelpers.cs" />
-    <Compile Include="Helpers\MissionStageHelpers.cs" />
-    <Compile Include="Helpers\AreaStatusHelpers.cs" />
     <Compile Include="Helpers\AlertToString.cs" />
     <Compile Include="Helpers\EnterKeyHelpers.cs" />
     <Compile Include="Helpers\NavHelper.cs" />

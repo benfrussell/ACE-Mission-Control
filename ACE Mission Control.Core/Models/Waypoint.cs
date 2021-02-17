@@ -29,5 +29,11 @@ namespace ACE_Mission_Control.Core.Models
             Coordinate = new Coordinate(longitude, latitude);
             TurnType = turnType;
         }
+
+        public bool IntersectsArea(AreaScanPolygon area)
+        {
+            var point = GeometryFactory.Default.CreatePoint(Coordinate);
+            return area.Intersects(point);
+        }
     }
 }

@@ -42,13 +42,8 @@ message FlightStatus {
 
 // Code 3 - sent by Drone
 message ControlDevice {
-	enum Device {
-		RC = 0;
-		MSDK = 1;
-		OSDK = 2;
-	}
-
-	Device control_device = 1;
+	bool auto_mode = 2;
+	bool return_to_home = 3;
 }
 
 // Code 4 - sent by Drone
@@ -59,6 +54,7 @@ message Telemetry {
 	int32 satellites = 4;
 	float vel_x = 5;
 	float vel_y = 6;
+	float vel_z = 9;
 	float accel_x = 7;
 	float accel_y = 8;
 }

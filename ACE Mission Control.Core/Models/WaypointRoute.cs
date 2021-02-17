@@ -78,9 +78,14 @@ namespace ACE_Mission_Control.Core.Models
 
         public Coordinate CalcIntersectWithArea(AreaScanPolygon area, bool reverse=false)
         {
+            return CalcIntersectWithArea(area, GetLineSegments(), reverse);
+        }
+
+        public Coordinate CalcIntersectWithArea(AreaScanPolygon area, IEnumerable<LineSegment> specificSegments, bool reverse = false)
+        {
             var areaScanSegments = area.GetLineSegments().ToList();
 
-            var waypoints = GetLineSegments();
+            var waypoints = specificSegments;
             if (reverse)
                 waypoints = waypoints.Reverse();
 
@@ -98,6 +103,11 @@ namespace ACE_Mission_Control.Core.Models
 
                 if (segmentIntersections.Count > 0)
                 {
+                    System.Diagnostics.Debug.WriteLine("Intersect with Area");
+                    System.Diagnostics.Debug.WriteLine($"Pair is {waypointSegment.P0}, {waypointSegment.P1}");
+                    foreach (Coordinate coord in segmentIntersections)
+                        System.Diagnostics.Debug.WriteLine($"Intersection at {coord.X}, {coord.Y}");
+
                     if (reverse)
                         return segmentIntersections.OrderBy(intersect => intersect.Distance(waypointSegment.P1)).First();
                     else
@@ -108,39 +118,87 @@ namespace ACE_Mission_Control.Core.Models
             return null;
         }
 
-        public Waypoint FindCoordinateInArea(Coordinate areaCentre, float areaMetres)
+        public Coordinate CalcIntersectAfterWaypoint(Waypoint waypoint, AreaScanPolygon area)
+        {
+            var index = Waypoints.FindIndex(w => w.ID == waypoint.ID);
+            var slicedWaypoints = Waypoints.GetRange(index, Waypoints.Count - index - 1);
+            WaypointRoute subRoute = new WaypointRoute(0, "", 0, slicedWaypoints);
+
+            return subRoute.CalcIntersectWithArea(area);
+        }
+
+        public Coordinate CalcIntersectAfterCoordinate(Coordinate coord, float findWaypointRange, AreaScanPolygon area)
+        {
+            var waypPair = FindWaypointPairAroundCoordinate(coord, findWaypointRange);
+            if (waypPair == null)
+                return null;
+
+            bool wayp1Intersects = waypPair.Item1.IntersectsArea(area);
+            bool wayp2Intersects = waypPair.Item2.IntersectsArea(area);
+
+            System.Diagnostics.Debug.WriteLine("Calc Intersect After Coordinate");
+
+            if (wayp1Intersects && wayp2Intersects)
+            {
+                IEnumerable<LineSegment> segment = new List<LineSegment> { new LineSegment(waypPair.Item1.Coordinate, waypPair.Item2.Coordinate) };
+                bool closerToWayp2 = waypPair.Item1.Coordinate.Distance(coord) > waypPair.Item2.Coordinate.Distance(coord);
+                return CalcIntersectWithArea(area, segment, reverse: closerToWayp2); 
+            }
+            else if (!wayp1Intersects)
+            {
+                return CalcIntersectAfterWaypoint(waypPair.Item1, area);
+            }
+            else
+            {
+                return CalcIntersectAfterWaypoint(waypPair.Item2, area);
+            }
+        }
+
+        public Waypoint FindWaypointInArea(Coordinate areaCentre, float areaMetres)
         {
             var bufferRadiansDist = AviationFormularyApproxRadiansDiff(areaCentre, areaMetres, 0);
             Geometry bufferedPoint = Factory.CreatePoint(areaCentre).Buffer(bufferRadiansDist);
 
-            foreach (Waypoint coord in Waypoints)
+            foreach (Waypoint wayp in Waypoints)
             {
-                var coordAsPoint = Factory.CreatePoint(coord.Coordinate);
+                var coordAsPoint = Factory.CreatePoint(wayp.Coordinate);
                 if (bufferedPoint.Intersects(coordAsPoint))
-                    return coord;
+                    return wayp;
             }
 
             return null;
         }
 
-        public Waypoint FindWaypointPreceedingCoordinate(Coordinate coord, float bufferMetres)
+        public Tuple<Waypoint, Waypoint> FindWaypointPairAroundCoordinate(Coordinate coord, float bufferMetres)
         {
             var bufferRadiansDist = AviationFormularyApproxRadiansDiff(coord, bufferMetres, 0);
             Geometry bufferedPoint = Factory.CreatePoint(coord).Buffer(bufferRadiansDist);
+
+            Tuple<Waypoint, Waypoint> intersectionPair = null;
+            double intersectionLength = 0;
             
-            foreach (Tuple<Waypoint, Waypoint> pair in GetIDCoordinatePairs())
+            foreach (Tuple<Waypoint, Waypoint> pair in GetWaypointPairs())
             {
                 var lineString = Factory.CreateLineString(new Coordinate[] {pair.Item1.Coordinate, pair.Item2.Coordinate});
+                
                 if (bufferedPoint.Intersects(lineString))
-                    return pair.Item1;
+                {
+                    var newLengthIntersected = bufferedPoint.Intersection(lineString).Length;
+                    if (newLengthIntersected > intersectionLength)
+                    {
+                        intersectionPair = pair;
+                        intersectionLength = newLengthIntersected;
+                        System.Diagnostics.Debug.WriteLine($"Intersection length {intersectionLength}");
+                    }
+                }
             }
 
-            return null;
+            return intersectionPair;
         }
 
         public bool DoesRoutePassCoordinate(Coordinate coord, float bufferMetres)
         {
-            var preceedingWaypoint = FindWaypointPreceedingCoordinate(coord, bufferMetres);
+            var preceedingWaypoint = FindWaypointPairAroundCoordinate(coord, bufferMetres);
             // If it has a preceeding waypoint, then the route does pass through the waypoint
             return preceedingWaypoint != null;
         }
@@ -155,7 +213,7 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public IEnumerable<Tuple<Waypoint, Waypoint>> GetIDCoordinatePairs()
+        public IEnumerable<Tuple<Waypoint, Waypoint>> GetWaypointPairs()
         {
             for (int i = 0; i < NumPoints - 1; i++)
             {
@@ -163,6 +221,12 @@ namespace ACE_Mission_Control.Core.Models
                 var nextCoord = Waypoints[i + 1];
                 yield return new Tuple<Waypoint, Waypoint>(coord, nextCoord);
             }
+        }
+
+        public IEnumerable<Tuple<double, double>> GetBasicCoordinates()
+        {
+            foreach (Coordinate coord in Coordinates)
+                yield return new Tuple<double, double>(coord.X, coord.Y);
         }
 
         public static bool IsCoordinateInArea(Waypoint coordinate, Coordinate areaCentre, float areaMetres)
@@ -178,7 +242,7 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         // Approximates the difference in radians from the coordinate to another position specified by north-east offset in metres
-        // Only reliable for very short distances
+        // Only reliable for short distances (5% error I think?)
         private static double AviationFormularyApproxRadiansDiff(Coordinate coord, float northMetres, float eastMetres)
         {
             double longDeg = (coord.X / Math.PI) * 180;
@@ -194,26 +258,5 @@ namespace ACE_Mission_Control.Core.Models
             // Return the length of the difference
             return Math.Sqrt((dLon * dLon) + (dLat * dLat));
         }
-
-        //public string GetVerticesString()
-        //{
-        //    string vertString = "";
-        //    foreach (BasicGeoposition position in Area.Positions)
-        //    {
-        //        if (vertString.Length != 0)
-        //            vertString = vertString + ";";
-        //        vertString = vertString + string.Format("{0},{1}", (Math.PI / 180) * position.Latitude, (Math.PI / 180) * position.Longitude);
-        //    }
-        //    return vertString;
-        //}
-
-        //public string GetEntryVetexString()
-        //{
-        //    string entryString = string.Format(
-        //        "{0},{1}",
-        //        Area.Positions[EntryVertex].Latitude,
-        //        Area.Positions[EntryVertex].Longitude);
-        //    return entryString;
-        //}
     }
 }

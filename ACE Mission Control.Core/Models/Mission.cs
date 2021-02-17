@@ -383,7 +383,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             int order = 1;
             int position = 1;
-            var lastInstructionID = TreatmentInstructions.Last(i => i.Enabled && i.AreaStatus != AreaResult.Types.Status.Finished).ID;
+            var lastInstructionID = TreatmentInstructions.LastOrDefault(i => i.Enabled && i.AreaStatus != AreaResult.Types.Status.Finished).ID;
 
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {

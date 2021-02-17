@@ -168,8 +168,12 @@ namespace ACE_Mission_Control.ViewModels
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                {
                     foreach (AlertEntry entry in e.NewItems)
                         Alerts.Add(entry);
+                    System.Diagnostics.Debug.WriteLine("Add alert");
+                }
+
                 var msg = new ScrollAlertDataGridMessage() { newEntry = Alerts[Alerts.Count - 1] };
                 Messenger.Default.Send(msg);
             });

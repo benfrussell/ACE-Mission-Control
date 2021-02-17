@@ -5,7 +5,9 @@
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:genTemplate="http://schemas.microsoft.com/appx/developer/windowsTemplateStudio"
-  IgnorableNamespaces="uap mp genTemplate">
+  xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  IgnorableNamespaces="uap mp genTemplate uap4 uap3">
 
   <Identity
     Name="5F8736BE-4C03-49F7-974D-7CE6A963E3E2"
@@ -49,6 +51,9 @@
 
   <Capabilities>
     <Capability Name="internetClient" />
+    <Capability Name="privateNetworkClientServer"/>
+    <uap4:Capability Name="offlineMapsManagement"/>
+    <uap3:Capability Name="backgroundMediaPlayback"/>
   </Capabilities>
 
   <genTemplate:Metadata>

@@ -244,10 +244,11 @@ namespace ACE_Mission_Control.ViewModels
 
         private void CheckStartModeError()
         {
-            if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.Flythrough)
+            var startPosition = AttachedDrone.Mission.GetStartCoordinate();
+
+            if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.Flythrough && startPosition != null)
             {
                 var nextInstruction = AttachedDrone.Mission.GetNextInstruction();
-                var startPosition = AttachedDrone.Mission.GetStartCoordinate();
 
                 // 7.5 metres is the hardcoded buffer for triggering entry in the drone 
                 if (nextInstruction != null && nextInstruction.HasValidTreatmentRoute() &&
@@ -414,6 +415,18 @@ namespace ACE_Mission_Control.ViewModels
                     continue;
 
                 Color colour = (Color)(new InstructionNumberToColour().Convert(instruction.ID, typeof(Color), null, null));
+
+                if (instruction.FirstInstruction && instruction.IsTreatmentRouteValid())
+                {
+                    MapPolyline polyline = new MapPolyline();
+                    polyline.Path = CoordsToGeopath(instruction.TreatmentRoute.GetBasicCoordinates());
+                    polyline.ZIndex = 2;
+                    polyline.StrokeColor = colour;
+                    polyline.StrokeThickness = 2;
+                    polyline.StrokeDashed = true;
+                    ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Add(polyline);
+                }
+
                 MapPolygon polygon = new MapPolygon();
                 polygon.Path = CoordsToGeopath(instruction.TreatmentPolygon.GetBasicCoordinates());
                 polygon.ZIndex = 1;
@@ -487,13 +500,16 @@ namespace ACE_Mission_Control.ViewModels
 
                     // Add a MapIcon for the starting point and each area entry point that follows
                     var startCoord = AttachedDrone.Mission.GetStartCoordinate();
-                    var startGeopoint = CoordToGeopoint(startCoord.X, startCoord.Y);
-                    startIcon.Location = startGeopoint;
-
-                    if (!mapCentred)
+                    if (startCoord != null)
                     {
-                        MapCentre = startGeopoint;
-                        mapCentred = true;
+                        var startGeopoint = CoordToGeopoint(startCoord.X, startCoord.Y);
+                        startIcon.Location = startGeopoint;
+
+                        if (!mapCentred)
+                        {
+                            MapCentre = startGeopoint;
+                            mapCentred = true;
+                        }
                     }
                 }
                 else

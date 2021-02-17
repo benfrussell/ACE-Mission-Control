@@ -69,6 +69,12 @@ namespace ACE_Mission_Control.Core.Models
             return true;
         }
 
+        public bool IntersectsCoordinate(Coordinate coord)
+        {
+            var point = GeometryFactory.Default.CreatePoint(coord);
+            return Intersects(point);
+        }
+
         public IEnumerable<LineSegment> GetLineSegments()
         {
             

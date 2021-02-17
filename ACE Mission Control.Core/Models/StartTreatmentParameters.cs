@@ -127,7 +127,16 @@ namespace ACE_Mission_Control.Core.Models
                     StopAndTurn = true;
                     break;
                 case Mode.Flythrough:
-                    StartCoordinate = lastPosition;
+                    if (nextInstruction.TreatmentPolygon.IntersectsCoordinate(lastPosition))
+                    {
+                        StartCoordinate = lastPosition;
+                    }
+                    else
+                    {
+                        StartCoordinate = nextInstruction.TreatmentRoute.CalcIntersectAfterCoordinate(lastPosition, 7.5f, nextInstruction.TreatmentPolygon);
+                        if (StartCoordinate == null)
+                            StartCoordinate = nextInstruction.AreaEntryCoordinate;
+                    }
                     StopAndTurn = false;
                     break;
             }
@@ -174,10 +183,10 @@ namespace ACE_Mission_Control.Core.Models
 
         private async void CreateWaypointAndSetStartCoord(TreatmentInstruction instruction, Coordinate position)
         {
-            var preceedingWaypoint = instruction.TreatmentRoute.FindWaypointPreceedingCoordinate(position, instruction.Swath);
-            if (preceedingWaypoint == null)
+            var waypointPair = instruction.TreatmentRoute.FindWaypointPairAroundCoordinate(position, instruction.Swath);
+            if (waypointPair == null)
                 return;
-            var newWaypoint = await UGCSClient.InsertWaypointAlongRoute(instruction.TreatmentRoute.Id, preceedingWaypoint.ID, position.X, position.Y);
+            var newWaypoint = await UGCSClient.InsertWaypointAlongRoute(instruction.TreatmentRoute.Id, waypointPair.Item1.ID, position.X, position.Y);
 
             BoundStartWaypointID = newWaypoint.ID;
 

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ACE_Mission_Control</RootNamespace>
     <AssemblyName>ACE_Mission_Control</AssemblyName>
-    <DefaultLanguage>en-US</DefaultLanguage>
+    <DefaultLanguage>en-ca</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.18362.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
@@ -146,7 +146,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <PRIResource Include="Strings\en-us\Resources.resw" />
+    <PRIResource Include="Strings\en-ca\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Activation\ActivationHandler.cs" />
@@ -318,6 +318,7 @@
   <ItemGroup>
     <None Include=".editorconfig" />
     <None Include="ACE Mission Control_TemporaryKey.pfx" />
+    <PRIResource Include="Strings\fr-ca\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -331,6 +332,7 @@
       <Name>ACE Mission Control.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

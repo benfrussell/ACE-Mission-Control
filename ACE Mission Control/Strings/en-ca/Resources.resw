@@ -454,4 +454,13 @@
   <data name="UploadStatus_PreviousUpload" xml:space="preserve">
     <value>Previous Upload</value>
   </data>
+  <data name="Settings_LanguageTitle.Text" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Shell_HomeItem" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Shell_SettingsItem" xml:space="preserve">
+    <value>Settings</value>
+  </data>
 </root>

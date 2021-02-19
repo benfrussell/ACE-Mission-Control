@@ -96,7 +96,14 @@ namespace ACE_Mission_Control.ViewModels
             NavigationService.Navigated += Frame_Navigated;
             _navigationView.BackRequested += OnBackRequested;
             MenuItems = GetMenuItems().ToList();
+
             DroneController.Drones.CollectionChanged += Drones_CollectionChanged;
+            SettingsViewModel.LanguageChangedEvent += SettingsViewModel_LanguageChangedEvent;
+        }
+
+        private void SettingsViewModel_LanguageChangedEvent(object sender, EventArgs e)
+        {
+            MenuItems = GetMenuItems().ToList();
         }
 
         private void Drones_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -126,7 +133,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             yield return new WinUI.NavigationViewItem()
             {
-                Content = "Home",
+                Content = "Shell_HomeItem".GetLocalized(),
                 Icon = new SymbolIcon(Symbol.Home),
                 Tag = typeof(WelcomeViewModel).FullName
             };
@@ -197,7 +204,7 @@ namespace ACE_Mission_Control.ViewModels
             if (e.SourcePageType == typeof(SettingsPage))
             {
                 Selected = _navigationView.SettingsItem as WinUI.NavigationViewItem;
-                Header = "Settings";
+                Header = "Shell_SettingsItem".GetLocalized();
             }
             else if (e.SourcePageType == typeof(WelcomePage))
             {

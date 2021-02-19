@@ -12,42 +12,19 @@ using ACE_Mission_Control.Core.Models;
 using Windows.ApplicationModel;
 using Windows.UI.Xaml;
 using System.Collections.Generic;
+using Windows.ApplicationModel.Resources.Core;
+using Windows.UI.Xaml.Controls;
+using Windows.Globalization;
+using Windows.UI.Xaml.Media.Animation;
 
 namespace ACE_Mission_Control.ViewModels
 {
     // TODO WTS: Add other settings as necessary. For help see https://github.com/Microsoft/WindowsTemplateStudio/blob/master/docs/pages/settings.md
     public class SettingsViewModel : ViewModelBase
     {
-        private string _sshKeyGenerationText;
-        public string SSHKeyGenerationText
-        {
-            set
-            {
-                _sshKeyGenerationText = value;
-            }
-            get
-            {
-                return _sshKeyGenerationText;
-            }
-        }
-
-        private List<string> _numDronesItems;
-        public List<string> NumDronesItems
-        {
-            get { return _numDronesItems; }
-        }
-
-        private ElementTheme _elementTheme = ThemeSelectorService.Theme;
-
-        public ElementTheme ElementTheme
-        {
-            get { return _elementTheme; }
-
-            set { Set(ref _elementTheme, value); }
-        }
+        public static event EventHandler<EventArgs> LanguageChangedEvent;
 
         private string _versionDescription;
-
         public string VersionDescription
         {
             get { return _versionDescription; }
@@ -55,45 +32,19 @@ namespace ACE_Mission_Control.ViewModels
             set { Set(ref _versionDescription, value); }
         }
 
-        private ICommand _switchThemeCommand;
+        public int CurrentLanguageIndex { get; set; }
 
-        public ICommand SwitchThemeCommand
-        {
-            get
-            {
-                if (_switchThemeCommand == null)
-                {
-                    _switchThemeCommand = new RelayCommand<ElementTheme>(
-                        async (param) =>
-                        {
-                            ElementTheme = param;
-                            await ThemeSelectorService.SetThemeAsync(param);
-                        });
-                }
-
-                return _switchThemeCommand;
-            }
-        }
+        private Dictionary<string, int> languageIndexes = new Dictionary<string, int>() { ["en-CA"] = 0, ["fr-CA"] = 1 };
 
         public SettingsViewModel()
         {
-            _numDronesItems = new List<string>();
-            for (int i = 1; i <= DroneController.MAX_DRONES; i++)
-            {
-                _numDronesItems.Add(i.ToString());
-            }
-
-            SSHKeyGenerationText = "Last key generated whenever.";
-        }
-
-        public void GenerateButton_Click(object sender, RoutedEventArgs e)
-        {
-            /*OnboardComputerClient obc_client = new OnboardComputerClient();
-            obc_client.GenerateSSHKeyFiles("pass");*/
+            
         }
 
         public async Task InitializeAsync()
         {
+            CurrentLanguageIndex = languageIndexes[ApplicationLanguages.PrimaryLanguageOverride];
+            RaisePropertyChanged("CurrentLanguageIndex");
             VersionDescription = GetVersionDescription();
             await Task.CompletedTask;
         }
@@ -106,6 +57,18 @@ namespace ACE_Mission_Control.ViewModels
             var version = packageId.Version;
 
             return $"{appName} - {version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        }
+
+        public RelayCommand<ComboBoxItem> LanguageSelectionCommand => new RelayCommand<ComboBoxItem>((args) => languageSelectionCommand(args));
+        private void languageSelectionCommand(ComboBoxItem item)
+        {
+            ApplicationLanguages.PrimaryLanguageOverride = item.Content as string;
+            CurrentLanguageIndex = languageIndexes[ApplicationLanguages.PrimaryLanguageOverride];
+            RaisePropertyChanged("CurrentLanguageIndex");
+            ResourceContext.GetForCurrentView().Reset();
+            ResourceContext.GetForViewIndependentUse().Reset();
+            ShellViewModel.NavigationService.Navigate(typeof(SettingsViewModel).FullName, new SuppressNavigationTransitionInfo());
+            LanguageChangedEvent?.Invoke(this, new EventArgs());
         }
     }
 }

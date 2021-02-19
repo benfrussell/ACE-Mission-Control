@@ -5,22 +5,48 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helper="using:ACE_Mission_Control.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:i="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     Style="{StaticResource PageStyle}"
     xmlns:xaml="using:Windows.UI.Xaml"
     mc:Ignorable="d">
 
     <Grid Margin="{StaticResource MediumLeftRightMargin}">
-        <StackPanel
-            x:Name="ContentArea">
+        <StackPanel x:Name="ContentArea">
+            <TextBlock x:Uid="Settings_LanguageTitle"
+                       Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+            <ComboBox SelectedIndex="{x:Bind ViewModel.CurrentLanguageIndex, Mode=OneWay}"
+                      Margin="0,8,0,16">
+                <ComboBoxItem x:Name="Settings_Language_enCA"
+                              Content="en-CA">
+                    <i:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Tapped">
+                            <core:InvokeCommandAction Command="{x:Bind ViewModel.LanguageSelectionCommand}"
+                                                      CommandParameter="{x:Bind Settings_Language_enCA}"/>
+                        </core:EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                </ComboBoxItem>
+
+                <ComboBoxItem x:Name="Settings_Language_frCA"
+                              Content="fr-CA">
+                    <i:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Tapped">
+                            <core:InvokeCommandAction Command="{x:Bind ViewModel.LanguageSelectionCommand}"
+                                                      CommandParameter="{x:Bind Settings_Language_frCA}"/>
+                        </core:EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                </ComboBoxItem>
+            </ComboBox>
 
             <TextBlock x:Uid="Settings_About" Style="{ThemeResource SubtitleTextBlockStyle}" />
 
             <StackPanel Margin="{StaticResource XSmallTopMargin}">
-                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind ViewModel.VersionDescription, Mode=OneWay}" />
-                <TextBlock
-                    x:Uid="Settings_AboutDescription"
-                    Margin="{StaticResource XSmallTopMargin}"
-                    Style="{ThemeResource BodyTextBlockStyle}" />
+                <TextBlock Style="{ThemeResource BodyTextBlockStyle}"
+                           Text="{x:Bind ViewModel.VersionDescription, Mode=OneWay}" />
+                <TextBlock x:Uid="Settings_AboutDescription"
+                           Margin="{StaticResource XSmallTopMargin}"
+                           Style="{ThemeResource BodyTextBlockStyle}" />
             </StackPanel>
         </StackPanel>
     </Grid>

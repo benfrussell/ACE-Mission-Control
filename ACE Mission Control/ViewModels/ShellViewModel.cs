@@ -21,6 +21,7 @@ using Windows.UI.Xaml.Navigation;
 
 using WinUI = Microsoft.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
+using Windows.ApplicationModel.Resources.Core;
 
 namespace ACE_Mission_Control.ViewModels
 {

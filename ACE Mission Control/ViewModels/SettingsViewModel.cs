@@ -65,6 +65,7 @@ namespace ACE_Mission_Control.ViewModels
             ApplicationLanguages.PrimaryLanguageOverride = item.Content as string;
             CurrentLanguageIndex = languageIndexes[ApplicationLanguages.PrimaryLanguageOverride];
             RaisePropertyChanged("CurrentLanguageIndex");
+
             ResourceContext.GetForCurrentView().Reset();
             ResourceContext.GetForViewIndependentUse().Reset();
             ShellViewModel.NavigationService.Navigate(typeof(SettingsViewModel).FullName, new SuppressNavigationTransitionInfo());

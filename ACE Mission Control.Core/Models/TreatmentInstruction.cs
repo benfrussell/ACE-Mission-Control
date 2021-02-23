@@ -6,6 +6,7 @@ using Pbdrone;
 using UGCS.Sdk.Protocol.Encoding;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Globalization;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -240,7 +241,8 @@ namespace ACE_Mission_Control.Core.Models
             ID = treatmentArea.SequentialID;
             AreaStatus = AreaResult.Types.Status.NotStarted;
             // Swath is generally half of the side distance (metres)
-            Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
+            var sideDistance = treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value;
+            Swath = float.Parse(sideDistance, CultureInfo.InvariantCulture) / 2;
             CurrentUploadStatus = UploadStatus.NotUploaded;
 
             Order = null;
@@ -259,7 +261,8 @@ namespace ACE_Mission_Control.Core.Models
             var nameChanged = TreatmentPolygon.Name != treatmentArea.Name;
 
             TreatmentPolygon = treatmentArea;
-            Swath = float.Parse(treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value) / 2;
+            var sideDistance = treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value;
+            Swath = float.Parse(sideDistance, CultureInfo.InvariantCulture) / 2;
 
             if (nameChanged)
                 NotifyPropertyChanged("Name");

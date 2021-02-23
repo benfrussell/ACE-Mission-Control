@@ -401,7 +401,7 @@
     <value>Synchronize</value>
   </data>
   <data name="Planner_FlythoughErrorFlyout.Text" xml:space="preserve">
-    <value>The route does not fly through the last position. The payload will not start!</value>
+    <value>The route does not fly through the last position. The payload will not start.</value>
   </data>
   <data name="Planner_FlythroughErrorNotification_Content" xml:space="preserve">
     <value>The start mode for {0} is set to Flythrough, but the route does not pass the last position. The payload will not start!</value>

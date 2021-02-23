@@ -22,8 +22,8 @@
     </Page.Resources>
     <Grid Background="{ThemeResource SystemChromeLowColor}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="480" />
-            <ColumnDefinition />
+            <ColumnDefinition MinWidth="480" MaxWidth="502" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>

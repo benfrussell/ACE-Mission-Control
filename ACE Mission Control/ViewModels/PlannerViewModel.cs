@@ -21,6 +21,7 @@ using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Notifications;
 using Microsoft.Toolkit.Uwp.Notifications;
+using System.Globalization;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -290,7 +291,7 @@ namespace ACE_Mission_Control.ViewModels
         private bool isTreatmentDurationValid(string durationString)
         {
             int parseOut;
-            return durationString.Length == 0 || int.TryParse(durationString, out parseOut);
+            return durationString.Length == 0 || int.TryParse(durationString, NumberStyles.Integer, CultureInfo.InvariantCulture, out parseOut);
         }
 
         // --- Mission Commands

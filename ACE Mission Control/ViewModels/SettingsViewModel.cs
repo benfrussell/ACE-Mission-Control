@@ -43,8 +43,12 @@ namespace ACE_Mission_Control.ViewModels
 
         public async Task InitializeAsync()
         {
-            CurrentLanguageIndex = languageIndexes[ApplicationLanguages.PrimaryLanguageOverride];
+            if (languageIndexes.ContainsKey(ApplicationLanguages.PrimaryLanguageOverride))
+                CurrentLanguageIndex = languageIndexes[ApplicationLanguages.PrimaryLanguageOverride];
+            else
+                CurrentLanguageIndex = 0;
             RaisePropertyChanged("CurrentLanguageIndex");
+
             VersionDescription = GetVersionDescription();
             await Task.CompletedTask;
         }

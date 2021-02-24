@@ -165,8 +165,8 @@
     <value>Contrôle de mission ACE est un outil pour automatiser une charge utile de missions de drone en combinaison avec UgCS et l'ordinateur embarqué ACE.</value>
     <comment>About this application description for Settings</comment>
   </data>
-  <data name="Config_OBCConfigLabel.Text" xml:space="preserve">
-    <value>Ordinateur embarqué</value>
+  <data name="Config_OBCConnectionLabel.Text" xml:space="preserve">
+    <value>Connexion de ordinateur embarqué</value>
   </data>
   <data name="Config_OBCIPLabel.Text" xml:space="preserve">
     <value>Adresse IP</value>
@@ -462,5 +462,17 @@
   </data>
   <data name="Main_OBCHeader.Text" xml:space="preserve">
     <value>Ordinateur embarqué</value>
+  </data>
+  <data name="Config_OptionsLabel.Text" xml:space="preserve">
+    <value>Options de ordinateur embarqué</value>
+  </data>
+  <data name="Config_EntriesOption.Header" xml:space="preserve">
+    <value>Option</value>
+  </data>
+  <data name="Config_EntriesSection.Header" xml:space="preserve">
+    <value>Section</value>
+  </data>
+  <data name="Config_EntriesValue.Header" xml:space="preserve">
+    <value>Paramètre</value>
   </data>
 </root>

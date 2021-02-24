@@ -123,6 +123,15 @@ namespace ACE_Mission_Control.Core.Models
                     case MessageType.CommandResponse:
                         message = CommandResponse.Parser.ParseFrom(message_data);
                         break;
+                    case MessageType.AreaResult:
+                        message = AreaResult.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.Configuration:
+                        message = Configuration.Parser.ParseFrom(message_data);
+                        break;
+                    case MessageType.ConfigEntry:
+                        message = ConfigEntry.Parser.ParseFrom(message_data);
+                        break;
                     default:
                         System.Diagnostics.Debug.WriteLine("Received unknown message type: " + message_type_id);
                         break;

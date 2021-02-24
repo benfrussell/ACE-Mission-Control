@@ -165,8 +165,8 @@
     <value>ACE Mission Control is a tool used to automate payload based drone missions in combination with UGCS and ACE Onboard Computer.</value>
     <comment>About this application description for Settings</comment>
   </data>
-  <data name="Config_OBCConfigLabel.Text" xml:space="preserve">
-    <value>Onboard Computer</value>
+  <data name="Config_OBCConnectionLabel.Text" xml:space="preserve">
+    <value>Onboard Computer Connection</value>
   </data>
   <data name="Config_OBCIPLabel.Text" xml:space="preserve">
     <value>IP Address</value>
@@ -462,5 +462,17 @@
   </data>
   <data name="Shell_SettingsItem" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="Config_OptionsLabel.Text" xml:space="preserve">
+    <value>Onboard Computer Options</value>
+  </data>
+  <data name="Config_EntriesOption.Header" xml:space="preserve">
+    <value>Option</value>
+  </data>
+  <data name="Config_EntriesSection.Header" xml:space="preserve">
+    <value>Section</value>
+  </data>
+  <data name="Config_EntriesValue.Header" xml:space="preserve">
+    <value>Value</value>
   </data>
 </root>

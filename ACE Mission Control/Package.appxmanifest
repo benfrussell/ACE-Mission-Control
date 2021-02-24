@@ -11,7 +11,7 @@
 
   <Identity
     Name="5F8736BE-4C03-49F7-974D-7CE6A963E3E2"
-    Publisher="CN=GDG Canada, O=GDG Environnement Ltd, C=CA"
+    Publisher="CN=Benjamin Russell"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="5F8736BE-4C03-49F7-974D-7CE6A963E3E2" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>

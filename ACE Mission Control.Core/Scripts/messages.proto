@@ -124,3 +124,16 @@ message AreaResult {
 	int32 areaID = 1;
 	Status status = 2;
 }
+
+// Code 11
+message Configuration {
+	repeated ConfigEntry list = 1;
+}
+
+// Code 12
+message ConfigEntry {
+	string section = 1;
+	string option = 2;
+	string value = 3; 
+	int32 id = 4;
+}

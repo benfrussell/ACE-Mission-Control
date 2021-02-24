@@ -19,7 +19,10 @@ namespace ACE_Mission_Control.Core.Models
             ACEError = 6,
             MissionStatus = 7,
             MissionConfig = 8,
-            CommandResponse = 9
+            CommandResponse = 9,
+            AreaResult = 10,
+            Configuration = 11,
+            ConfigEntry = 12
         }
     }
 }

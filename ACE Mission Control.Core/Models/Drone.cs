@@ -150,6 +150,20 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
             }
         }
+
+        private ObservableCollection<ConfigEntry> _configEntries;
+        public ObservableCollection<ConfigEntry> ConfigEntries
+        {
+            get => _configEntries;
+            set
+            {
+                if (_configEntries == value)
+                    return;
+                _configEntries = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         private void UpdateAwayOnMission() 
         {
             var wasAway = AwayOnMission;
@@ -181,6 +195,7 @@ namespace ACE_Mission_Control.Core.Models
         private List<TreatmentInstruction> unsentRouteChanges; 
         private Command lastCommandSent;
 
+        private bool configReceived;
         private int syncCommandsSent;
 
         public Drone(int id, string name, string clientHostname)
@@ -191,11 +206,14 @@ namespace ACE_Mission_Control.Core.Models
             ID = id;
             Name = name;
             AlertLog = new ObservableCollection<AlertEntry>();
+            ConfigEntries = new ObservableCollection<ConfigEntry>();
             ManualCommandsOnly = false;
             InterfaceState = InterfaceStatus.Types.State.Offline;
             Synchronization = SyncState.NotSynchronized;
+
             syncCommandsSent = 0;
             unsentRouteChanges = new List<TreatmentInstruction>();
+            configReceived = false;
 
             OBCClient = new OnboardComputerClient(this, clientHostname);
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
@@ -310,6 +328,12 @@ namespace ACE_Mission_Control.Core.Models
             SendCommand("check_mission_status", !manualSyncronize, true);
             SendCommand("check_mission_config", !manualSyncronize, true);
             SendCommand("check_interface", !manualSyncronize, true);
+
+            if (!configReceived)
+            {
+                syncCommandsSent++;
+                SendCommand("check_ace_config", !manualSyncronize, true);
+            }
 
             if (unsentRouteChanges.Count > 0)
             {
@@ -450,6 +474,10 @@ namespace ACE_Mission_Control.Core.Models
                     var missionConfig = (MissionConfig)e.Message;
                     Mission.UpdateMissionConfig(missionConfig);
                     break;
+                case ACEEnums.MessageType.Configuration:
+                    var configuration = (Configuration)e.Message;
+                    ConfigEntries = new ObservableCollection<ConfigEntry>(configuration.List);
+                    break;
                 case ACEEnums.MessageType.CommandResponse:
                     var commandResponse = (CommandResponse)e.Message;
                     if (commandResponse.Command == "ping")
@@ -517,13 +545,23 @@ namespace ACE_Mission_Control.Core.Models
                     {
                         Synchronization = SyncState.Synchronized;
                         syncCommandsSent = 0;
-                    }   
+                    }
                 }
             }
             else if (lastCommandSent.Name == "set_mission" || lastCommandSent.Name == "add_area")
             {
                 if (e.Line.Contains("(SUCCESS)"))
                     Mission.SetInstructionUploaded((int)lastCommandSent.Tag);
+            }
+            else if (lastCommandSent.Name == "set_config_entry")
+            {
+                if (e.Line.Contains("(SUCCESS)"))
+                {
+                    var updated_entry = (ConfigEntry)lastCommandSent.Tag;
+                    var entry_index = ConfigEntries.IndexOf(ConfigEntries.FirstOrDefault(c => c.Id == updated_entry.Id));
+
+                    ConfigEntries[entry_index] = updated_entry;
+                }
             }
 
             lastCommandSent = null;

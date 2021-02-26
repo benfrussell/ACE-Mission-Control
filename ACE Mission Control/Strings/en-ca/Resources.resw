@@ -475,4 +475,13 @@
   <data name="Config_EntriesValue.Header" xml:space="preserve">
     <value>Value</value>
   </data>
+  <data name="Config_SearchButton.Content" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Config_StartSearchButton.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Config_SearchFlyoutTitle.Text" xml:space="preserve">
+    <value>Search Results</value>
+  </data>
 </root>

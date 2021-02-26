@@ -151,8 +151,8 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private ObservableCollection<ConfigEntry> _configEntries;
-        public ObservableCollection<ConfigEntry> ConfigEntries
+        private List<ConfigEntry> _configEntries;
+        public List<ConfigEntry> ConfigEntries
         {
             get => _configEntries;
             set
@@ -206,7 +206,7 @@ namespace ACE_Mission_Control.Core.Models
             ID = id;
             Name = name;
             AlertLog = new ObservableCollection<AlertEntry>();
-            ConfigEntries = new ObservableCollection<ConfigEntry>();
+            ConfigEntries = new List<ConfigEntry>();
             ManualCommandsOnly = false;
             InterfaceState = InterfaceStatus.Types.State.Offline;
             Synchronization = SyncState.NotSynchronized;
@@ -476,7 +476,8 @@ namespace ACE_Mission_Control.Core.Models
                     break;
                 case ACEEnums.MessageType.Configuration:
                     var configuration = (Configuration)e.Message;
-                    ConfigEntries = new ObservableCollection<ConfigEntry>(configuration.List);
+                    ConfigEntries = new List<ConfigEntry>(configuration.List);
+                    configReceived = true;
                     break;
                 case ACEEnums.MessageType.CommandResponse:
                     var commandResponse = (CommandResponse)e.Message;
@@ -560,8 +561,10 @@ namespace ACE_Mission_Control.Core.Models
                     var updated_entry = (ConfigEntry)lastCommandSent.Tag;
                     var entry_index = ConfigEntries.IndexOf(ConfigEntries.FirstOrDefault(c => c.Id == updated_entry.Id));
 
-                    ConfigEntries[entry_index] = updated_entry;
+                    ConfigEntries[entry_index].Value = updated_entry.Value;
                 }
+
+                NotifyPropertyChanged("ConfigEntries");
             }
 
             lastCommandSent = null;

@@ -413,7 +413,7 @@
     <value>Durée invalide</value>
   </data>
   <data name="Planner_SetupUploadStatusLabel.Text" xml:space="preserve">
-    <value>Statut de téléchargement:</value>
+    <value>Téléchargement:</value>
   </data>
   <data name="UploadStatus_Changes" xml:space="preserve">
     <value>Nouveaux changements</value>
@@ -474,5 +474,14 @@
   </data>
   <data name="Config_EntriesValue.Header" xml:space="preserve">
     <value>Paramètre</value>
+  </data>
+  <data name="Config_SearchButton.Content" xml:space="preserve">
+    <value>Chercher</value>
+  </data>
+  <data name="Config_SearchFlyoutTitle.Text" xml:space="preserve">
+    <value>Résultats de recherche</value>
+  </data>
+  <data name="Config_StartSearchButton.Content" xml:space="preserve">
+    <value>Début</value>
   </data>
 </root>

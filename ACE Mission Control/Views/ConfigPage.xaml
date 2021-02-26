@@ -7,8 +7,10 @@
     xmlns:helper="using:ACE_Mission_Control.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
-    xmlns:ic="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
+    xmlns:c="using:Microsoft.UI.Xaml.Controls"
+    xmlns:sys="using:System"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.Resources>
@@ -38,6 +40,7 @@
                     Grid.Column="0"
                     Grid.Row="1">
             <TextBlock x:Uid="Config_OBCIPLabel" />
+            
             <TextBox Text="{x:Bind ViewModel.Hostname_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      x:Name="OBCHostnameBox"
                      IsSpellCheckEnabled="False"
@@ -49,17 +52,96 @@
                         Grid.Row="2"
                         Orientation="Horizontal"
                         VerticalAlignment="Top">
+                
                 <Button x:Name="ApplyButton"
-                            x:Uid="Config_ApplyButton"
-                            Style="{ThemeResource ACEButton}"
-                            IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
-                            Command="{x:Bind ViewModel.ApplyChangesCommand}"/>
+                        x:Uid="Config_ApplyButton"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
+                        Command="{x:Bind ViewModel.ApplyChangesCommand}"/>
+
                 <Button x:Name="ResetButton"
-                            x:Uid="Config_ResetButton"
-                            Margin="8,0,0,0"
-                            Style="{ThemeResource ACEButton}"
-                            IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
-                            Command="{x:Bind ViewModel.ResetChangesCommand}" />
+                        x:Uid="Config_ResetButton"
+                        Margin="8,0,0,0"
+                        Style="{ThemeResource ACEButton}"
+                        IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
+                        Command="{x:Bind ViewModel.ResetChangesCommand}" />
+
+                <Button x:Uid="Config_SearchButton"
+                        Margin="8,0,0,0"
+                        Style="{ThemeResource ACEButton}">
+                    <Button.Flyout>
+                        <Flyout>
+                            <Grid Width="250">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="35" />
+                                    <RowDefinition Height="150" />
+                                    <RowDefinition Height="35" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock x:Uid="Config_SearchFlyoutTitle"
+                                           Grid.Row="0"
+                                           Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                                <Border Grid.Row="1"
+                                        Margin="0,0,0,8"
+                                        Background="{ThemeResource SystemChromeMediumLowColor}">
+
+                                    <ListView ItemsSource="{x:Bind ViewModel.EntriesFound}"
+                                              x:Name="SearchResultsList">
+
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="sys:Tuple">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition/>
+                                                        <ColumnDefinition/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Text="{Binding Item1}"
+                                                               Grid.Column="0"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               HorizontalAlignment="Left"/>
+
+                                                    <TextBlock Text="{Binding Item2}"
+                                                               Grid.Column="1"
+                                                               Margin="16,0,0,0"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               HorizontalAlignment="Right"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="SelectionChanged">
+                                                <core:InvokeCommandAction Command="{x:Bind ViewModel.SearchResultClickedCommand}"
+                                                                          CommandParameter="{x:Bind SearchResultsList}"/>
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+
+                                    </ListView>
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal"
+                                            Grid.Row="2">
+                                    <Button x:Uid="Config_StartSearchButton"
+                                            IsEnabled="{x:Bind ViewModel.Searching, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                                            Command="{x:Bind ViewModel.StartSearch}"
+                                            Style="{StaticResource ACEButton}"/>
+                                    
+                                    <c:ProgressRing IsActive="{x:Bind ViewModel.Searching, Mode=OneWay}"
+                                                    Margin="8,0,0,0"
+                                                    IsIndeterminate="False"
+                                                    Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <c:ProgressRing IsActive="{x:Bind ViewModel.Searching, Mode=OneWay}"
+                                Margin="8,0,0,0"
+                                IsIndeterminate="False"
+                                Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
             </StackPanel>
         </StackPanel>
 
@@ -84,7 +166,7 @@
                    Margin="16,8,8,4"
                    Style="{ThemeResource SubtitleTextBlockStyle}"/>
 
-        <controls:DataGrid ItemsSource="{x:Bind ViewModel.AttachedDrone.ConfigEntries, Mode=OneWay}"
+        <controls:DataGrid ItemsSource="{x:Bind ViewModel.ConfigEntries, Mode=OneWay}"
                            Grid.Column="1"
                            Grid.Row="1"
                            Grid.RowSpan="3"
@@ -111,7 +193,13 @@
                                              Width="*"
                                              Binding="{Binding Value, Mode=OneWay}"/>
             </controls:DataGrid.Columns>
-            
+
+            <i:Interaction.Behaviors>
+                <core:EventTriggerBehavior EventName="CellEditEnded">
+                    <core:InvokeCommandAction Command="{x:Bind ViewModel.ConfigureOptionEdited}"/>
+                </core:EventTriggerBehavior>
+            </i:Interaction.Behaviors>
+
         </controls:DataGrid>
     </Grid>
 </local:DroneBasePage>

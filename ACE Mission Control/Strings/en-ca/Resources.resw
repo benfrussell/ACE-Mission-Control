@@ -142,7 +142,7 @@
     <comment>The page is unknown or not registered in navigation service</comment>
   </data>
   <data name="Main_MissionPivotItem.Header" xml:space="preserve">
-    <value>Connection</value>
+    <value>Controls</value>
     <comment>First Pivot item title for Main</comment>
   </data>
   <data name="Main_ConfigPivotItem.Header" xml:space="preserve">

@@ -102,7 +102,7 @@ namespace ACE_Mission_Control.Core.Models
                     
                     testSocket.ConnectAsync(socketEvent);
 
-                    await Task.WhenAny(Task.Run(() => connectFinished.Wait()), Task.Delay(50));
+                    await Task.WhenAny(Task.Run(() => connectFinished.Wait()), Task.Delay(75));
 
                     if (!connectFinished.IsSet)
                         Socket.CancelConnectAsync(socketEvent);
@@ -112,9 +112,16 @@ namespace ACE_Mission_Control.Core.Models
                     if (testSocket.Connected)
                     {
                         System.Diagnostics.Debug.WriteLine($"response");
-                        IPHostEntry entry = await Task.Run(() => Dns.GetHostEntry(ip));
-                        if (entry != null && (bool)entry.HostName?.Contains(matchingHostname))
-                            EntriesFound.Add(new Tuple<string, string>(entry.HostName, ip.ToString()));
+                        try
+                        {
+                            IPHostEntry entry = Dns.GetHostEntry(ip);
+                            if (entry != null && (bool)entry.HostName?.Contains(matchingHostname))
+                                EntriesFound.Add(new Tuple<string, string>(entry.HostName, ip.ToString()));
+                        }
+                        catch (SocketException e)
+                        {
+                            EntriesFound.Add(new Tuple<string, string>("Unknown name", ip.ToString()));
+                        }
                         testSocket.Disconnect(false);
                     }
 

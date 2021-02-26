@@ -1,29 +1,54 @@
 ACE Bug List
 
-1. Drone interface dies while the director is active
-2. Mission Control requests start_interface
-3. Director throws an error because the interface timed out.
-The director automatically restarts the interface, but without sending a interface_status message.
-Connect drone toggle fails to send start_interface because OBCClient says director is not connected.
+--- CRITICAL
 
-When director throws an error during synchronize, sync commands are never processed and an error with the sync is not detected.
+Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
+	- Still happens!!
 
-Sometimes the waypoint route disappears from the combobox inexplicably. Seems like the combo box sets it to null. Two-way bad?
+Force stop payload stopped working
 
-Sometimes reordering instructions does fuck all. Drag and drop bad?
+--- IMPORTANT
+
+TCP "pinging" is not reliable, at least on busy slow networks - create ping script to execute
+
+Mission Control Core text isn't translated
+
+Onboard Computer text isn't translated
+
+Mission Control doesn't send reset progress to the Pi when it reports an area as being in progress
+	- When in Override? Related to CanBeModified?
+
+Onboard Computer didn't detect when the physical drone connection was interrupted
+
+Upload Areas should reset the progress enum?
+
+Flythrough error does not unset?
+
+Doesn't check the chaperone state ever past initial connection connection
+
+Sometimes the map just dies. Usually after doing something too quickly. Reboot button?
+
+Save and restore instruction and connection details
+
+--- LOWER PRIORITY
+
+Reset Defaults config button(s)
+
+Button to exclude emulation drones from the drone list
+
+Disconnection causes three disconnect messages in MissionControl
 
 Sometimes the treatment areas are not grabbed 
 	- Areas are added to the TreatmentInstructions - it's just the polygon is not drawn on the map
 
-Need to be able to detect when the drone is RTL. Cycling activation while returning will mess up the state
+Unnecessary no connection messages
 
-Doesn't check the chaperone state ever past initial connection connection
+New Changes showed up on route change?
 
-Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
+Network search is slow
 
-Stopped and return timer doesn't work
+ConfigEntry response causes the entire list to clone and rebuild - because it's bad
 
-Disconnection causes three disconnect messages in MissionControl
-
+--- DOCUMENTATION
 
 Prepare manual with stage transition map

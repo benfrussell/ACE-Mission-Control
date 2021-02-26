@@ -329,7 +329,7 @@ namespace ACE_Mission_Control.Core.Models
             SendCommand("check_mission_config", !manualSyncronize, true);
             SendCommand("check_interface", !manualSyncronize, true);
 
-            if (!configReceived)
+            if (!configReceived || manualSyncronize)
             {
                 syncCommandsSent++;
                 SendCommand("check_ace_config", !manualSyncronize, true);

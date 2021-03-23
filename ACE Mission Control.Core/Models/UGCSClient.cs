@@ -19,9 +19,14 @@ namespace ACE_Mission_Control.Core.Models
         public List<Vehicle> Vehicles { get; set; }
     }
 
-    public class ReceivedRecentRoutesEventArgs : EventArgs
+    public class ReceivedRoutesEventArgs : EventArgs
     {
         public List<Route> Routes { get; set; }
+    }
+
+    public class ReceivedMissionsEventArgs : EventArgs
+    {
+        public List<UGCS.Sdk.Protocol.Encoding.Mission> Missions { get; set; }
     }
 
     public class UGCSClient : INotifyPropertyChanged
@@ -36,7 +41,8 @@ namespace ACE_Mission_Control.Core.Models
         public event PropertyChangedEventHandler PropertyChanged;
 
         public static event EventHandler<ReceivedVehicleListEventArgs> ReceivedVehicleListEvent;
-        public static event EventHandler<ReceivedRecentRoutesEventArgs> ReceivedRecentRoutesEvent;
+        public static event EventHandler<ReceivedRoutesEventArgs> ReceivedRoutesEvent;
+        public static event EventHandler<ReceivedMissionsEventArgs> ReceivedMissionsEvent;
 
         public delegate void ProcessObject(DomainObjectWrapper obj, out object result);
 
@@ -239,25 +245,27 @@ namespace ACE_Mission_Control.Core.Models
             System.Diagnostics.Debug.WriteLine($"Logs received: {logResponse.VehicleLogEntries.Count}");
         }
 
-        public static void RequestRecentMissionRoutes()
+        public static void RequestMissions()
         {
             RetrieveAndProcessObjectList(
-                "Route",
+                "Mission",
                 (objects) =>
                 {
-                    IEnumerable<Route> routes = from obj in objects select obj.Route;
-                    Route mostRecentRoute = routes.Aggregate((r1, r2) =>
-                        r1.LastModificationTimeSpecified &&
-                        r2.LastModificationTimeSpecified &&
-                        r1.LastModificationTime > r1.LastModificationTime ? r1 : r2);
-
-                    RetrieveAndProcessObject(
-                        "Mission",
-                        mostRecentRoute.Mission.Id,
-                        (missionObj) => ReceivedRecentRoutesEvent(
-                            null,
-                            new ReceivedRecentRoutesEventArgs() { Routes = missionObj.Mission.Routes }));
+                    IEnumerable<UGCS.Sdk.Protocol.Encoding.Mission> missions = from obj in objects select obj.Mission;
+                    ReceivedMissionsEvent?.Invoke(
+                        null,
+                        new ReceivedMissionsEventArgs() { Missions = missions.ToList() });
                 });
+        }
+
+        public static void RequestRoutes(int missionID)
+        {
+            RetrieveAndProcessObject(
+                "Mission",
+                missionID,
+                (missionObj) => ReceivedRoutesEvent(
+                    null,
+                    new ReceivedRoutesEventArgs() { Routes = missionObj.Mission.Routes }));
         }
 
         private static async void RetrieveAndProcessObjectList(string objectType, Action<List<DomainObjectWrapper>> processCallback)

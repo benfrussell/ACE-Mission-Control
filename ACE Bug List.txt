@@ -2,6 +2,8 @@ ACE Bug List
 
 --- CRITICAL
 
+On stop_interface the drone detects an interface exception, afterwards we can't connect to the drone
+
 Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
 	- Still happens!!
 

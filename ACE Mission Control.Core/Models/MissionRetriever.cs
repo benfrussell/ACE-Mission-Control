@@ -19,6 +19,33 @@ namespace ACE_Mission_Control.Core.Models
 
         public static event EventHandler<AreaScanPolygonsUpdatedArgs> AreaScanPolygonsUpdated;
 
+        private static List<UGCS.Sdk.Protocol.Encoding.Mission> availableMissions;
+        public static List<UGCS.Sdk.Protocol.Encoding.Mission> AvailableMissions
+        {
+            get => availableMissions;
+            private set
+            {
+                if (availableMissions == value)
+                    return;
+                availableMissions = value;
+                NotifyStaticPropertyChanged("AvailableMissions");
+            }
+        }
+
+        private static UGCS.Sdk.Protocol.Encoding.Mission selectedMission;
+        public static UGCS.Sdk.Protocol.Encoding.Mission SelectedMission
+        {
+            get => selectedMission;
+            set
+            {
+                if (selectedMission == value)
+                    return;
+                selectedMission = value;
+                RemoveAllMissionData();
+                NotifyStaticPropertyChanged("SelectedMission");
+            }
+        }
+
         private static List<WaypointRoute> waypointRoutes;
         public static List<WaypointRoute> WaypointRoutes
         {
@@ -65,7 +92,9 @@ namespace ACE_Mission_Control.Core.Models
         {
             WaypointRoutes = new List<WaypointRoute>();
             AreaScanPolygons = new List<AreaScanPolygon>();
-            UGCSClient.ReceivedRecentRoutesEvent += UGCSClient_ReceivedRecentRoutesEvent;
+            AvailableMissions = new List<UGCS.Sdk.Protocol.Encoding.Mission>();
+            UGCSClient.ReceivedMissionsEvent += UGCSClient_ReceivedMissionsEvent;
+            UGCSClient.ReceivedRoutesEvent += UGCSClient_ReceivedRoutesEvent;
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
         }
 
@@ -97,15 +126,48 @@ namespace ACE_Mission_Control.Core.Models
                 ugcsPoller.Start();
         }
 
+        private static void RemoveAllMissionData()
+        {
+            if (AreaScanPolygons.Count > 0)
+            {
+                var allAreaIDs = from area in AreaScanPolygons select area.SequentialID;
+                RouteCollectionUpdates<AreaScanPolygon> removedAreas = new RouteCollectionUpdates<AreaScanPolygon>() { RemovedRouteIDs = allAreaIDs.ToList() };
+                AreaScanPolygonsUpdated?.Invoke(null, new AreaScanPolygonsUpdatedArgs() { updates = removedAreas });
+                AreaScanPolygons.Clear();
+            }
+            
+            WaypointRoutes.Clear();
+            TreatmentInstruction.InterceptCollection.Clear();
+        }
+
         private static void RequestUGCSRoutes(Object source = null, ElapsedEventArgs args = null)
         {
             if (UGCSClient.IsConnected)
-                UGCSClient.RequestRecentMissionRoutes();
+            {
+                UGCSClient.RequestMissions();
+                if (SelectedMission != null)
+                    UGCSClient.RequestRoutes(SelectedMission.Id);
+            } 
             else if (IsUGCSPollerRunning)
+            {
                 ugcsPoller.Start();
+            }
         }
 
-        private static void UGCSClient_ReceivedRecentRoutesEvent(object sender, ReceivedRecentRoutesEventArgs e)
+        private static void UGCSClient_ReceivedMissionsEvent(object sender, ReceivedMissionsEventArgs e)
+        {
+            if (AvailableMissions.Count == 0 && e.Missions.Count > 0)
+            {
+                var allRoutes = from mission in e.Missions from route in mission.Routes select route;
+                var mostRecentRoute = allRoutes.Aggregate((r1, r2) => r1.LastModificationTime > r2.LastModificationTime ? r1 : r2);
+                SelectedMission = mostRecentRoute.Mission;
+                UGCSClient.RequestRoutes(SelectedMission.Id);
+            }
+
+            AvailableMissions = e.Missions;
+        }
+
+        private static void UGCSClient_ReceivedRoutesEvent(object sender, ReceivedRoutesEventArgs e)
         {
             List<Route> newAreaRoutes = new List<Route>();
             List<Route> newWaypointRoutes = new List<Route>();

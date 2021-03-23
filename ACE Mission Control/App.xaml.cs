@@ -29,7 +29,9 @@ namespace ACE_Mission_Control
         protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
             // Do pre-load here.. I think
-            DroneController.LoadUGCSDrones();
+            //DroneController.LoadUGCSDrones();
+            UGCSClient.StartTryingConnections();
+            DroneController.LoadStaticDrone();
             MissionRetriever.StartUGCSPoller();
 
             if (!args.PrelaunchActivated)

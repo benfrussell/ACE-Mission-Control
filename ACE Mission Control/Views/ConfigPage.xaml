@@ -11,6 +11,8 @@
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:c="using:Microsoft.UI.Xaml.Controls"
     xmlns:sys="using:System"
+    xmlns:ugcs="using:UGCS.Sdk.Protocol.Encoding"
+    xmlns:ace="using:ACE_Mission_Control.Core.Models"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.Resources>
@@ -23,6 +25,8 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -159,6 +163,24 @@
                   VerticalAlignment="Top"
                   IsChecked="{x:Bind ViewModel.ManualCommandsChecked, Mode=OneWay}"
                   Command="{x:Bind ViewModel.ManualCommandsCheckedCommand}" />
+
+        <TextBlock x:Uid="Config_UGCSConnectionLabel"
+                   Grid.Column="0"
+                   Grid.Row="4"
+                   Margin="8,16,0,4"
+                   Style="{ThemeResource SubtitleTextBlockStyle}"/>
+
+        <ComboBox Grid.Column="0"
+                  Grid.Row="5"
+                  Margin="8,0,0,0"
+                  ItemsSource="{x:Bind ace:MissionRetriever.AvailableMissions, Mode=OneWay}"
+                  SelectedItem="{x:Bind ace:MissionRetriever.SelectedMission, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="ugcs:Mission">
+                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
 
         <TextBlock x:Uid="Config_OptionsLabel"
                    Grid.Column="1"

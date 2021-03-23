@@ -484,4 +484,7 @@
   <data name="Config_StartSearchButton.Content" xml:space="preserve">
     <value>Début</value>
   </data>
+  <data name="Config_UGCSConnectionLabel.Text" xml:space="preserve">
+    <value>Connexion de UGCS</value>
+  </data>
 </root>

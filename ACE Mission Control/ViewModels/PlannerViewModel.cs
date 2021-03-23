@@ -407,7 +407,7 @@ namespace ACE_Mission_Control.ViewModels
                 var layerIndex = instruction.ID * 2;
 
                 // Add the layer or clear elements at the existing layer
-                if (instruction.Enabled && MapLayers.ElementAtOrDefault(layerIndex) == null)
+                if (MapLayers.ElementAtOrDefault(layerIndex) == null)
                     AddMapLayersUntilIndex(layerIndex);
                 else
                     ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Clear();
@@ -457,7 +457,7 @@ namespace ACE_Mission_Control.ViewModels
                 var layerIndex = (instruction.ID * 2) + 1;
 
                 // Add the layer or clear elements at the existing layer
-                if (instruction.Enabled && MapLayers.ElementAtOrDefault(layerIndex) == null)
+                if (MapLayers.ElementAtOrDefault(layerIndex) == null)
                     AddMapLayersUntilIndex(layerIndex);
                 else
                     ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Clear();

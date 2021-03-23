@@ -47,8 +47,14 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (e.PropertyName == "IsConnected" && UGCSClient.IsConnected)
             {
-                UGCSClient.RequestVehicleList();
+                // Disabled for loading the static drone
+                //UGCSClient.RequestVehicleList();
             }
+        }
+
+        public static void LoadStaticDrone()
+        {
+            Drones.Add(new Drone(0, "Drone", ""));
         }
 
         private static void UGCSClient_ReceivedVehicleListEvent(object sender, ReceivedVehicleListEventArgs e)

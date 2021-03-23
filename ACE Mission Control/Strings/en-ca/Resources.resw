@@ -484,4 +484,7 @@
   <data name="Config_SearchFlyoutTitle.Text" xml:space="preserve">
     <value>Search Results</value>
   </data>
+  <data name="Config_UGCSConnectionLabel.Text" xml:space="preserve">
+    <value>UGCS Connection</value>
+  </data>
 </root>

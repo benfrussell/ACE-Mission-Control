@@ -57,6 +57,12 @@ namespace ACE_Mission_Control.Core.Models
             Drones.Add(new Drone(0, "Drone", ""));
         }
 
+        public static void AlertAllDrones(AlertEntry entry, bool blockDuplicates = false)
+        {
+            foreach (Drone d in Drones)
+                d.AddAlert(entry, blockDuplicates);
+        }
+
         private static void UGCSClient_ReceivedVehicleListEvent(object sender, ReceivedVehicleListEventArgs e)
         {
             foreach (Vehicle v in e.Vehicles)

@@ -191,7 +191,7 @@
         <controls:DataGrid ItemsSource="{x:Bind ViewModel.ConfigEntries, Mode=OneWay}"
                            Grid.Column="1"
                            Grid.Row="1"
-                           Grid.RowSpan="3"
+                           Grid.RowSpan="5"
                            AutoGenerateColumns="False"
                            GridLinesVisibility="Horizontal"
                            Margin="16,0,8,0">

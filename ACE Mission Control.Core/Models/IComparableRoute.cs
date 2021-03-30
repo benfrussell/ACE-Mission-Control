@@ -4,9 +4,11 @@ using System.Text;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    interface IComparableRoute
+    interface IComparableRoute<T>
     {
         long LastModificationTime { get; }
         int Id { get; }
+
+        bool Equals(T obj);
     }
 }

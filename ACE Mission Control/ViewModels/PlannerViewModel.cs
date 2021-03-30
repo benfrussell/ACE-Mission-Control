@@ -193,6 +193,7 @@ namespace ACE_Mission_Control.ViewModels
 
         private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedEventArgs e)
         {
+            UpdatePlannerMapAreas(e.Instruction);
             UpdatePlannerMapPoints(e.Instruction);
             if (e.Instruction.FirstInstruction)
                 CheckStartModeError();
@@ -398,6 +399,11 @@ namespace ACE_Mission_Control.ViewModels
         private void UpdatePlannerMapAreas()
         {
             UpdatePlannerMapAreas(AttachedDrone.Mission.TreatmentInstructions);
+        }
+
+        private void UpdatePlannerMapAreas(TreatmentInstruction instruction)
+        {
+            UpdatePlannerMapAreas(new List<TreatmentInstruction> { instruction });
         }
 
         private void UpdatePlannerMapAreas(IEnumerable<TreatmentInstruction> instructions)

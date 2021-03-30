@@ -26,7 +26,8 @@ namespace ACE_Mission_Control.Core.Models
             OBCSlow,
             OBCError,
             CommandResponse,
-            CommandError
+            CommandError,
+            UGCSStatus
         }
 
         public DateTime Timestamp;

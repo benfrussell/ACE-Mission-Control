@@ -16,7 +16,7 @@ namespace ACE_Mission_Control.Core.Models
         public Coordinate ExitCoordinate { get; set; }
     }
 
-    public class WaypointRoute : LineString, IComparableRoute
+    public class WaypointRoute : LineString, IComparableRoute<WaypointRoute>
     {
         public int Id { get; protected set; }
         public long LastModificationTime { get; protected set; }
@@ -257,6 +257,20 @@ namespace ACE_Mission_Control.Core.Models
 
             // Return the length of the difference
             return Math.Sqrt((dLon * dLon) + (dLat * dLat));
+        }
+
+        public bool Equals(WaypointRoute obj)
+        {
+            if (Id != obj.Id)
+                return false;
+
+            if (Coordinates.Length != obj.Coordinates.Length)
+                return false;
+
+            if (!Coordinates.SequenceEqual(obj.Coordinates))
+                return false;
+
+            return true;
         }
     }
 }

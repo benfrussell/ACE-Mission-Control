@@ -93,10 +93,38 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private static bool _requestingRoutes;
+        public static bool RequestingRoutes
+        {
+            get { return _requestingRoutes; }
+            private set
+            {
+                if (value == _requestingRoutes)
+                    return;
+                _requestingRoutes = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
+        private static bool _requestingMissions;
+        public static bool RequestingMissions
+        {
+            get { return _requestingMissions; }
+            private set
+            {
+                if (value == _requestingMissions)
+                    return;
+                _requestingMissions = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
         static UGCSClient()
         {
             IsConnected = false;
             TryingConnections = false;
+            RequestingRoutes = false;
+            RequestingMissions = false;
             ConnectionMessage = "Not connected to UGCS";
             syncContext = SynchronizationContext.Current;
         }
@@ -173,6 +201,9 @@ namespace ACE_Mission_Control.Core.Models
             {
                 return new ConnectionResult() { Success = false, Message = "Incorrect UGCS username or password" };
             }
+
+            DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Connected with Client ID ({clientID})"));
+
             return new ConnectionResult() { Success = true, Message = "Connected to UGCS" };
         }
 
@@ -247,25 +278,42 @@ namespace ACE_Mission_Control.Core.Models
 
         public static void RequestMissions()
         {
+            if (RequestingMissions)
+                return;
+            RequestingMissions = true;
+            DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Requesting mission list"));
+
             RetrieveAndProcessObjectList(
                 "Mission",
                 (objects) =>
                 {
                     IEnumerable<UGCS.Sdk.Protocol.Encoding.Mission> missions = from obj in objects select obj.Mission;
+                    DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Recieved {missions.Count()} missions"));
                     ReceivedMissionsEvent?.Invoke(
                         null,
                         new ReceivedMissionsEventArgs() { Missions = missions.ToList() });
+                    RequestingMissions = false;
                 });
         }
 
         public static void RequestRoutes(int missionID)
         {
+            if (RequestingRoutes)
+                return;
+            RequestingRoutes = true;
+            DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Requesting routes from mission {missionID}"));
+
             RetrieveAndProcessObject(
                 "Mission",
                 missionID,
-                (missionObj) => ReceivedRoutesEvent(
-                    null,
-                    new ReceivedRoutesEventArgs() { Routes = missionObj.Mission.Routes }));
+                (missionObj) =>
+                {
+                    DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Recieved {missionObj.Mission.Routes.Count()} routes"));
+                    ReceivedRoutesEvent(
+                        null,
+                        new ReceivedRoutesEventArgs() { Routes = missionObj.Mission.Routes });
+                    RequestingRoutes = false;
+                });
         }
 
         private static async void RetrieveAndProcessObjectList(string objectType, Action<List<DomainObjectWrapper>> processCallback)

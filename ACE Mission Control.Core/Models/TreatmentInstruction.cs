@@ -12,6 +12,8 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class TreatmentInstruction : INotifyPropertyChanged
     {
+        public static WaypointRouteInterceptCollection InterceptCollection = new WaypointRouteInterceptCollection();
+
         public enum UploadStatus
         {
             NotUploaded = 0,
@@ -21,8 +23,6 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        public static WaypointRouteInterceptCollection InterceptCollection = new WaypointRouteInterceptCollection();
 
         private AreaScanPolygon treatmentPolygon;
         public AreaScanPolygon TreatmentPolygon 
@@ -39,19 +39,29 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private WaypointRouteIntercept selectedInterceptRoute;
+        private WaypointRouteIntercept SelectedInterceptRoute
+        {
+            get => selectedInterceptRoute;
+            set
+            {
+                selectedInterceptRoute = value;
+                NotifyPropertyChanged("TreatmentRoute");
+            }
+        }
+
         public WaypointRoute TreatmentRoute 
         {
             get
             {
-                if (selectedInterceptRoute == null)
+                if (SelectedInterceptRoute == null)
                     RevalidateTreatmentRoute();
-                return selectedInterceptRoute != null ? selectedInterceptRoute.WaypointRoute : null;
+                return SelectedInterceptRoute != null ? SelectedInterceptRoute.WaypointRoute : null;
             } 
             set
             {
-                if (value == null || (selectedInterceptRoute != null && selectedInterceptRoute.WaypointRoute == value))
+                if (value == null || (SelectedInterceptRoute != null && SelectedInterceptRoute.WaypointRoute == value))
                     return;
-                selectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
+                SelectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
                 NotifyPropertyChanged();
             }
         }
@@ -73,10 +83,10 @@ namespace ACE_Mission_Control.Core.Models
         {
             get
             {
-                if (selectedInterceptRoute == null)
+                if (SelectedInterceptRoute == null)
                     RevalidateTreatmentRoute();
-                if (selectedInterceptRoute != null)
-                    return selectedInterceptRoute.EntryCoordinate;
+                if (SelectedInterceptRoute != null)
+                    return SelectedInterceptRoute.EntryCoordinate;
                 return null;
             }
         }
@@ -85,10 +95,10 @@ namespace ACE_Mission_Control.Core.Models
         {
             get
             {
-                if (selectedInterceptRoute == null)
+                if (SelectedInterceptRoute == null)
                     RevalidateTreatmentRoute();
-                if (selectedInterceptRoute != null)
-                    return selectedInterceptRoute.ExitCoordinate;
+                if (SelectedInterceptRoute != null)
+                    return SelectedInterceptRoute.ExitCoordinate;
                 return null;
             }
         }
@@ -240,8 +250,12 @@ namespace ACE_Mission_Control.Core.Models
             TreatmentPolygon = treatmentArea;
             ID = treatmentArea.SequentialID;
             AreaStatus = AreaResult.Types.Status.NotStarted;
+
             // Swath is generally half of the side distance (metres)
-            var sideDistance = treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value;
+            if (!treatmentArea.Parameters.ContainsKey("sideDistance"))
+                throw new Exception("Tried to create a treatment instruction with an area that does not have a side distance specified.");
+            var sideDistance = treatmentArea.Parameters["sideDistance"];
+
             Swath = float.Parse(sideDistance, CultureInfo.InvariantCulture) / 2;
             CurrentUploadStatus = UploadStatus.NotUploaded;
 
@@ -256,14 +270,32 @@ namespace ACE_Mission_Control.Core.Models
             RevalidateTreatmentRoute();
         }
 
+        public void UpdateValidRoutes()
+        {
+            NotifyPropertyChanged("ValidTreatmentRoutes");
+            NotifyPropertyChanged("TreatmentRoute");
+        }
+
+        // Update the treatment route with any changes made to it
+        public void UpdateTreatmentRoute()
+        {
+            var matchedRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
+            SelectedInterceptRoute = null;
+
+            RevalidateTreatmentRoute();
+        }
+
         public void UpdateTreatmentArea(AreaScanPolygon treatmentArea)
         {
-            var nameChanged = TreatmentPolygon.Name != treatmentArea.Name;
-
             TreatmentPolygon = treatmentArea;
-            var sideDistance = treatmentArea.Parameters.FirstOrDefault(p => p.Name == "sideDistance")?.Value;
+
+            if (!treatmentArea.Parameters.ContainsKey("sideDistance"))
+                throw new Exception("Tried to update a treatment instruction with an area that does not have a side distance specified.");
+            var sideDistance = treatmentArea.Parameters["sideDistance"];
+
             Swath = float.Parse(sideDistance, CultureInfo.InvariantCulture) / 2;
 
+            var nameChanged = TreatmentPolygon.Name != treatmentArea.Name;
             if (nameChanged)
                 NotifyPropertyChanged("Name");
 
@@ -274,28 +306,29 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool HasValidTreatmentRoute()
         {
-            return selectedInterceptRoute != null;
+            return SelectedInterceptRoute != null;
         }
 
         public bool IsTreatmentRouteValid()
         {
-            return InterceptCollection[TreatmentPolygon.Id].Contains(selectedInterceptRoute);
+            return InterceptCollection[TreatmentPolygon.Id].Contains(SelectedInterceptRoute);
         }
 
+        // Check that the current treatment route is still valid (still intercepts the treatment area)
+        // Try to replace it with a valid route if it is not
         public bool RevalidateTreatmentRoute()
         {
             var routeUpdated = false;
 
-            NotifyPropertyChanged("ValidTreatmentRoutes");
+            UpdateValidRoutes();
 
-            if (!IsTreatmentRouteValid())
+            if (SelectedInterceptRoute == null || !IsTreatmentRouteValid())
             {
-                selectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault();
-                NotifyPropertyChanged("TreatmentRoute");
+                SelectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault();
                 routeUpdated = true;
             }
 
-            if (selectedInterceptRoute == null)
+            if (SelectedInterceptRoute == null)
             {
                 CanBeEnabled = false;
                 if (lastEnabledState != null)

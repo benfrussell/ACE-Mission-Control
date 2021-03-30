@@ -485,6 +485,9 @@
     <value>Search Results</value>
   </data>
   <data name="Config_UGCSConnectionLabel.Text" xml:space="preserve">
-    <value>UGCS Connection</value>
+    <value>UGCS Mission Select</value>
+  </data>
+  <data name="Alert_UGCSStatus" xml:space="preserve">
+    <value>UGCS Status:</value>
   </data>
 </root>

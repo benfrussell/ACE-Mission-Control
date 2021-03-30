@@ -2,16 +2,20 @@ ACE Bug List
 
 --- CRITICAL
 
-On stop_interface the drone detects an interface exception, afterwards we can't connect to the drone
-
 Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
 	- Still happens!!
+	- Switched to only allow one drone as a safety workaround
 
 Force stop payload stopped working
+
+UGCS routes don't always grab
+	- Maybe it takes too long and interrupts itself?
+	- Adding blocking until the requests are complete. Added more logging.
 
 --- IMPORTANT
 
 TCP "pinging" is not reliable, at least on busy slow networks - create ping script to execute
+	- Not working for Gabe
 
 Mission Control Core text isn't translated
 
@@ -19,10 +23,10 @@ Onboard Computer text isn't translated
 
 Mission Control doesn't send reset progress to the Pi when it reports an area as being in progress
 	- When in Override? Related to CanBeModified?
-
-Onboard Computer didn't detect when the physical drone connection was interrupted
+	- Fixed?
 
 Upload Areas should reset the progress enum?
+	- Fixed?
 
 Flythrough error does not unset?
 
@@ -42,14 +46,13 @@ Disconnection causes three disconnect messages in MissionControl
 
 Sometimes the treatment areas are not grabbed 
 	- Areas are added to the TreatmentInstructions - it's just the polygon is not drawn on the map
+	- Maybe fixed now? Have not seen this issue for a while!
 
 Unnecessary no connection messages
 
-New Changes showed up on route change?
-
 Network search is slow
 
-ConfigEntry response causes the entire list to clone and rebuild - because it's bad
+ConfigEntry response causes the entire list to clone and rebuild, because it's badly done (:
 
 --- DOCUMENTATION
 

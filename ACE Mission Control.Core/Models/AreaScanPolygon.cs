@@ -8,7 +8,7 @@ using UGCS.Sdk.Protocol.Encoding;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class AreaScanPolygon : Polygon, IComparableRoute
+    public class AreaScanPolygon : Polygon, IComparableRoute<AreaScanPolygon>
     {
         private static List<int> knownIdList = new List<int>();
 
@@ -20,11 +20,11 @@ namespace ACE_Mission_Control.Core.Models
 
         public long LastModificationTime { get; protected set; }
 
-        public List<ParameterValue> Parameters;
+        public Dictionary<string, string> Parameters;
 
         public string Name;
 
-        public AreaScanPolygon(int id, string name, long modifiedTime, LinearRing polygonPoints, List<ParameterValue> parameters) : base(polygonPoints)
+        public AreaScanPolygon(int id, string name, long modifiedTime, LinearRing polygonPoints, Dictionary<string, string> parameters) : base(polygonPoints)
         {
             Id = id;
 
@@ -45,7 +45,12 @@ namespace ACE_Mission_Control.Core.Models
                 var coordinates = route.Segments[0].Figure.Points.ConvertAll(
                     point => new Coordinate(point.Longitude, point.Latitude));
                 LinearRing ring = new LinearRing(coordinates.ToArray());
-                return new AreaScanPolygon(route.Id, route.Name, route.LastModificationTime, ring, route.Segments[0].ParameterValues);
+                Dictionary<string, string> parameters = new Dictionary<string, string>();
+
+                foreach (ParameterValue param in route.Segments[0].ParameterValues)
+                    parameters.Add(param.Name, param.Value);
+
+                return new AreaScanPolygon(route.Id, route.Name, route.LastModificationTime, ring, parameters);
             } 
             catch (Exception e)
             {
@@ -90,6 +95,23 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (Coordinate coord in Coordinates)
                 yield return new Tuple<double, double>(coord.X, coord.Y);
+        }
+
+        public bool Equals(AreaScanPolygon obj)
+        {
+            if (Id != obj.Id)
+                return false;
+
+            if (Coordinates.Length != obj.Coordinates.Length)
+                return false;
+
+            if (!Coordinates.SequenceEqual(obj.Coordinates))
+                return false;
+
+            if (Parameters.Count != obj.Parameters.Count || Parameters.Except(obj.Parameters).Any())
+                return false;
+
+            return true;
         }
     }
 }

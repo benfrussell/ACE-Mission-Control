@@ -10,7 +10,13 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class AreaScanPolygonsUpdatedArgs
     {
-        public RouteCollectionUpdates<AreaScanPolygon> updates { get; set; }
+        public RouteCollectionUpdates<AreaScanPolygon> Updates { get; set; }
+    }
+
+    public class WaypointRoutesUpdatedArgs
+    {
+        public RouteCollectionUpdates<WaypointRoute> Updates { get; set; }
+        public bool AreaScanPolygonsUpdateFollowing;
     }
 
     public class MissionRetriever : INotifyPropertyChanged
@@ -18,6 +24,8 @@ namespace ACE_Mission_Control.Core.Models
         public static event PropertyChangedEventHandler StaticPropertyChanged;
 
         public static event EventHandler<AreaScanPolygonsUpdatedArgs> AreaScanPolygonsUpdated;
+
+        public static event EventHandler<WaypointRoutesUpdatedArgs> WaypointRoutesUpdated;
 
         private static List<UGCS.Sdk.Protocol.Encoding.Mission> availableMissions;
         public static List<UGCS.Sdk.Protocol.Encoding.Mission> AvailableMissions
@@ -132,7 +140,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 var allAreaIDs = from area in AreaScanPolygons select area.SequentialID;
                 RouteCollectionUpdates<AreaScanPolygon> removedAreas = new RouteCollectionUpdates<AreaScanPolygon>() { RemovedRouteIDs = allAreaIDs.ToList() };
-                AreaScanPolygonsUpdated?.Invoke(null, new AreaScanPolygonsUpdatedArgs() { updates = removedAreas });
+                AreaScanPolygonsUpdated?.Invoke(null, new AreaScanPolygonsUpdatedArgs() { Updates = removedAreas });
                 AreaScanPolygons.Clear();
             }
             
@@ -144,8 +152,10 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (UGCSClient.IsConnected)
             {
-                UGCSClient.RequestMissions();
-                if (SelectedMission != null)
+                if (!UGCSClient.RequestingMissions)
+                    UGCSClient.RequestMissions();
+
+                if (!UGCSClient.RequestingRoutes && SelectedMission != null)
                     UGCSClient.RequestRoutes(SelectedMission.Id);
             } 
             else if (IsUGCSPollerRunning)
@@ -161,7 +171,13 @@ namespace ACE_Mission_Control.Core.Models
                 var allRoutes = from mission in e.Missions from route in mission.Routes select route;
                 var mostRecentRoute = allRoutes.Aggregate((r1, r2) => r1.LastModificationTime > r2.LastModificationTime ? r1 : r2);
                 SelectedMission = mostRecentRoute.Mission;
-                UGCSClient.RequestRoutes(SelectedMission.Id);
+                DroneController.AlertAllDrones(new AlertEntry(
+                    AlertEntry.AlertLevel.Info,
+                    AlertEntry.AlertType.UGCSStatus,
+                    $"Selecting mission '{SelectedMission.Name}' with ID {SelectedMission.Id}"));
+
+                if (!UGCSClient.RequestingRoutes)
+                    UGCSClient.RequestRoutes(SelectedMission.Id);
             }
 
             AvailableMissions = e.Missions;
@@ -169,15 +185,15 @@ namespace ACE_Mission_Control.Core.Models
 
         private static void UGCSClient_ReceivedRoutesEvent(object sender, ReceivedRoutesEventArgs e)
         {
-            List<Route> newAreaRoutes = new List<Route>();
-            List<Route> newWaypointRoutes = new List<Route>();
+            List<AreaScanPolygon> newAreaRoutes = new List<AreaScanPolygon>();
+            List<WaypointRoute> newWaypointRoutes = new List<WaypointRoute>();
 
             foreach (Route r in e.Routes)
             {
                 if (AreaScanPolygon.IsUGCSRouteAreaScanPolygon(r))
-                    newAreaRoutes.Add(r);
+                    newAreaRoutes.Add(AreaScanPolygon.CreateFromUGCSRoute(r));
                 else if (WaypointRoute.IsUGCSRouteWaypointRoute(r))
-                    newWaypointRoutes.Add(r);
+                    newWaypointRoutes.Add(WaypointRoute.CreateFromUGCSRoute(r));
             }
 
             var areaChanges = DetermineExisitngRouteUpdates(AreaScanPolygons, newAreaRoutes);
@@ -193,13 +209,15 @@ namespace ACE_Mission_Control.Core.Models
 
             if (waypointRouteChanges.AnyChanges)
             {
+                // Remove both removed waypoint routes AND modified waypoint routes. Modified routes will be re-added.
                 var routeIDsToRemove = new List<int>(waypointRouteChanges.RemovedRouteIDs);
                 routeIDsToRemove.AddRange(from r in waypointRouteChanges.ModifiedRoutes select r.Id);
+
                 WaypointRoutes.RemoveAll(a => routeIDsToRemove.Contains(a.Id));
                 TreatmentInstruction.InterceptCollection.RemoveWaypointRoutesByIDs(routeIDsToRemove);
 
-                var routesToAdd = RoutesToWaypointRoutes(waypointRouteChanges.AddedRoutes).ToList();
-                routesToAdd.AddRange(RoutesToWaypointRoutes(waypointRouteChanges.ModifiedRoutes));
+                var routesToAdd = new List<WaypointRoute>(waypointRouteChanges.AddedRoutes);
+                routesToAdd.AddRange(waypointRouteChanges.ModifiedRoutes);
                 WaypointRoutes.AddRange(routesToAdd);
 
                 // Unmodified areas only need to check against new routes
@@ -207,29 +225,34 @@ namespace ACE_Mission_Control.Core.Models
                     TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, routesToAdd);
 
                 NotifyStaticPropertyChanged("WaypointRoutes");
+
+                WaypointRoutesUpdated?.Invoke(null, new WaypointRoutesUpdatedArgs { Updates = waypointRouteChanges, AreaScanPolygonsUpdateFollowing = areaChanges.AnyChanges });
+
+                DroneController.AlertAllDrones(new AlertEntry(
+                    AlertEntry.AlertLevel.Info,
+                    AlertEntry.AlertType.UGCSStatus,
+                    $"Processed routes. ({waypointRouteChanges.RemovedRouteIDs.Count}) routes removed, ({waypointRouteChanges.ModifiedRoutes.Count}) routes modified, ({waypointRouteChanges.AddedRoutes.Count}) routes added."));
             }
 
             if (areaChanges.AnyChanges)
             {
-                var areasUpdate = new RouteCollectionUpdates<AreaScanPolygon>()
-                {
-                    RemovedRouteIDs = areaChanges.RemovedRouteIDs,
-                    ModifiedRoutes = RoutesToAreaScans(areaChanges.ModifiedRoutes).ToList(),
-                    AddedRoutes = RoutesToAreaScans(areaChanges.AddedRoutes).ToList()
-                };
-
-                AreaScanPolygons.AddRange(areasUpdate.ModifiedRoutes);
-                AreaScanPolygons.AddRange(areasUpdate.AddedRoutes);
+                AreaScanPolygons.AddRange(areaChanges.ModifiedRoutes);
+                AreaScanPolygons.AddRange(areaChanges.AddedRoutes);
 
                 // New and modified areas need to check against every waypoint route
-                foreach (AreaScanPolygon area in areasUpdate.ModifiedRoutes)
+                foreach (AreaScanPolygon area in areaChanges.ModifiedRoutes)
                     TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, WaypointRoutes);
-                foreach (AreaScanPolygon area in areasUpdate.AddedRoutes)
+                foreach (AreaScanPolygon area in areaChanges.AddedRoutes)
                     TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, WaypointRoutes);
 
                 NotifyStaticPropertyChanged("AreaScanPolygons");
 
-                AreaScanPolygonsUpdated(null, new AreaScanPolygonsUpdatedArgs() { updates = areasUpdate });
+                AreaScanPolygonsUpdated?.Invoke(null, new AreaScanPolygonsUpdatedArgs() { Updates = areaChanges });
+
+                DroneController.AlertAllDrones(new AlertEntry(
+                    AlertEntry.AlertLevel.Info,
+                    AlertEntry.AlertType.UGCSStatus,
+                    $"Processed areas. ({areaChanges.RemovedRouteIDs.Count}) areas removed, ({areaChanges.ModifiedRoutes.Count}) areas modified, ({areaChanges.AddedRoutes.Count}) areas added."));
             }
 
             if (IsUGCSPollerRunning)
@@ -239,13 +262,13 @@ namespace ACE_Mission_Control.Core.Models
         // TODO: New AreaScan name change and route to waypoints didn't sync!
 
         // Finds and returns all of the updates to match an exisiting route list to a new route list
-        private static RouteCollectionUpdates<Route> DetermineExisitngRouteUpdates<T>(IEnumerable<T> existingRouteList, List<Route> newRouteList) where T : IComparableRoute
+        private static RouteCollectionUpdates<T> DetermineExisitngRouteUpdates<T>(IEnumerable<T> existingRouteList, IEnumerable<T> newRouteList) where T : IComparableRoute<T>
         {
-            var changes = new RouteCollectionUpdates<Route>();
+            var changes = new RouteCollectionUpdates<T>();
             // Start with a list of all IDs and remove them as we find matches in the new list
             changes.RemovedRouteIDs = (from existingRoute in existingRouteList select existingRoute.Id).ToList();
 
-            foreach (Route newRoute in newRouteList)
+            foreach (T newRoute in newRouteList)
             {
                 var matchInExistingRoutes = existingRouteList.FirstOrDefault(existingRoute => existingRoute.Id == newRoute.Id);
                 if (matchInExistingRoutes == null)
@@ -256,7 +279,7 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     changes.RemovedRouteIDs.Remove(matchInExistingRoutes.Id);
                     // For some reason UGCS reports ALL routes as being modified whenever you add/remove/modify a single route
-                    if (newRoute.LastModificationTime > matchInExistingRoutes.LastModificationTime)
+                    if (!newRoute.Equals(matchInExistingRoutes))
                         changes.ModifiedRoutes.Add(newRoute);
                 }
             }

@@ -254,7 +254,8 @@ namespace ACE_Mission_Control.Core.Models
 
         public Mission(Drone _drone, OnboardComputerClient _onboardComputer)
         {
-            MissionRetriever.AreaScanPolygonsUpdated += MissionData_AreaScanPolygonsUpdated;
+            MissionRetriever.AreaScanPolygonsUpdated += MissionRetriever_AreaScanPolygonsUpdated;
+            MissionRetriever.WaypointRoutesUpdated += MissionRetriever_WaypointRoutesUpdated;
             TreatmentInstructions = new ObservableCollection<TreatmentInstruction>();
             startParameters = new StartTreatmentParameters();
             startParameters.SelectedModeChangedEvent += StartParameters_SelectedModeChangedEvent;
@@ -533,11 +534,28 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void MissionData_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
+        private void MissionRetriever_WaypointRoutesUpdated(object sender, WaypointRoutesUpdatedArgs e)
+        {
+            foreach (TreatmentInstruction instruction in TreatmentInstructions)
+            {
+                if (!instruction.HasValidTreatmentRoute())
+                    continue;
+
+                var routeModified = e.Updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentRoute.Id) != null;
+                var routeRemoved = e.Updates.RemovedRouteIDs.Contains(instruction.TreatmentRoute.Id);
+
+                if (routeModified || routeRemoved)
+                    instruction.UpdateTreatmentRoute();
+                else if (e.Updates.AddedRoutes.Count > 0)
+                    instruction.UpdateValidRoutes();
+            }
+        }
+
+        private void MissionRetriever_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
         {
             updatingInstructions = true;
             // Remove all instructions that have removed polygons
-            foreach (int removedID in e.updates.RemovedRouteIDs)
+            foreach (int removedID in e.Updates.RemovedRouteIDs)
             {
                 var removedInstruction = TreatmentInstructions.FirstOrDefault(i => removedID == i.ID);
                 if (removedInstruction != null)
@@ -548,7 +566,7 @@ namespace ACE_Mission_Control.Core.Models
 
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
-                var newTreatmentArea = e.updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentPolygon.Id);
+                var newTreatmentArea = e.Updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentPolygon.Id);
                 if (newTreatmentArea != null)
                 {
                     // Update treatment areas if they were modified
@@ -565,7 +583,7 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             // Add new treatment areas as instructions
-            foreach (AreaScanPolygon addedArea in e.updates.AddedRoutes)
+            foreach (AreaScanPolygon addedArea in e.Updates.AddedRoutes)
             {
                 var newInstruction = new TreatmentInstruction(addedArea);
                 newInstruction.PropertyChanged += NewInstruction_PropertyChanged;

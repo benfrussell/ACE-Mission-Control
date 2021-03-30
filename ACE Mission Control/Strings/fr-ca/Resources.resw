@@ -485,6 +485,9 @@
     <value>Début</value>
   </data>
   <data name="Config_UGCSConnectionLabel.Text" xml:space="preserve">
-    <value>Connexion de UGCS</value>
+    <value>Mission de UGCS</value>
+  </data>
+  <data name="Alert_UGCSStatus" xml:space="preserve">
+    <value>Statut UgCS:</value>
   </data>
 </root>

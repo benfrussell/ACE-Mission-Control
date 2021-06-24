@@ -9,6 +9,7 @@
     xmlns:ic="using:Microsoft.Xaml.Interactions.Core"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:behaviors="using:ACE_Mission_Control.Behaviors"
+    xmlns:helper="using:ACE_Mission_Control.Helpers"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -16,6 +17,7 @@
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
             <Setter Property="FontSize" Value="16"/>
         </Style>
+        <helper:NegateBoolean x:Key="NegateBoolean"/>
     </Page.Resources>
 
     <i:Interaction.Behaviors>
@@ -36,8 +38,9 @@
         OpenPaneLength="200">
 
         <winui:NavigationView.PaneFooter>
-            <Button Command="{x:Bind ViewModel.RefreshDroneListCommand}"
+            <Button Command="{x:Bind ViewModel.RefreshUGCSMissionsCommand}"
                     Background="{ThemeResource NavigationViewExpandedPaneBackground}"
+                    IsEnabled="{x:Bind model:UGCSClient.RequestingMissions, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     Margin="0,0,0,0"
@@ -60,7 +63,7 @@
                     <TextBlock Style="{StaticResource SymbolTextBlockStyle}"
                                Text="&#xE149;"
                                Margin="2,0,0,0"/>
-                    <TextBlock x:Uid="Shell_RefreshDroneList"
+                    <TextBlock x:Uid="Shell_RefreshUGCSMissions"
                                Margin="12,0,0,0"/>
                 </StackPanel>
             </Button>

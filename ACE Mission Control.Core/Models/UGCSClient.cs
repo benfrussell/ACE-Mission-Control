@@ -276,39 +276,68 @@ namespace ACE_Mission_Control.Core.Models
             System.Diagnostics.Debug.WriteLine($"Logs received: {logResponse.VehicleLogEntries.Count}");
         }
 
-        public static void RequestMissions()
+        public static async void RequestMissions()
         {
             if (RequestingMissions)
                 return;
             RequestingMissions = true;
-            DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Requesting mission list"));
 
-            RetrieveAndProcessObjectList(
-                "Mission",
-                (objects) =>
+            // Request missions one by one because it's more reliable than requesting all missions at once apparently
+            var missionID = 1;
+            var allMissions = new List<UGCS.Sdk.Protocol.Encoding.Mission>();
+
+            while (true)
+            {
+                GetObjectRequest request = new GetObjectRequest
                 {
-                    IEnumerable<UGCS.Sdk.Protocol.Encoding.Mission> missions = from obj in objects select obj.Mission;
-                    DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Recieved {missions.Count()} missions"));
-                    ReceivedMissionsEvent?.Invoke(
+                    ClientId = clientID,
+                    ObjectId = missionID,
+                    ObjectType = "Mission"
+                };
+
+                var requestTask = Task.Run(() => RequestAndWait<GetObjectResponse>(request));
+                var completedTask = await Task.WhenAny(requestTask, Task.Delay(5000));
+
+                if (completedTask == requestTask)
+                {
+                    if (requestTask.Result != null)
+                    {
+                        allMissions.Add(requestTask.Result.Object.Mission);
+                        DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Retrieved mission {missionID}"));
+                        missionID++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Timed out retrieving mission {missionID}, continuing..."));
+                    missionID++;
+                }
+
+                
+            }
+
+            ReceivedMissionsEvent?.Invoke(
                         null,
-                        new ReceivedMissionsEventArgs() { Missions = missions.ToList() });
-                    RequestingMissions = false;
-                });
+                        new ReceivedMissionsEventArgs() { Missions = allMissions });
+            RequestingMissions = false;
         }
+
 
         public static void RequestRoutes(int missionID)
         {
             if (RequestingRoutes)
                 return;
             RequestingRoutes = true;
-            DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Requesting routes from mission {missionID}"));
 
             RetrieveAndProcessObject(
                 "Mission",
                 missionID,
                 (missionObj) =>
                 {
-                    DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Recieved {missionObj.Mission.Routes.Count()} routes"));
                     ReceivedRoutesEvent(
                         null,
                         new ReceivedRoutesEventArgs() { Routes = missionObj.Mission.Routes });

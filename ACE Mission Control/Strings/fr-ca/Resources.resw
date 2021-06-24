@@ -262,8 +262,8 @@
   <data name="Welcome_SecondText.Text" xml:space="preserve">
     <value>Sélectionnez un drone à voir à gauche</value>
   </data>
-  <data name="Shell_RefreshDroneList.Text" xml:space="preserve">
-    <value>Actualiser la liste drone</value>
+  <data name="Shell_RefreshUGCSMissions.Text" xml:space="preserve">
+    <value>Actualiser les missions de UgCS</value>
   </data>
   <data name="Main_PlannerPivotItem.Header" xml:space="preserve">
     <value>Plannificateur</value>
@@ -489,5 +489,8 @@
   </data>
   <data name="Alert_UGCSStatus" xml:space="preserve">
     <value>Statut UgCS:</value>
+  </data>
+  <data name="Alert_SynchronizeUpdate" xml:space="preserve">
+    <value>Synchronisé</value>
   </data>
 </root>

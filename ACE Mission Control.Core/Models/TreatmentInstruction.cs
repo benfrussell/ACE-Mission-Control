@@ -44,6 +44,8 @@ namespace ACE_Mission_Control.Core.Models
             get => selectedInterceptRoute;
             set
             {
+                if (selectedInterceptRoute == value)
+                    return;
                 selectedInterceptRoute = value;
                 NotifyPropertyChanged("TreatmentRoute");
             }
@@ -320,12 +322,16 @@ namespace ACE_Mission_Control.Core.Models
         {
             var routeUpdated = false;
 
-            UpdateValidRoutes();
-
             if (SelectedInterceptRoute == null || !IsTreatmentRouteValid())
             {
-                SelectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault();
-                routeUpdated = true;
+                var previousRoute = SelectedInterceptRoute;
+                var newRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault();
+                if (previousRoute != newRoute)
+                {
+                    SelectedInterceptRoute = newRoute;
+                    routeUpdated = true;
+                }
+                    
             }
 
             if (SelectedInterceptRoute == null)
@@ -343,6 +349,9 @@ namespace ACE_Mission_Control.Core.Models
                     Enabled = lastEnabledState ?? true;
                 }
             }
+
+            if (routeUpdated)
+                UpdateValidRoutes();
 
             return routeUpdated;
         }

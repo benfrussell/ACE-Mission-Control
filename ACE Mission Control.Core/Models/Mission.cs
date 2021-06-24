@@ -292,9 +292,6 @@ namespace ACE_Mission_Control.Core.Models
             Activated = newStatus.Activated;
             UpdateCanBeModified();
 
-            if (!MissionSet && newStatus.Results.Count > 0)
-                MissionSet = true;
-
             DroneHasProgress = newStatus.InProgress;
             UpdateCanBeReset();
 
@@ -649,14 +646,17 @@ namespace ACE_Mission_Control.Core.Models
             else if (e.PropertyName == "TreatmentRoute")
             {
                 var instruction = sender as TreatmentInstruction;
+                InstructionRouteUpdated?.Invoke(this, new InstructionRouteUpdatedEventArgs { Instruction = instruction });
+            }
+            else if (e.PropertyName == "FirstInstruction")
+            {
+                var instruction = sender as TreatmentInstruction;
                 if (instruction.FirstInstruction)
                 {
                     bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
                     if (changes)
                         StartParametersChangedEvent?.Invoke(this, new EventArgs());
                 }
-
-                InstructionRouteUpdated?.Invoke(this, new InstructionRouteUpdatedEventArgs { Instruction = instruction });
             }
         }
 

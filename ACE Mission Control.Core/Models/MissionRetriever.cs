@@ -152,11 +152,16 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (UGCSClient.IsConnected)
             {
-                if (!UGCSClient.RequestingMissions)
-                    UGCSClient.RequestMissions();
-
-                if (!UGCSClient.RequestingRoutes && SelectedMission != null)
-                    UGCSClient.RequestRoutes(SelectedMission.Id);
+                if (SelectedMission == null)
+                {
+                    if (!UGCSClient.RequestingMissions)
+                        UGCSClient.RequestMissions();
+                }
+                else
+                {
+                    if (!UGCSClient.RequestingRoutes)
+                        UGCSClient.RequestRoutes(SelectedMission.Id);
+                }
             } 
             else if (IsUGCSPollerRunning)
             {
@@ -166,11 +171,13 @@ namespace ACE_Mission_Control.Core.Models
 
         private static void UGCSClient_ReceivedMissionsEvent(object sender, ReceivedMissionsEventArgs e)
         {
-            if (AvailableMissions.Count == 0 && e.Missions.Count > 0)
+            var allRoutes = from mission in e.Missions from route in mission.Routes select route;
+            var mostRecentRoute = allRoutes.Aggregate((r1, r2) => r1.LastModificationTime > r2.LastModificationTime ? r1 : r2);
+            var mostRecentMission = e.Missions.FirstOrDefault(m => m.Id == mostRecentRoute.Mission.Id);
+
+            if (SelectedMission == null || SelectedMission.Id != mostRecentMission.Id)
             {
-                var allRoutes = from mission in e.Missions from route in mission.Routes select route;
-                var mostRecentRoute = allRoutes.Aggregate((r1, r2) => r1.LastModificationTime > r2.LastModificationTime ? r1 : r2);
-                SelectedMission = mostRecentRoute.Mission;
+                SelectedMission = e.Missions.FirstOrDefault(m => m.Id == mostRecentRoute.Mission.Id);
                 DroneController.AlertAllDrones(new AlertEntry(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
@@ -179,7 +186,14 @@ namespace ACE_Mission_Control.Core.Models
                 if (!UGCSClient.RequestingRoutes)
                     UGCSClient.RequestRoutes(SelectedMission.Id);
             }
-
+            else
+            {
+                DroneController.AlertAllDrones(new AlertEntry(
+                    AlertEntry.AlertLevel.Info,
+                    AlertEntry.AlertType.UGCSStatus,
+                    $"Mission '{SelectedMission.Name}' with ID {SelectedMission.Id} is still the most recent"));
+            }
+            
             AvailableMissions = e.Missions;
         }
 
@@ -231,7 +245,7 @@ namespace ACE_Mission_Control.Core.Models
                 DroneController.AlertAllDrones(new AlertEntry(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
-                    $"Processed routes. ({waypointRouteChanges.RemovedRouteIDs.Count}) routes removed, ({waypointRouteChanges.ModifiedRoutes.Count}) routes modified, ({waypointRouteChanges.AddedRoutes.Count}) routes added."));
+                    $"Updated routes. ({waypointRouteChanges.RemovedRouteIDs.Count}) routes removed, ({waypointRouteChanges.ModifiedRoutes.Count}) routes modified, ({waypointRouteChanges.AddedRoutes.Count}) routes added."));
             }
 
             if (areaChanges.AnyChanges)
@@ -252,7 +266,7 @@ namespace ACE_Mission_Control.Core.Models
                 DroneController.AlertAllDrones(new AlertEntry(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
-                    $"Processed areas. ({areaChanges.RemovedRouteIDs.Count}) areas removed, ({areaChanges.ModifiedRoutes.Count}) areas modified, ({areaChanges.AddedRoutes.Count}) areas added."));
+                    $"Updated areas. ({areaChanges.RemovedRouteIDs.Count}) areas removed, ({areaChanges.ModifiedRoutes.Count}) areas modified, ({areaChanges.AddedRoutes.Count}) areas added."));
             }
 
             if (IsUGCSPollerRunning)

@@ -183,10 +183,10 @@ namespace ACE_Mission_Control.ViewModels
                 NavigationService.Navigate(item.Tag as string);
             }
         }
-        public RelayCommand RefreshDroneListCommand => new RelayCommand(() => refreshDroneListCommand());
-        private void refreshDroneListCommand()
+        public RelayCommand RefreshUGCSMissionsCommand => new RelayCommand(() => refreshUGCSMissionsCommand());
+        private void refreshUGCSMissionsCommand()
         {
-            DroneController.LoadUGCSDrones();
+            UGCSClient.RequestMissions();
         }
 
         private void OnBackRequested(WinUI.NavigationView sender, WinUI.NavigationViewBackRequestedEventArgs args)

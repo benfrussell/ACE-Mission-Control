@@ -2,6 +2,8 @@ ACE Bug List
 
 --- CRITICAL
 
+No way to know if the drone has been repowered and the interface has died
+
 Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
 	- Still happens!!
 	- Switched to only allow one drone as a safety workaround
@@ -13,6 +15,8 @@ UGCS routes don't always grab
 	- Adding blocking until the requests are complete. Added more logging.
 
 --- IMPORTANT
+
+When the route starts within the treatment area it sets the start point as it exits.
 
 TCP "pinging" is not reliable, at least on busy slow networks - create ping script to execute
 	- Not working for Gabe

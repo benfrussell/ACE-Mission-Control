@@ -258,6 +258,10 @@ namespace ACE_Mission_Control.Core.Models
 
         private void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            // If we discover the mission is already set while synchronizing, send the start mode commands so the drone knows where we want to start
+            if (e.PropertyName == "MissionSet" && Mission.MissionSet && Synchronization == SyncState.Synchronizing)
+                SendStartModeCommands(false);
+
             if (e.PropertyName == "Stage" || e.PropertyName == "MissionSet")
                 UpdateAwayOnMission();
         }
@@ -287,6 +291,9 @@ namespace ACE_Mission_Control.Core.Models
 
         private void SendStartModeCommands(bool manuallySent = false)
         {
+            if (!Mission.MissionSet)
+                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.None, "Tried to send the entry point but no mission is set!"));
+
             // Only send these commands if the mission is set and syncing is not paused
             if (!Mission.MissionSet || Synchronization == SyncState.Paused)
                 return;
@@ -295,8 +302,6 @@ namespace ACE_Mission_Control.Core.Models
 
             if (!Mission.StopAndTurnStartMode)
                 command += " -fly_through";
-
-            syncCommandsSent += 1;
             
             SendCommand(command, !manuallySent, true);
         }
@@ -312,8 +317,6 @@ namespace ACE_Mission_Control.Core.Models
             if (!instruction.FirstInstruction || !Mission.StopAndTurnStartMode)
                 command += " -fly_through";
 
-            syncCommandsSent += 1;
-
             SendCommand(command, !manuallySent, true);
         }
 
@@ -321,9 +324,7 @@ namespace ACE_Mission_Control.Core.Models
         // They're sent everytime a connection to the director is re-established
         public void Synchronize(bool manualSyncronize = false)
         {
-            Synchronization = SyncState.Synchronizing;
-            // Manual syncs are allowed when a sync failure occurs until another sync attempt is made
-            syncCommandsSent += 3;
+            
             // Mission status needs to be checked first because it tells us the most important information (activated, stage)
             SendCommand("check_mission_status", !manualSyncronize, true);
             SendCommand("check_mission_config", !manualSyncronize, true);
@@ -331,13 +332,11 @@ namespace ACE_Mission_Control.Core.Models
 
             if (!configReceived || manualSyncronize)
             {
-                syncCommandsSent++;
                 SendCommand("check_ace_config", !manualSyncronize, true);
             }
 
             if (unsentRouteChanges.Count > 0)
             {
-                syncCommandsSent += unsentRouteChanges.Count;
                 foreach (TreatmentInstruction instruction in unsentRouteChanges)
                     SendNewInstructionEntryCommand(instruction, manualSyncronize);
             }
@@ -361,6 +360,7 @@ namespace ACE_Mission_Control.Core.Models
             if (command.IsSyncCommand && Synchronization == SyncState.SynchronizeFailed)
                 return;
 
+            // Check which connection the command should be sent on (Chaperone, if not assume Director)
             // Commands are dumped if the client isn't connected, otherwise if the send fails the command is queued
             if (ChaperoneCommandList.Any(c => c == command.Name))
             {
@@ -382,7 +382,16 @@ namespace ACE_Mission_Control.Core.Models
                 }
 
                 if (!SendCommandWithClient(OBCClient.DirectorRequestClient, command))
+                {
                     directorCommandQueue.Enqueue(command);
+                    if (command.IsSyncCommand)
+                    {
+                        if (Synchronization != SyncState.Synchronizing)
+                            Synchronization = SyncState.Synchronizing;
+                        syncCommandsSent++;
+                    }
+                }
+                    
             }
 
         }
@@ -397,13 +406,6 @@ namespace ACE_Mission_Control.Core.Models
 
             if (sendSuccessful)
             {
-                if (command.IsSyncCommand)
-                {
-                    // Syncrhonization will not be in the correct state if a sync command was sent without the Synchronize method
-                    // So this will fix
-                    if (Synchronization != SyncState.Synchronizing)
-                        Synchronization = SyncState.Synchronizing;
-                }
                 lastCommandSent = command;
                 return true;
             }
@@ -461,6 +463,8 @@ namespace ACE_Mission_Control.Core.Models
                 case ACEEnums.MessageType.InterfaceStatus:
                     var interfaceStatus = (InterfaceStatus)e.Message;
                     InterfaceState = interfaceStatus.InterfaceState;
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Interface State"));
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.None, "Reminder: Restart the interface connection if the drone has been restarted!"));
                     break;
                 case ACEEnums.MessageType.FlightStatus:
                     var flightStatus = (FlightStatus)e.Message;
@@ -469,10 +473,12 @@ namespace ACE_Mission_Control.Core.Models
                 case ACEEnums.MessageType.MissionStatus:
                     var missionStatus = (MissionStatus)e.Message;
                     Mission.UpdateMissionStatus(missionStatus);
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Status"));
                     break;
                 case ACEEnums.MessageType.MissionConfig:
                     var missionConfig = (MissionConfig)e.Message;
                     Mission.UpdateMissionConfig(missionConfig);
+                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Config"));
                     break;
                 case ACEEnums.MessageType.Configuration:
                     var configuration = (Configuration)e.Message;

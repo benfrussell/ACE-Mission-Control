@@ -21,8 +21,6 @@ namespace ACE_Mission_Control.Helpers
 
             string resource_string = "Alert_" + alertValue.Type.ToString();
             string converted = resource_string.GetLocalized();
-            if (converted.Length == 0)
-                converted = resource_string;
 
             if (alertValue.Info != null && alertValue.Info.Length > 0)
                 return converted + " " + alertValue.Info;

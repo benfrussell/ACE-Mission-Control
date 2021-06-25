@@ -203,7 +203,9 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                UpdatePlannerMapPoints(AttachedDrone.Mission.GetNextInstruction());
+                var nextInstruction = AttachedDrone.Mission.GetNextInstruction();
+                if (nextInstruction != null)
+                    UpdatePlannerMapPoints(nextInstruction);
                 CheckStartModeError();
             });
         }

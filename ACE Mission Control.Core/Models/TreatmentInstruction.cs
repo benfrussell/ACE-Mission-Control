@@ -281,8 +281,10 @@ namespace ACE_Mission_Control.Core.Models
         // Update the treatment route with any changes made to it
         public void UpdateTreatmentRoute()
         {
-            var matchedRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
-            SelectedInterceptRoute = null;
+            WaypointRouteIntercept matchedRoute = null;
+            if (InterceptCollection.ContainsKey(TreatmentPolygon.Id))
+                matchedRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
+            SelectedInterceptRoute = matchedRoute;
 
             RevalidateTreatmentRoute();
         }

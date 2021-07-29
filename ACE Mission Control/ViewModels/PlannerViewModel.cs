@@ -412,6 +412,9 @@ namespace ACE_Mission_Control.ViewModels
         {
             foreach (TreatmentInstruction instruction in instructions)
             {
+                if (instruction == null)
+                    continue;
+
                 var layerIndex = instruction.ID * 2;
 
                 // Add the layer or clear elements at the existing layer

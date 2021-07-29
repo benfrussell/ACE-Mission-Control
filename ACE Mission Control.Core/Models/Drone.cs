@@ -171,7 +171,7 @@ namespace ACE_Mission_Control.Core.Models
             AwayOnMission =
                 Mission.Stage == MissionStatus.Types.Stage.Enroute ||
                 Mission.Stage == MissionStatus.Types.Stage.Executing ||
-                (Mission.Stage == MissionStatus.Types.Stage.Ready && Mission.MissionSet && !OBCClient.IsDirectorConnected && OBCClient.AutoTryingConnections);
+                (Mission.Stage == MissionStatus.Types.Stage.Ready && Mission.MissionSet && FlightState == FlightStatus.Types.State.InAir && OBCClient.AutoTryingConnections);
 
             if (AwayOnMission)
             {
@@ -324,7 +324,6 @@ namespace ACE_Mission_Control.Core.Models
         // They're sent everytime a connection to the director is re-established
         public void Synchronize(bool manualSyncronize = false)
         {
-            
             // Mission status needs to be checked first because it tells us the most important information (activated, stage)
             SendCommand("check_mission_status", !manualSyncronize, true);
             SendCommand("check_mission_config", !manualSyncronize, true);
@@ -333,12 +332,6 @@ namespace ACE_Mission_Control.Core.Models
             if (!configReceived || manualSyncronize)
             {
                 SendCommand("check_ace_config", !manualSyncronize, true);
-            }
-
-            if (unsentRouteChanges.Count > 0)
-            {
-                foreach (TreatmentInstruction instruction in unsentRouteChanges)
-                    SendNewInstructionEntryCommand(instruction, manualSyncronize);
             }
         }
 
@@ -384,6 +377,9 @@ namespace ACE_Mission_Control.Core.Models
                 if (!SendCommandWithClient(OBCClient.DirectorRequestClient, command))
                 {
                     directorCommandQueue.Enqueue(command);
+                }
+                else
+                {
                     if (command.IsSyncCommand)
                     {
                         if (Synchronization != SyncState.Synchronizing)
@@ -479,6 +475,14 @@ namespace ACE_Mission_Control.Core.Models
                     var missionConfig = (MissionConfig)e.Message;
                     Mission.UpdateMissionConfig(missionConfig);
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Config"));
+
+                    // Unsent route changes can only be sent after we've been updated about the mission config (tells us if there's a mission sent)
+                    if (unsentRouteChanges.Count > 0)
+                    {
+                        foreach (TreatmentInstruction instruction in unsentRouteChanges)
+                            SendNewInstructionEntryCommand(instruction, false);
+                    }
+
                     break;
                 case ACEEnums.MessageType.Configuration:
                     var configuration = (Configuration)e.Message;
@@ -546,12 +550,22 @@ namespace ACE_Mission_Control.Core.Models
                 }
                 else if (e.Line.Contains("(SUCCESS)"))
                 {
-                    syncCommandsSent--;
-                    // I've caught syncCommandsSent at MaxValue before when it should be 0 for some reason 
-                    if (syncCommandsSent <= 0 || syncCommandsSent == int.MaxValue)
+                    // Something isn't right if we have 0 sync commands sent, but we receive a successful sync command response (likely connection was interrupted)
+                    // Restart the sync process
+                    if (syncCommandsSent == 0)
                     {
-                        Synchronization = SyncState.Synchronized;
-                        syncCommandsSent = 0;
+                        Synchronize();
+                    }
+                    else
+                    {
+                        bool syncCommandQueued = directorCommandQueue.Any(c => c.IsSyncCommand);
+
+                        syncCommandsSent--;
+                        // If no more sync commands are sent out and none are coming down the pipe, we're finished synchronizing
+                        if (syncCommandsSent == 0 && !syncCommandQueued)
+                        {
+                            Synchronization = SyncState.Synchronized;
+                        }
                     }
                 }
             }

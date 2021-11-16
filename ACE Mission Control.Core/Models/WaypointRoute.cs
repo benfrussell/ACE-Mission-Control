@@ -58,9 +58,8 @@ namespace ACE_Mission_Control.Core.Models
             if (route.Segments == null || route.Segments.Count < 2)
                 return false;
 
-            var firstFigure = route.Segments[0].Figure;
-
-            if (!route.Segments.Any(segment => IsFigureWaypoint(segment.Figure)))
+            // Make sure all segment figures are waypoints
+            if (!route.Segments.All(segment => IsFigureWaypoint(segment.Figure)))
                 return false;
 
             return true;
@@ -103,11 +102,6 @@ namespace ACE_Mission_Control.Core.Models
 
                 if (segmentIntersections.Count > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("Intersect with Area");
-                    System.Diagnostics.Debug.WriteLine($"Pair is {waypointSegment.P0}, {waypointSegment.P1}");
-                    foreach (Coordinate coord in segmentIntersections)
-                        System.Diagnostics.Debug.WriteLine($"Intersection at {coord.X}, {coord.Y}");
-
                     if (reverse)
                         return segmentIntersections.OrderBy(intersect => intersect.Distance(waypointSegment.P1)).First();
                     else

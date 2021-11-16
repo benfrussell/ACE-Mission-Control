@@ -379,27 +379,28 @@ namespace ACE_Mission_Control.Core.Models
 
         private void UpdateInstructionOrderValues()
         {
-            int order = 1;
-            int position = 1;
+            int missionOrder = 1;
+            int listPosition = 1;
             var lastInstructionID = TreatmentInstructions.LastOrDefault(i => i.Enabled && i.AreaStatus != AreaResult.Types.Status.Finished)?.ID;
 
             foreach (TreatmentInstruction instruction in TreatmentInstructions)
             {
+                // Tell the instruction what it's current placement in the list is
                 if (instruction.Enabled)
                 {
                     instruction.SetOrder(
-                        order, 
-                        order == 1, 
+                        missionOrder, 
+                        missionOrder == 1, 
                         instruction.ID == lastInstructionID, 
-                        position == 1, 
-                        position == TreatmentInstructions.Count);
-                    order++;
+                        listPosition == 1, 
+                        listPosition == TreatmentInstructions.Count);
+                    missionOrder++;
                 }
                 else
                 {
-                    instruction.SetOrder(null, false, false, position == 1, position == TreatmentInstructions.Count);
+                    instruction.SetOrder(null, false, false, listPosition == 1, listPosition == TreatmentInstructions.Count);
                 }
-                position++;
+                listPosition++;
             }
         }
 
@@ -609,54 +610,35 @@ namespace ACE_Mission_Control.Core.Models
             if (updatingInstructions)
                 return;
 
-            if (e.PropertyName == "Enabled")
+            var instruction = sender as TreatmentInstruction;
+
+            switch (e.PropertyName)
             {
-                var previousFirst = TreatmentInstructions.FirstOrDefault(i => i.FirstInstruction);
-                var previousLast = TreatmentInstructions.LastOrDefault(i => i.LastInstruction);
+                case "Enabled":
+                    // If the instruction was the first or last instruction, this call will trigger two extra property updates because of the first/last instruction properties
+                    // It could be more smartly handled by creating a "smart instruction list" which puts the related property updates out in one go
+                    UpdateInstructionOrderValues();
+                    UpdateCanUpload();
+                    InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = new List<TreatmentInstruction> { instruction } });
+                    break;
+                case "TreatmentRoute":
+                    InstructionRouteUpdated?.Invoke(this, new InstructionRouteUpdatedEventArgs { Instruction = instruction });
+                    break;
+                case "FirstInstruction":
+                    if (instruction.FirstInstruction)
+                    {
+                        bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
+                        if (changes)
+                            StartParametersChangedEvent?.Invoke(this, new EventArgs());
+                    }
 
-                UpdateInstructionOrderValues();
-                UpdateCanUpload();
-
-                var newFirst = TreatmentInstructions.FirstOrDefault(i => i.FirstInstruction);
-                var newLast = TreatmentInstructions.LastOrDefault(i => i.LastInstruction);
-
-                var updatedInstructions = new List<TreatmentInstruction> { sender as TreatmentInstruction };
-
-                if (previousFirst != newFirst)
-                {
-                    bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
-                    if (changes)
-                        StartParametersChangedEvent?.Invoke(this, new EventArgs());
-                    if (sender == previousFirst)
-                        updatedInstructions.Add(newFirst);
-                    else
-                        updatedInstructions.Add(previousFirst);
-                }
-
-                if (previousLast != newLast)
-                {
-                    if (sender == previousLast)
-                        updatedInstructions.Add(newLast);
-                    else
-                        updatedInstructions.Add(previousLast);
-                }
-                
-                InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = updatedInstructions });
-            }
-            else if (e.PropertyName == "TreatmentRoute")
-            {
-                var instruction = sender as TreatmentInstruction;
-                InstructionRouteUpdated?.Invoke(this, new InstructionRouteUpdatedEventArgs { Instruction = instruction });
-            }
-            else if (e.PropertyName == "FirstInstruction")
-            {
-                var instruction = sender as TreatmentInstruction;
-                if (instruction.FirstInstruction)
-                {
-                    bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
-                    if (changes)
-                        StartParametersChangedEvent?.Invoke(this, new EventArgs());
-                }
+                    InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = new List<TreatmentInstruction> { instruction } });
+                    break;
+                case "LastInstruction":
+                    InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedEventArgs { Instructions = new List<TreatmentInstruction> { instruction } });
+                    break;
+                default:
+                    break;
             }
         }
 

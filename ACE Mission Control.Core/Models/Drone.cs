@@ -31,7 +31,7 @@ namespace ACE_Mission_Control.Core.Models
         }
     }
 
-    public class Drone : INotifyPropertyChanged
+    public class Drone : INotifyPropertyChanged, IDrone
     {
         public enum SyncState
         {
@@ -45,7 +45,7 @@ namespace ACE_Mission_Control.Core.Models
         public static List<string> ChaperoneCommandList = new List<string> { "get_error", "check_director", "start_director", "force_stop_payload" };
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public AlertEntry.AlertType LastAlertType
+        private AlertEntry.AlertType LastAlertType
         {
             get
             {
@@ -139,9 +139,9 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private bool _awayOnMission;
-        public bool AwayOnMission 
-        { 
-            get => _awayOnMission; 
+        public bool AwayOnMission
+        {
+            get => _awayOnMission;
             private set
             {
                 if (_awayOnMission == value)
@@ -164,7 +164,7 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void UpdateAwayOnMission() 
+        private void UpdateAwayOnMission()
         {
             var wasAway = AwayOnMission;
 
@@ -192,7 +192,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private Queue<Command> directorCommandQueue;
         private Queue<Command> chaperoneCommandQueue;
-        private List<TreatmentInstruction> unsentRouteChanges; 
+        private List<TreatmentInstruction> unsentRouteChanges;
         private Command lastCommandSent;
 
         private bool configReceived;
@@ -302,11 +302,11 @@ namespace ACE_Mission_Control.Core.Models
 
             if (!Mission.StopAndTurnStartMode)
                 command += " -fly_through";
-            
+
             SendCommand(command, !manuallySent, true);
         }
 
-        public void SendNewInstructionEntryCommand(TreatmentInstruction instruction, bool manuallySent = false)
+        private void SendNewInstructionEntryCommand(TreatmentInstruction instruction, bool manuallySent = false)
         {
             // Only send these commands if the mission is set and syncing is not paused
             if (!Mission.MissionSet || Synchronization == SyncState.Paused)
@@ -387,7 +387,7 @@ namespace ACE_Mission_Control.Core.Models
                         syncCommandsSent++;
                     }
                 }
-                    
+
             }
 
         }

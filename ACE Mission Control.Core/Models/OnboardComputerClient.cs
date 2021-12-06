@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class OnboardComputerClient : INotifyPropertyChanged
+    public class OnboardComputerClient : INotifyPropertyChanged, IOnboardComputerClient
     {
         private string _hostname = "";
         public string Hostname
@@ -53,9 +53,12 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool ConnectionInProgress
         {
-            get { return ChaperoneRequestClient.ConnectionInProgress ||
-                    DirectorRequestClient.ConnectionInProgress ||
-                    DirectorMonitorClient.ConnectionInProgress; }
+            get
+            {
+                return ChaperoneRequestClient.ConnectionInProgress ||
+                  DirectorRequestClient.ConnectionInProgress ||
+                  DirectorMonitorClient.ConnectionInProgress;
+            }
         }
 
         // The reattempt timer is only started if AutoTryConnections is on
@@ -225,7 +228,7 @@ namespace ACE_Mission_Control.Core.Models
             NotifyPropertyChanged("ConnectionInProgress");
 
             // Don't do the director ready alert here in case it was just the chaperone that was making an attempt to connect
-            if (!IsDirectorConnected) 
+            if (!IsDirectorConnected)
                 AttachedDrone.AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.DirectorConnectionFailed));
 
             if (AutoTryingConnections && (!IsDirectorConnected || !IsChaperoneConnected))

@@ -244,15 +244,15 @@ namespace ACE_Mission_Control.Core.Models
         // A single InstructionUpdated event will already be sent out after updating instructions
         private bool updatingInstructions;
 
-        private Drone drone;
-        private OnboardComputerClient onboardComputer;
+        private IDrone drone;
+        private IOnboardComputerClient onboardComputer;
 
         // StartParameters is kept private because updating it incorrectly can cause unexpected behaviour
         private StartTreatmentParameters startParameters;
 
         public ObservableCollection<TreatmentInstruction> TreatmentInstructions;
 
-        public Mission(Drone _drone, OnboardComputerClient _onboardComputer)
+        public Mission(IDrone _drone, IOnboardComputerClient _onboardComputer)
         {
             MissionRetriever.AreaScanPolygonsUpdated += MissionRetriever_AreaScanPolygonsUpdated;
             MissionRetriever.WaypointRoutesUpdated += MissionRetriever_WaypointRoutesUpdated;

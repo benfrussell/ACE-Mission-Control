@@ -363,7 +363,7 @@
                             </ComboBoxItem>
 
                             <ComboBoxItem x:Name="Planner_StartModeItem_ContinueMission"
-                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionControlHasProgress, Mode=OneWay}">
+                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
                                 <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"/>
                                 <ToolTipService.ToolTip>
                                     <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
@@ -383,7 +383,7 @@
                             </ComboBoxItem>
 
                             <ComboBoxItem x:Name="Planner_StartModeItem_Flythrough"
-                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionControlHasProgress, Mode=OneWay}">
+                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
                                 <TextBlock x:Uid="Planner_StartModeItem_Flythrough"/>
                                 <ToolTipService.ToolTip>
                                     <TextBlock x:Uid="Planner_StartModeItem_FlythroughTooltip"

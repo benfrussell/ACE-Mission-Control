@@ -10,7 +10,7 @@ using System.Globalization;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public class TreatmentInstruction : INotifyPropertyChanged
+    public class TreatmentInstruction : INotifyPropertyChanged, ITreatmentInstruction
     {
         public static WaypointRouteInterceptCollection InterceptCollection = new WaypointRouteInterceptCollection();
 
@@ -25,17 +25,17 @@ namespace ACE_Mission_Control.Core.Models
         public event PropertyChangedEventHandler PropertyChanged;
 
         private AreaScanPolygon treatmentPolygon;
-        public AreaScanPolygon TreatmentPolygon 
-        { 
+        public AreaScanPolygon TreatmentPolygon
+        {
             get => treatmentPolygon;
             private set
             {
-                if (treatmentPolygon != null && 
-                    treatmentPolygon.Id == value.Id && 
+                if (treatmentPolygon != null &&
+                    treatmentPolygon.Id == value.Id &&
                     treatmentPolygon.LastModificationTime == value.LastModificationTime)
                     return;
                 treatmentPolygon = value;
-            } 
+            }
         }
 
         private WaypointRouteIntercept selectedInterceptRoute;
@@ -51,14 +51,14 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public WaypointRoute TreatmentRoute 
+        public WaypointRoute TreatmentRoute
         {
             get
             {
                 if (SelectedInterceptRoute == null)
                     RevalidateTreatmentRoute();
                 return SelectedInterceptRoute != null ? SelectedInterceptRoute.WaypointRoute : null;
-            } 
+            }
             set
             {
                 if (value == null || (SelectedInterceptRoute != null && SelectedInterceptRoute.WaypointRoute == value))
@@ -69,8 +69,8 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private AreaResult.Types.Status areaStatus;
-        public AreaResult.Types.Status AreaStatus 
-        { 
+        public AreaResult.Types.Status AreaStatus
+        {
             get => areaStatus;
             set
             {
@@ -111,9 +111,9 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private UploadStatus currentUploadStatus;
-        public UploadStatus CurrentUploadStatus 
-        { 
-            get => currentUploadStatus; 
+        public UploadStatus CurrentUploadStatus
+        {
+            get => currentUploadStatus;
             set
             {
                 if (currentUploadStatus == value)
@@ -139,8 +139,8 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private bool enabled;
-        public bool Enabled 
-        { 
+        public bool Enabled
+        {
             get => enabled;
             set
             {
@@ -166,9 +166,9 @@ namespace ACE_Mission_Control.Core.Models
 
         // Keep track of this positional data so reordering can be done easier in an item by item view
         private int? order;
-        public int? Order 
+        public int? Order
         {
-            get => order; 
+            get => order;
             private set
             {
                 if (order == value)
@@ -205,16 +205,16 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private bool firstInList;
-        public bool FirstInList 
-        { 
-            get => firstInList; 
+        public bool FirstInList
+        {
+            get => firstInList;
             private set
             {
                 if (firstInList == value)
                     return;
                 firstInList = value;
                 NotifyPropertyChanged();
-            } 
+            }
         }
 
         private bool lastInList;
@@ -333,7 +333,7 @@ namespace ACE_Mission_Control.Core.Models
                     SelectedInterceptRoute = newRoute;
                     routeUpdated = true;
                 }
-                    
+
             }
 
             if (SelectedInterceptRoute == null)

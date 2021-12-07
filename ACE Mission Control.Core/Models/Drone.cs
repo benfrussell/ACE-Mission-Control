@@ -192,7 +192,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private Queue<Command> directorCommandQueue;
         private Queue<Command> chaperoneCommandQueue;
-        private List<TreatmentInstruction> unsentRouteChanges;
+        private List<ITreatmentInstruction> unsentRouteChanges;
         private Command lastCommandSent;
 
         private bool configReceived;
@@ -212,7 +212,7 @@ namespace ACE_Mission_Control.Core.Models
             Synchronization = SyncState.NotSynchronized;
 
             syncCommandsSent = 0;
-            unsentRouteChanges = new List<TreatmentInstruction>();
+            unsentRouteChanges = new List<ITreatmentInstruction>();
             configReceived = false;
 
             OBCClient = new OnboardComputerClient(this, clientHostname);
@@ -306,7 +306,7 @@ namespace ACE_Mission_Control.Core.Models
             SendCommand(command, !manuallySent, true);
         }
 
-        private void SendNewInstructionEntryCommand(TreatmentInstruction instruction, bool manuallySent = false)
+        private void SendNewInstructionEntryCommand(ITreatmentInstruction instruction, bool manuallySent = false)
         {
             // Only send these commands if the mission is set and syncing is not paused
             if (!Mission.MissionSet || Synchronization == SyncState.Paused)
@@ -412,7 +412,7 @@ namespace ACE_Mission_Control.Core.Models
         public void UploadMission()
         {
             var instructions = Mission.GetRemainingInstructions();
-            foreach (TreatmentInstruction instruction in instructions)
+            foreach (ITreatmentInstruction instruction in instructions)
             {
                 if (instruction.Enabled)
                 {
@@ -479,7 +479,7 @@ namespace ACE_Mission_Control.Core.Models
                     // Unsent route changes can only be sent after we've been updated about the mission config (tells us if there's a mission sent)
                     if (unsentRouteChanges.Count > 0)
                     {
-                        foreach (TreatmentInstruction instruction in unsentRouteChanges)
+                        foreach (ITreatmentInstruction instruction in unsentRouteChanges)
                             SendNewInstructionEntryCommand(instruction, false);
                     }
 

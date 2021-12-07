@@ -328,11 +328,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACE Mission Control.Core\ACE Mission Control.Core.csproj">
-      <Project>{0C8C9F6B-EA70-4C06-ACC2-A2E4F00AD02E}</Project>
+      <Project>{0c8c9f6b-ea70-4c06-acc2-a2e4f00ad02e}</Project>
       <Name>ACE Mission Control.Core</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

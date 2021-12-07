@@ -27,8 +27,8 @@ namespace ACE_Mission_Control.ViewModels
 {
     public class PlannerViewModel : DroneViewModelBase
     {
-        private ObservableCollection<TreatmentInstruction> treatmentInstructions;
-        public ObservableCollection<TreatmentInstruction> TreatmentInstructions
+        private ObservableCollection<ITreatmentInstruction> treatmentInstructions;
+        public ObservableCollection<ITreatmentInstruction> TreatmentInstructions
         {
             get => treatmentInstructions;
             set
@@ -403,14 +403,14 @@ namespace ACE_Mission_Control.ViewModels
             UpdatePlannerMapAreas(AttachedDrone.Mission.TreatmentInstructions);
         }
 
-        private void UpdatePlannerMapAreas(TreatmentInstruction instruction)
+        private void UpdatePlannerMapAreas(ITreatmentInstruction instruction)
         {
-            UpdatePlannerMapAreas(new List<TreatmentInstruction> { instruction });
+            UpdatePlannerMapAreas(new List<ITreatmentInstruction> { instruction });
         }
 
-        private void UpdatePlannerMapAreas(IEnumerable<TreatmentInstruction> instructions)
+        private void UpdatePlannerMapAreas(IEnumerable<ITreatmentInstruction> instructions)
         {
-            foreach (TreatmentInstruction instruction in instructions)
+            foreach (ITreatmentInstruction instruction in instructions)
             {
                 if (instruction == null)
                     continue;
@@ -456,14 +456,14 @@ namespace ACE_Mission_Control.ViewModels
             UpdatePlannerMapPoints(AttachedDrone.Mission.TreatmentInstructions);
         }
 
-        private void UpdatePlannerMapPoints(TreatmentInstruction instruction)
+        private void UpdatePlannerMapPoints(ITreatmentInstruction instruction)
         {
-            UpdatePlannerMapPoints(new List<TreatmentInstruction> { instruction });
+            UpdatePlannerMapPoints(new List<ITreatmentInstruction> { instruction });
         }
 
-        private void UpdatePlannerMapPoints(IEnumerable<TreatmentInstruction> instructions)
+        private void UpdatePlannerMapPoints(IEnumerable<ITreatmentInstruction> instructions)
         {
-            foreach (TreatmentInstruction instruction in instructions)
+            foreach (ITreatmentInstruction instruction in instructions)
             {
                 var layerIndex = (instruction.ID * 2) + 1;
 

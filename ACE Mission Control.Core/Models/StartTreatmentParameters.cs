@@ -73,7 +73,7 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         // Returns True for any changes, False for no changes
-        public bool UpdateParameters(TreatmentInstruction nextInstruction, Coordinate lastPosition, bool justReturned)
+        public bool UpdateParameters(ITreatmentInstruction nextInstruction, Coordinate lastPosition, bool justReturned)
         {
             bool inProgress = nextInstruction != null && lastPosition != null && nextInstruction.AreaStatus == AreaResult.Types.Status.InProgress;
 
@@ -150,7 +150,7 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         // Returns True for any changes, False for no changes
-        public void SetSelectedWaypoint(string waypointID, TreatmentInstruction nextInstruction)
+        public void SetSelectedWaypoint(string waypointID, ITreatmentInstruction nextInstruction)
         {
             BoundStartWaypointID = waypointID;
             SetStartCoordToBoundWaypoint(nextInstruction);
@@ -181,7 +181,7 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private async void CreateWaypointAndSetStartCoord(TreatmentInstruction instruction, Coordinate position)
+        private async void CreateWaypointAndSetStartCoord(ITreatmentInstruction instruction, Coordinate position)
         {
             var waypointPair = instruction.TreatmentRoute.FindWaypointPairAroundCoordinate(position, instruction.Swath);
             if (waypointPair == null)
@@ -194,7 +194,7 @@ namespace ACE_Mission_Control.Core.Models
             StopAndTurn = newWaypoint.TurnType == "STOP_AND_TURN";
         }
 
-        private void SetStartCoordToBoundWaypoint(TreatmentInstruction instruction)
+        private void SetStartCoordToBoundWaypoint(ITreatmentInstruction instruction)
         {
             var waypoints = instruction.TreatmentRoute.Waypoints;
             var boundCoord = waypoints.FirstOrDefault(p => p.ID == BoundStartWaypointID);

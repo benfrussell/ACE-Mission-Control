@@ -86,8 +86,8 @@ namespace ACE_Mission_Control.Core.Models
             get { return !Mission.Activated && OBCClient.IsDirectorConnected; }
         }
 
-        private Mission _mission;
-        public Mission Mission
+        private IMission _mission;
+        public IMission Mission
         {
             get { return _mission; }
             set
@@ -134,6 +134,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (_synchronization == value)
                     return;
                 _synchronization = value;
+                UpdateMissionLockState();
                 NotifyPropertyChanged();
             }
         }
@@ -187,7 +188,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public int ID;
 
-        public OnboardComputerClient OBCClient;
+        public IOnboardComputerClient OBCClient;
         public ObservableCollection<AlertEntry> AlertLog;
 
         private Queue<Command> directorCommandQueue;
@@ -198,7 +199,7 @@ namespace ACE_Mission_Control.Core.Models
         private bool configReceived;
         private int syncCommandsSent;
 
-        public Drone(int id, string name, string clientHostname)
+        public Drone(int id, string name, IOnboardComputerClient onboardComputer, IMission mission)
         {
             directorCommandQueue = new Queue<Command>();
             chaperoneCommandQueue = new Queue<Command>();
@@ -208,23 +209,31 @@ namespace ACE_Mission_Control.Core.Models
             AlertLog = new ObservableCollection<AlertEntry>();
             ConfigEntries = new List<ConfigEntry>();
             ManualCommandsOnly = false;
-            InterfaceState = InterfaceStatus.Types.State.Offline;
-            Synchronization = SyncState.NotSynchronized;
 
             syncCommandsSent = 0;
             unsentRouteChanges = new List<ITreatmentInstruction>();
             configReceived = false;
 
-            OBCClient = new OnboardComputerClient(this, clientHostname);
+            OBCClient = onboardComputer;
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             OBCClient.DirectorMonitorClient.MessageReceivedEvent += DirectorMonitorClient_MessageReceivedEvent;
             OBCClient.DirectorRequestClient.PropertyChanged += DirectorRequestClient_PropertyChanged;
             OBCClient.DirectorRequestClient.ResponseReceivedEvent += DirectorRequestClient_ResponseReceivedEvent;
 
-            Mission = new Mission(this, OBCClient);
+            Mission = mission;
             Mission.PropertyChanged += Mission_PropertyChanged;
             Mission.StartParametersChangedEvent += StartParameters_StartParametersChangedEvent;
             Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
+            Mission.ProgressReset += Mission_ProgressReset;
+
+            InterfaceState = InterfaceStatus.Types.State.Offline;
+            Synchronization = SyncState.NotSynchronized;
+        }
+
+        private void Mission_ProgressReset(object sender, EventArgs e)
+        {
+            if (Mission.MissionSet && OBCClient.IsDirectorConnected && Synchronization == SyncState.Synchronized)
+                SendCommand("reset_mission", true);
         }
 
         private void StartParameters_StartParametersChangedEvent(object sender, EventArgs e)
@@ -241,6 +250,10 @@ namespace ACE_Mission_Control.Core.Models
         {
             // If the mission isn't set yet, all the details will be sent when the areas are uploaded
             if (!Mission.MissionSet)
+                return;
+
+            // We only care about enabled instructions
+            if (!e.Instruction.Enabled)
                 return;
 
             // Send start mode commands right away if synchronized
@@ -393,7 +406,7 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         // Returns success or failure
-        private bool SendCommandWithClient(RequestClient client, Command command)
+        private bool SendCommandWithClient(IRequestClient client, Command command)
         {
             if (!client.ReadyForCommand)
                 return false;
@@ -528,6 +541,8 @@ namespace ACE_Mission_Control.Core.Models
                     if (OBCClient.DirectorRequestClient.ReadyForCommand)
                         CommandsReadied();
                 }
+
+                UpdateMissionLockState();
             }
             else if (e.PropertyName == "AutoTryingConnections")
             {
@@ -608,6 +623,14 @@ namespace ACE_Mission_Control.Core.Models
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void UpdateMissionLockState()
+        {
+            if (OBCClient.IsDirectorConnected && Synchronization == SyncState.Synchronized)
+                Mission.Unlock();
+            else
+                Mission.Lock();
         }
     }
 }

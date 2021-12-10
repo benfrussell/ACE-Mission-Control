@@ -153,7 +153,7 @@ namespace ACE_Mission_Control.ViewModels
             {
                 var client = sender as OnboardComputerClient;
 
-                if (client.AttachedDrone.ID != DroneID)
+                if (client.AssociatedDroneID != DroneID)
                     return;
 
                 //if (e.PropertyName == "IsConnected")

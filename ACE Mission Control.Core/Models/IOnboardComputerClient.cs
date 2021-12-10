@@ -10,6 +10,9 @@ namespace ACE_Mission_Control.Core.Models
         bool IsChaperoneConnected { get; }
         bool IsConfigured { get; }
         bool IsDirectorConnected { get; }
+        ISubscriberClient DirectorMonitorClient { get; }
+        IRequestClient DirectorRequestClient { get; }
+        IRequestClient ChaperoneRequestClient { get; }
 
         event PropertyChangedEventHandler PropertyChanged;
 

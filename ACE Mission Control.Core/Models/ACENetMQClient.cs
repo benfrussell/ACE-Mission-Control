@@ -8,7 +8,7 @@ using System.Timers;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public abstract class ACENetMQClient<T> : INotifyPropertyChanged where T : NetMQSocket, IReceivingSocket
+    public abstract class ACENetMQClient<T> : INotifyPropertyChanged, IACENetMQClient where T : NetMQSocket, IReceivingSocket
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

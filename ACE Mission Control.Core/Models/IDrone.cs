@@ -11,7 +11,7 @@ namespace ACE_Mission_Control.Core.Models
         FlightStatus.Types.State FlightState { get; set; }
         InterfaceStatus.Types.State InterfaceState { get; set; }
         bool ManualCommandsOnly { get; set; }
-        Mission Mission { get; set; }
+        IMission Mission { get; set; }
         string Name { get; set; }
         Drone.SyncState Synchronization { get; set; }
 

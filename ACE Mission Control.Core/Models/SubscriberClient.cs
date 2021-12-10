@@ -21,7 +21,7 @@ namespace ACE_Mission_Control.Core.Models
         public IMessage Message;
     }
 
-    public class SubscriberClient : ACENetMQClient<SubscriberSocket>
+    public class SubscriberClient : ACENetMQClient<SubscriberSocket>, ISubscriberClient
     {
         public event EventHandler<LineReceivedEventArgs> LineReceivedEvent;
         public event EventHandler<MessageReceivedEventArgs> MessageReceivedEvent;

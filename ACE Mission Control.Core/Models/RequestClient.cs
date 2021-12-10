@@ -11,7 +11,7 @@ namespace ACE_Mission_Control.Core.Models
         public string Line { get; set; }
     }
 
-    public class RequestClient : ACENetMQClient<RequestSocket>
+    public class RequestClient : ACENetMQClient<RequestSocket>, IRequestClient
     {
         public event EventHandler<ResponseReceivedEventArgs> ResponseReceivedEvent;
 
@@ -94,7 +94,7 @@ namespace ACE_Mission_Control.Core.Models
                         break;
                     }
                 }
-                
+
                 if (cancellationToken.IsCancellationRequested)
                     break;
 

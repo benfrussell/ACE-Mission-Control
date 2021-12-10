@@ -54,7 +54,16 @@ namespace ACE_Mission_Control.Core.Models
 
         public static void LoadStaticDrone()
         {
-            Drones.Add(new Drone(0, "Drone", ""));
+            AddDrone(0, "Drone");
+        }
+
+        public static void AlertDroneByID(int id, AlertEntry entry, bool blockDuplicates = false)
+        {
+            Drone drone = Drones.FirstOrDefault(d => d.ID == id);
+            if (drone == null)
+                throw new ArgumentException($"Tried to alert drone with ID {id} but that drone does not exist.");
+            else
+                drone.AddAlert(entry, blockDuplicates);
         }
 
         public static void AlertAllDrones(AlertEntry entry, bool blockDuplicates = false)
@@ -71,9 +80,9 @@ namespace ACE_Mission_Control.Core.Models
                 if (matchedDrone == null)
                 {
                     if (v.NameSpecified)
-                        Drones.Add(new Drone(v.Id, v.Name, ""));
+                        AddDrone(v.Id, v.Name);
                     else
-                        Drones.Add(new Drone(v.Id, "Drone " + v.Id.ToString(), ""));
+                        AddDrone(v.Id, "Drone " + v.Id.ToString());
                 }
                 else
                 {
@@ -81,6 +90,12 @@ namespace ACE_Mission_Control.Core.Models
                     matchedDrone.Name = v.Name;
                 }
             }
+        }
+
+        private static void AddDrone(int id, string name)
+        {
+            var obc = new OnboardComputerClient(id, "");
+            Drones.Add(new Drone(id, name, obc, new Mission()));
         }
     }
 }

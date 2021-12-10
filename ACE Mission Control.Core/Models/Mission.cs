@@ -31,7 +31,7 @@ namespace ACE_Mission_Control.Core.Models
         public StartTreatmentParameters.Mode NewMode { get; set; }
     }
 
-    public class Mission : INotifyPropertyChanged
+    public class Mission : INotifyPropertyChanged, IMission
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -40,6 +40,8 @@ namespace ACE_Mission_Control.Core.Models
         public event EventHandler<InstructionRouteUpdatedEventArgs> InstructionRouteUpdated;
 
         public event EventHandler<EventArgs> StartParametersChangedEvent;
+
+        public event EventHandler<EventArgs> ProgressReset;
 
         private MissionStatus.Types.Stage stage;
         public MissionStatus.Types.Stage Stage
@@ -85,19 +87,18 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool canBeReset;
-        public bool CanBeReset
+        private bool locked;
+        public bool Locked
         {
-            get => canBeReset;
+            get => locked;
             private set
             {
-                if (canBeReset == value)
+                if (locked == value)
                     return;
-                canBeReset = value;
+                locked = value;
                 NotifyPropertyChanged();
             }
         }
-        private void UpdateCanBeReset() { CanBeReset = CanBeModified && MissionHasProgress; }
 
         private bool canBeModified;
         public bool CanBeModified
@@ -111,7 +112,18 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
             }
         }
-        private void UpdateCanBeModified() { CanBeModified = onboardComputer.IsDirectorConnected && !Activated && drone.Synchronization == Drone.SyncState.Synchronized; }
+        private bool canBeReset;
+        public bool CanBeReset
+        {
+            get => canBeReset;
+            private set
+            {
+                if (canBeReset == value)
+                    return;
+                canBeReset = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private bool canToggleActivation;
         public bool CanToggleActivation
@@ -125,7 +137,6 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
             }
         }
-        private void UpdateCanToggleActivation() { CanToggleActivation = onboardComputer.IsDirectorConnected && drone.InterfaceState == InterfaceStatus.Types.State.Online && MissionSet; }
 
         private bool canUpload;
         public bool CanUpload
@@ -138,12 +149,6 @@ namespace ACE_Mission_Control.Core.Models
                 canUpload = value;
                 NotifyPropertyChanged();
             }
-        }
-        private void UpdateCanUpload() 
-        {
-            CanUpload =
-                CanBeModified &&
-                TreatmentInstructions.Any(i => i.Enabled && i.CurrentUploadStatus != TreatmentInstruction.UploadStatus.Uploaded);
         }
 
         private bool missionSet;
@@ -211,7 +216,7 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public StartTreatmentParameters.Mode StartMode 
+        public StartTreatmentParameters.Mode StartMode
         {
             get => startParameters.SelectedMode;
             set
@@ -231,15 +236,12 @@ namespace ACE_Mission_Control.Core.Models
         // A single InstructionUpdated event will already be sent out after updating instructions
         private bool updatingInstructions;
 
-        private IDrone drone;
-        private IOnboardComputerClient onboardComputer;
-
         // StartParameters is kept private because updating it incorrectly can cause unexpected behaviour
         private StartTreatmentParameters startParameters;
 
-        public ObservableCollection<ITreatmentInstruction> TreatmentInstructions;
+        public ObservableCollection<ITreatmentInstruction> TreatmentInstructions { get; set; }
 
-        public Mission(IDrone _drone, IOnboardComputerClient _onboardComputer)
+        public Mission()
         {
             MissionRetriever.AreaScanPolygonsUpdated += MissionRetriever_AreaScanPolygonsUpdated;
             MissionRetriever.WaypointRoutesUpdated += MissionRetriever_WaypointRoutesUpdated;
@@ -247,17 +249,44 @@ namespace ACE_Mission_Control.Core.Models
             startParameters = new StartTreatmentParameters();
             startParameters.SelectedModeChangedEvent += StartParameters_SelectedModeChangedEvent;
 
-            drone = _drone;
-            drone.PropertyChanged += Drone_PropertyChanged;
-            onboardComputer = _onboardComputer;
-            onboardComputer.PropertyChanged += OnboardComputerClient_PropertyChanged;
-
             Activated = false;
+            Lock();
+        }
 
-            UpdateCanBeModified();
+        // Lock or unlock user changes to the mission
+        public void Lock()
+        {
+            Locked = true;
+            CanBeModified = false;
             UpdateCanUpload();
             UpdateCanBeReset();
             UpdateCanToggleActivation();
+        }
+
+        public void Unlock()
+        {
+            Locked = false;
+            CanBeModified = !Activated;
+            UpdateCanUpload();
+            UpdateCanBeReset();
+            UpdateCanToggleActivation();
+        }
+
+        private void UpdateCanUpload()
+        {
+            CanUpload =
+                CanBeModified &&
+                TreatmentInstructions.Any(i => i.Enabled && i.CurrentUploadStatus != TreatmentInstruction.UploadStatus.Uploaded);
+        }
+
+        private void UpdateCanBeReset()
+        {
+            CanBeReset = CanBeModified && MissionHasProgress;
+        }
+
+        private void UpdateCanToggleActivation()
+        {
+            CanToggleActivation = CanBeModified && MissionSet;
         }
 
         private void StartParameters_SelectedModeChangedEvent(object sender, EventArgs e)
@@ -267,16 +296,16 @@ namespace ACE_Mission_Control.Core.Models
 
         public void UpdateMissionStatus(MissionStatus newStatus)
         {
-            bool justReturned = 
-                (Stage != MissionStatus.Types.Stage.Returning && 
+            bool justReturned =
+                (Stage != MissionStatus.Types.Stage.Returning &&
                 Stage != MissionStatus.Types.Stage.Override) &&
-                (newStatus.MissionStage == MissionStatus.Types.Stage.Returning || 
+                (newStatus.MissionStage == MissionStatus.Types.Stage.Returning ||
                 newStatus.MissionStage == MissionStatus.Types.Stage.Override);
 
             Stage = newStatus.MissionStage;
 
             Activated = newStatus.Activated;
-            UpdateCanBeModified();
+            CanBeModified = !Locked & !Activated;
 
             // Update the treatment instruction statuses with any results that came from the mission status update
             foreach (ITreatmentInstruction instruction in TreatmentInstructions)
@@ -373,10 +402,10 @@ namespace ACE_Mission_Control.Core.Models
                 if (instruction.Enabled)
                 {
                     instruction.SetOrder(
-                        missionOrder, 
-                        missionOrder == 1, 
-                        instruction.ID == lastInstructionID, 
-                        listPosition == 1, 
+                        missionOrder,
+                        missionOrder == 1,
+                        instruction.ID == lastInstructionID,
+                        listPosition == 1,
                         listPosition == TreatmentInstructions.Count);
                     missionOrder++;
                 }
@@ -404,12 +433,14 @@ namespace ACE_Mission_Control.Core.Models
         public void ResetStatus()
         {
             Activated = false;
+            CanBeModified = false;
             Stage = MissionStatus.Types.Stage.NotActivated;
         }
 
         public void ResetProgress()
         {
-            if (MissionHasProgress)
+            UpdateCanBeReset();
+            if (CanBeReset)
             {
                 foreach (ITreatmentInstruction instruction in TreatmentInstructions)
                 {
@@ -419,9 +450,6 @@ namespace ACE_Mission_Control.Core.Models
                     }
                 }
 
-                if (CanBeModified && MissionSet)
-                    drone.SendCommand("reset_mission");
-
                 LastPosition = null;
                 bool changes = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
                 if (changes)
@@ -429,6 +457,8 @@ namespace ACE_Mission_Control.Core.Models
 
                 UpdateCanBeReset();
                 NotifyPropertyChanged("MissionHasProgress");
+
+                ProgressReset?.Invoke(this, new EventArgs());
             }
         }
 
@@ -484,31 +514,6 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void OnboardComputerClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "IsDirectorConnected")
-            {
-                UpdateCanBeModified();
-                UpdateCanUpload();
-                UpdateCanToggleActivation();
-            }
-        }
-
-        private void Drone_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "InterfaceState")
-            {
-                UpdateCanToggleActivation();
-            }
-            else if (e.PropertyName == "Synchronization")
-            {
-                // Don't allow the user to affect the mission if the drone's state isn't syncronized to avoid trouble
-                UpdateCanBeModified();
-                UpdateCanUpload();
-                UpdateCanBeReset();
-            }
-        }
-
         private void MissionRetriever_WaypointRoutesUpdated(object sender, WaypointRoutesUpdatedArgs e)
         {
             foreach (ITreatmentInstruction instruction in TreatmentInstructions)
@@ -554,7 +559,7 @@ namespace ACE_Mission_Control.Core.Models
                     var routeUpdated = instruction.RevalidateTreatmentRoute();
                     if (routeUpdated)
                         updatedInstructions.Instructions.Add(instruction);
-                }   
+                }
             }
 
             // Add new treatment areas as instructions

@@ -134,6 +134,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (_synchronization == value)
                     return;
                 _synchronization = value;
+                UpdateCanSynchronize();
                 UpdateMissionLockState();
                 NotifyPropertyChanged();
             }
@@ -152,6 +153,45 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private void UpdateAwayOnMission()
+        {
+            AwayOnMission =
+                Mission.Stage == MissionStatus.Types.Stage.Enroute ||
+                Mission.Stage == MissionStatus.Types.Stage.Executing ||
+                (Mission.Stage == MissionStatus.Types.Stage.Ready && Mission.MissionSet && FlightState == FlightStatus.Types.State.InAir && OBCClient.AutoTryingConnections);
+        }
+
+        private bool _hasUnsentChanges;
+        public bool HasUnsentChanges
+        {
+            get => _hasUnsentChanges;
+            private set
+            {
+                if (_hasUnsentChanges == value)
+                    return;
+                _hasUnsentChanges = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool _canSynchronize;
+        public bool CanSynchronize
+        {
+            get { return _canSynchronize; }
+            private set
+            {
+                if (_canSynchronize == value)
+                    return;
+                _canSynchronize = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private void UpdateCanSynchronize()
+        {
+            CanSynchronize = OBCClient.IsDirectorConnected && OBCClient.DirectorRequestClient.ReadyForCommand && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;  
+        }
+
         private List<ConfigEntry> _configEntries;
         public List<ConfigEntry> ConfigEntries
         {
@@ -162,27 +202,6 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 _configEntries = value;
                 NotifyPropertyChanged();
-            }
-        }
-
-        private void UpdateAwayOnMission()
-        {
-            var wasAway = AwayOnMission;
-
-            AwayOnMission =
-                Mission.Stage == MissionStatus.Types.Stage.Enroute ||
-                Mission.Stage == MissionStatus.Types.Stage.Executing ||
-                (Mission.Stage == MissionStatus.Types.Stage.Ready && Mission.MissionSet && FlightState == FlightStatus.Types.State.InAir && OBCClient.AutoTryingConnections);
-
-            if (AwayOnMission)
-            {
-                Synchronization = SyncState.Paused;
-            }
-            else if (wasAway)
-            {
-                Synchronization = SyncState.NotSynchronized;
-                if (OBCClient.IsDirectorConnected && OBCClient.DirectorRequestClient.ReadyForCommand)
-                    Synchronize();
             }
         }
 
@@ -276,15 +295,35 @@ namespace ACE_Mission_Control.Core.Models
                 SendStartModeCommands(false);
 
             if (e.PropertyName == "Stage" || e.PropertyName == "MissionSet")
+            {
                 UpdateAwayOnMission();
+                // When determined to be away on mission, pause sync so we don't try to send updates while it's working
+                if (AwayOnMission)
+                {
+                    Synchronization = SyncState.Paused;
+                }   
+                else if (Synchronization == SyncState.Paused)
+                {
+                    // If we're no longer away on mission but syncing is still paused, try to resync
+                    // This could happen if the OBC was connected for the entire flight (normally the reconnect triggers the unpause)
+                    Synchronization = SyncState.NotSynchronized;
+                    if (CanSynchronize)
+                        Synchronize();
+                }
+            }
+                
         }
 
         private void DirectorRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ReadyForCommand" && OBCClient.DirectorRequestClient.ReadyForCommand)
+            if (e.PropertyName == "ReadyForCommand")
             {
-                if (OBCClient.IsDirectorConnected)
-                    CommandsReadied();
+                if (OBCClient.DirectorRequestClient.ReadyForCommand)
+                {
+                    if (OBCClient.IsDirectorConnected)
+                        CommandsReadied();
+                }
+                UpdateCanSynchronize();
             }
         }
 
@@ -473,7 +512,6 @@ namespace ACE_Mission_Control.Core.Models
                     var interfaceStatus = (InterfaceStatus)e.Message;
                     InterfaceState = interfaceStatus.InterfaceState;
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Interface State"));
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.None, "Reminder: Restart the interface connection if the drone has been restarted!"));
                     break;
                 case ACEEnums.MessageType.FlightStatus:
                     var flightStatus = (FlightStatus)e.Message;
@@ -490,10 +528,11 @@ namespace ACE_Mission_Control.Core.Models
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Config"));
 
                     // Unsent route changes can only be sent after we've been updated about the mission config (tells us if there's a mission sent)
-                    if (unsentRouteChanges.Count > 0)
+                    if (Mission.MissionSet && HasUnsentChanges)
                     {
                         foreach (ITreatmentInstruction instruction in unsentRouteChanges)
                             SendNewInstructionEntryCommand(instruction, false);
+                        unsentRouteChanges.Clear();
                     }
 
                     break;
@@ -526,11 +565,10 @@ namespace ACE_Mission_Control.Core.Models
             if (e.PropertyName == "IsDirectorConnected")
             {
                 NotifyPropertyChanged("OBCCanBeTested");
-                UpdateAwayOnMission();
 
                 if (!OBCClient.IsDirectorConnected)
                 {
-                    if (!AwayOnMission)
+                    if (Synchronization != SyncState.Paused)
                         Synchronization = SyncState.NotSynchronized;
                     directorCommandQueue.Clear();
                     syncCommandsSent = 0;
@@ -538,10 +576,16 @@ namespace ACE_Mission_Control.Core.Models
                 }
                 else
                 {
+                    // Reconnecting always puts the paused state to not synchronized.
+                    // Paused depends on the mission stage which may have changed. We need to resync to get the current stage.
+                    if (Synchronization == SyncState.Paused)
+                        Synchronization = SyncState.NotSynchronized;
+                    
                     if (OBCClient.DirectorRequestClient.ReadyForCommand)
                         CommandsReadied();
                 }
 
+                UpdateCanSynchronize();
                 UpdateMissionLockState();
             }
             else if (e.PropertyName == "AutoTryingConnections")
@@ -569,7 +613,8 @@ namespace ACE_Mission_Control.Core.Models
                     // Restart the sync process
                     if (syncCommandsSent == 0)
                     {
-                        Synchronize();
+                        if (CanSynchronize)
+                            Synchronize();
                     }
                     else
                     {

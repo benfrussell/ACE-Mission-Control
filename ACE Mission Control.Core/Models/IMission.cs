@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public interface IMission
+    public interface IMission : INotifyPropertyChanged
     {
         bool Activated { get; }
         List<string> AvailablePayloads { get; }
@@ -30,7 +30,6 @@ namespace ACE_Mission_Control.Core.Models
         event EventHandler<InstructionAreasUpdatedEventArgs> InstructionAreasUpdated;
         event EventHandler<InstructionRouteUpdatedEventArgs> InstructionRouteUpdated;
         event EventHandler<EventArgs> ProgressReset;
-        event PropertyChangedEventHandler PropertyChanged;
         event EventHandler<EventArgs> StartParametersChangedEvent;
 
         ITreatmentInstruction GetNextInstruction();

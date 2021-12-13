@@ -2,7 +2,7 @@
 
 namespace ACE_Mission_Control.Core.Models
 {
-    public interface IOnboardComputerClient
+    public interface IOnboardComputerClient : INotifyPropertyChanged
     {
         bool AutoTryingConnections { get; }
         bool ConnectionInProgress { get; }
@@ -13,8 +13,6 @@ namespace ACE_Mission_Control.Core.Models
         ISubscriberClient DirectorMonitorClient { get; }
         IRequestClient DirectorRequestClient { get; }
         IRequestClient ChaperoneRequestClient { get; }
-
-        event PropertyChangedEventHandler PropertyChanged;
 
         void Configure(string hostname);
         void Connect();

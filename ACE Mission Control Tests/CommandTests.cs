@@ -10,7 +10,7 @@ namespace ACE_Mission_Control_Tests
     public class CommandTests
     {
         [Fact]
-        public void ResetMission_MissionResetEventWithSync_Sent()
+        public void ResetMission_MissionResetEventSynced_Sent()
         {
             // Arrange
             var mockRequestClient = new Mock<IRequestClient>();

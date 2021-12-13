@@ -315,7 +315,8 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool IsTreatmentRouteValid()
         {
-            return InterceptCollection[TreatmentPolygon.Id].Contains(SelectedInterceptRoute);
+            var interceptingRoutes = InterceptCollection[TreatmentPolygon.Id];
+            return interceptingRoutes.Any(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
         }
 
         // Check that the current treatment route is still valid (still intercepts the treatment area)

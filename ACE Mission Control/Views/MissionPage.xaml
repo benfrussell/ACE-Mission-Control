@@ -94,7 +94,7 @@
                 <Button x:Uid="Mission_SynchronizeButton"
                         Margin="8,0,8,0"
                         Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsDirectorConnected, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.CanSynchronize, Mode=OneWay}"
                         Command="{x:Bind ViewModel.SynchronizeCommand}"/>
             </StackPanel>
         </Grid>

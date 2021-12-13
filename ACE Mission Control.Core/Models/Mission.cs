@@ -148,6 +148,7 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 canUpload = value;
                 NotifyPropertyChanged();
+                System.Diagnostics.Debug.WriteLine($"CanUpload IS NOW {canUpload}");
             }
         }
 
@@ -286,7 +287,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private void UpdateCanToggleActivation()
         {
-            CanToggleActivation = CanBeModified && MissionSet;
+            CanToggleActivation = MissionSet;
         }
 
         private void StartParameters_SelectedModeChangedEvent(object sender, EventArgs e)

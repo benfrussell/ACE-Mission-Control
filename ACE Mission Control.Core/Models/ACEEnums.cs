@@ -22,7 +22,8 @@ namespace ACE_Mission_Control.Core.Models
             CommandResponse = 9,
             AreaResult = 10,
             Configuration = 11,
-            ConfigEntry = 12
+            ConfigEntry = 12,
+            MissionRoute = 13
         }
     }
 }

@@ -292,7 +292,8 @@ namespace ACE_Mission_Control.Core.Models
                 else
                 {
                     changes.RemovedRouteIDs.Remove(matchInExistingRoutes.Id);
-                    // For some reason UGCS reports ALL routes as being modified whenever you add/remove/modify a single route
+                    // For some reason UGCS sets a new last modification time for ALL routes whenever you add/remove/modify a single route
+                    // This implemented Equals function checks for modifications based on coordinates/ID/parameters
                     if (!newRoute.Equals(matchInExistingRoutes))
                         changes.ModifiedRoutes.Add(newRoute);
                 }

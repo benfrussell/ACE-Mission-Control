@@ -130,8 +130,6 @@ namespace ACE_Mission_Control.Core.Models
             bool wayp1Intersects = waypPair.Item1.IntersectsArea(area);
             bool wayp2Intersects = waypPair.Item2.IntersectsArea(area);
 
-            System.Diagnostics.Debug.WriteLine("Calc Intersect After Coordinate");
-
             if (wayp1Intersects && wayp2Intersects)
             {
                 IEnumerable<LineSegment> segment = new List<LineSegment> { new LineSegment(waypPair.Item1.Coordinate, waypPair.Item2.Coordinate) };
@@ -182,7 +180,6 @@ namespace ACE_Mission_Control.Core.Models
                     {
                         intersectionPair = pair;
                         intersectionLength = newLengthIntersected;
-                        System.Diagnostics.Debug.WriteLine($"Intersection length {intersectionLength}");
                     }
                 }
             }

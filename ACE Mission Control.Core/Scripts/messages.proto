@@ -94,16 +94,14 @@ message MissionStatus {
 	string log = 7;
 	bool errors = 8;
 
-	repeated AreaResult results = 9;
+	// repeated AreaResult results = 9;
 }
 
 // Code 8
 message MissionConfig {
 	int32 treatment_duration = 1;
 	bool fly_through_mode = 2;
-	int32 selected_payload = 3;
-	repeated string available_payloads = 4;
-	repeated int32 areas = 5;
+	repeated MissionRoute routes = 6;
 }
 
 // Code 9
@@ -136,4 +134,19 @@ message ConfigEntry {
 	string option = 2;
 	string value = 3; 
 	int32 id = 4;
+}
+
+// Code 13
+message MissionRoute {
+	enum Status {
+		NOT_STARTED = 0;
+		IN_PROGRESS = 1;
+		FINISHED = 2;
+	}
+
+	int32 routeID = 1;
+	Status status = 2;
+	bool flyThrough = 3;
+	int64 lastEntryModification = 4;
+	int64 lastAreaModification = 5;
 }

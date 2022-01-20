@@ -377,6 +377,7 @@ namespace ACE_Mission_Control.Core.Models
         public void Synchronize(bool manualSyncronize = false)
         {
             // Mission status needs to be checked first because it tells us the most important information (activated, stage)
+            // Those details inform whether we can set new areas to finish synchronizing later on (after check_mission_config received)
             SendCommand("check_mission_status", !manualSyncronize, true);
             SendCommand("check_mission_config", !manualSyncronize, true);
             SendCommand("check_interface", !manualSyncronize, true);

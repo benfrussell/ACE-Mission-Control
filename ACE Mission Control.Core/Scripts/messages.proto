@@ -100,7 +100,6 @@ message MissionStatus {
 // Code 8
 message MissionConfig {
 	int32 treatment_duration = 1;
-	bool fly_through_mode = 2;
 	repeated MissionRoute routes = 6;
 }
 

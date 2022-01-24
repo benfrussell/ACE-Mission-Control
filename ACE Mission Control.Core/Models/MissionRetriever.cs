@@ -213,33 +213,35 @@ namespace ACE_Mission_Control.Core.Models
             var areaChanges = DetermineExisitngRouteUpdates(AreaScanPolygons, newAreaRoutes);
             var waypointRouteChanges = DetermineExisitngRouteUpdates(WaypointRoutes, newWaypointRoutes);
 
-            if (areaChanges.AnyChanges)
+            // First remove areas. When we add routes to the intercept collection further down we don't want to bother recalculating intercepts for these anway.
+            if (areaChanges.AnyChanges && areaChanges.RemovedRouteIDs.Count > 0)
             {
-                var areaIDsToRemove = new List<int>(areaChanges.RemovedRouteIDs);
-                areaIDsToRemove.AddRange(from r in areaChanges.ModifiedRoutes select r.Id);
-                AreaScanPolygons.RemoveAll(a => areaIDsToRemove.Contains(a.Id));
-                TreatmentInstruction.InterceptCollection.RemoveAreaScansByIDs(areaIDsToRemove);
+                AreaScanPolygons.RemoveAll(a => areaChanges.RemovedRouteIDs.Contains(a.Id));
+                TreatmentInstruction.InterceptCollection.RemoveAreaScansByIDs(areaChanges.RemovedRouteIDs);
             }
 
             if (waypointRouteChanges.AnyChanges)
             {
-                // Remove both removed waypoint routes AND modified waypoint routes. Modified routes will be re-added.
-                var routeIDsToRemove = new List<int>(waypointRouteChanges.RemovedRouteIDs);
-                routeIDsToRemove.AddRange(from r in waypointRouteChanges.ModifiedRoutes select r.Id);
+                if (waypointRouteChanges.RemovedRouteIDs.Count > 0)
+                {
+                    WaypointRoutes.RemoveAll(a => waypointRouteChanges.RemovedRouteIDs.Contains(a.Id));
+                    TreatmentInstruction.InterceptCollection.RemoveWaypointRoutesByIDs(waypointRouteChanges.RemovedRouteIDs);
+                }
 
-                WaypointRoutes.RemoveAll(a => routeIDsToRemove.Contains(a.Id));
-                TreatmentInstruction.InterceptCollection.RemoveWaypointRoutesByIDs(routeIDsToRemove);
+                if (waypointRouteChanges.ModifiedRoutes.Count > 0)
+                {
+                    WaypointRoutes.RemoveAll(a => waypointRouteChanges.ModifiedRoutes.Exists(m => m.Id == a.Id));
+                    WaypointRoutes.AddRange(waypointRouteChanges.ModifiedRoutes);
+                    TreatmentInstruction.InterceptCollection.ModifyExistingWaypointRouteIntercepts(waypointRouteChanges.ModifiedRoutes);
+                }
 
-                var routesToAdd = new List<WaypointRoute>(waypointRouteChanges.AddedRoutes);
-                routesToAdd.AddRange(waypointRouteChanges.ModifiedRoutes);
-                WaypointRoutes.AddRange(routesToAdd);
-
-                // Unmodified areas only need to check against new routes
-                foreach (AreaScanPolygon area in AreaScanPolygons)
-                    TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, routesToAdd);
+                if (waypointRouteChanges.AddedRoutes.Count > 0)
+                {
+                    WaypointRoutes.AddRange(waypointRouteChanges.AddedRoutes);
+                    TreatmentInstruction.InterceptCollection.AddWaypointRoutes(waypointRouteChanges.AddedRoutes);
+                }
 
                 NotifyStaticPropertyChanged("WaypointRoutes");
-
                 WaypointRoutesUpdated?.Invoke(null, new WaypointRoutesUpdatedArgs { Updates = waypointRouteChanges, AreaScanPolygonsUpdateFollowing = areaChanges.AnyChanges });
 
                 DroneController.AlertAllDrones(new AlertEntry(
@@ -248,19 +250,26 @@ namespace ACE_Mission_Control.Core.Models
                     $"Updated routes. ({waypointRouteChanges.RemovedRouteIDs.Count}) routes removed, ({waypointRouteChanges.ModifiedRoutes.Count}) routes modified, ({waypointRouteChanges.AddedRoutes.Count}) routes added."));
             }
 
+            // Adding or modifying any areas should be done only after we have the updated WaypointRoutes collection
+            // When adding to or modifying the intercept collection we need to provide the current list of all waypoint routes to check for intercepts against
             if (areaChanges.AnyChanges)
             {
-                AreaScanPolygons.AddRange(areaChanges.ModifiedRoutes);
-                AreaScanPolygons.AddRange(areaChanges.AddedRoutes);
+                if (areaChanges.ModifiedRoutes.Count > 0)
+                {
+                    AreaScanPolygons.RemoveAll(a => areaChanges.ModifiedRoutes.Exists(m => m.Id == a.Id));
+                    AreaScanPolygons.AddRange(areaChanges.ModifiedRoutes);
+                    TreatmentInstruction.InterceptCollection.ModifyExistingAreaScans(areaChanges.ModifiedRoutes, WaypointRoutes);
+                }
 
-                // New and modified areas need to check against every waypoint route
-                foreach (AreaScanPolygon area in areaChanges.ModifiedRoutes)
-                    TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, WaypointRoutes);
-                foreach (AreaScanPolygon area in areaChanges.AddedRoutes)
-                    TreatmentInstruction.InterceptCollection.AddTreatmentRouteIntercepts(area, WaypointRoutes);
+                if (areaChanges.AddedRoutes.Count > 0)
+                {
+                    AreaScanPolygons.AddRange(areaChanges.AddedRoutes);
+                    foreach (AreaScanPolygon area in areaChanges.AddedRoutes)
+                        TreatmentInstruction.InterceptCollection.AddAreaScanWithWaypointRoutes(area, WaypointRoutes);
+                }
+
 
                 NotifyStaticPropertyChanged("AreaScanPolygons");
-
                 AreaScanPolygonsUpdated?.Invoke(null, new AreaScanPolygonsUpdatedArgs() { Updates = areaChanges });
 
                 DroneController.AlertAllDrones(new AlertEntry(

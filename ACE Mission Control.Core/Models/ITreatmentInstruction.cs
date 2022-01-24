@@ -24,6 +24,7 @@ namespace ACE_Mission_Control.Core.Models
         AreaScanPolygon TreatmentPolygon { get; }
         WaypointRoute TreatmentRoute { get; set; }
         IEnumerable<WaypointRoute> ValidTreatmentRoutes { get; }
+        long LastEntryExitModification { get; }
 
         event PropertyChangedEventHandler PropertyChanged;
 
@@ -32,10 +33,8 @@ namespace ACE_Mission_Control.Core.Models
         string GetTreatmentAreaString();
         bool HasValidTreatmentRoute();
         bool IsTreatmentRouteValid();
-        bool RevalidateTreatmentRoute();
+        void RevalidateTreatmentRoute();
         void SetOrder(int? order, bool firstInstruction, bool lastInstruction, bool firstItem, bool lastItem);
         void UpdateTreatmentArea(AreaScanPolygon treatmentArea);
-        void UpdateTreatmentRoute();
-        void UpdateValidRoutes();
     }
 }

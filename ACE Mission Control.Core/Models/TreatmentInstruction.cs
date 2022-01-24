@@ -63,7 +63,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 if (value == null || (SelectedInterceptRoute != null && SelectedInterceptRoute.WaypointRoute == value))
                     return;
-                SelectedInterceptRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(r => r.WaypointRoute == value);
+                SelectedInterceptRoute = InterceptCollection.GetIntercepts(TreatmentPolygon.Id).FirstOrDefault(r => r.WaypointRoute == value);
                 NotifyPropertyChanged();
             }
         }
@@ -107,7 +107,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public IEnumerable<WaypointRoute> ValidTreatmentRoutes
         {
-            get => InterceptCollection[TreatmentPolygon.Id].Select(r => r.WaypointRoute);
+            get => InterceptCollection.GetIntercepts(TreatmentPolygon.Id).Select(r => r.WaypointRoute);
         }
 
         private UploadStatus currentUploadStatus;
@@ -243,6 +243,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private long lastEntryExitModificaiton;
+        public long LastEntryExitModification
+        {
+            get => lastEntryExitModificaiton;
+            private set
+            {
+                if (lastEntryExitModificaiton == value)
+                    return;
+                lastEntryExitModificaiton = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         // Save the last enabled state so we can put enabled back into the user's preffered state if they fix the CanBeEnabled problem
         // Starts as null and will only save the state after being enabled for the first time
         private bool? lastEnabledState;
@@ -269,24 +282,18 @@ namespace ACE_Mission_Control.Core.Models
             Enabled = true;
             lastEnabledState = null;
 
+            InterceptCollection.AreaInterceptsModified += InterceptCollection_AreaInterceptsModified;
+
             RevalidateTreatmentRoute();
         }
 
-        public void UpdateValidRoutes()
+        private void InterceptCollection_AreaInterceptsModified(object sender, InterceptCollectionChangedArgs e)
         {
-            NotifyPropertyChanged("ValidTreatmentRoutes");
-            NotifyPropertyChanged("TreatmentRoute");
-        }
-
-        // Update the treatment route with any changes made to it
-        public void UpdateTreatmentRoute()
-        {
-            WaypointRouteIntercept matchedRoute = null;
-            if (InterceptCollection.ContainsKey(TreatmentPolygon.Id))
-                matchedRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
-            SelectedInterceptRoute = matchedRoute;
-
-            RevalidateTreatmentRoute();
+            if (TreatmentPolygon != null && e.AreaIDsAffected.Contains(TreatmentPolygon.Id))
+            {
+                NotifyPropertyChanged("ValidTreatmentRoutes");
+                RevalidateTreatmentRoute();
+            }
         }
 
         public void UpdateTreatmentArea(AreaScanPolygon treatmentArea)
@@ -315,24 +322,21 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool IsTreatmentRouteValid()
         {
-            var interceptingRoutes = InterceptCollection[TreatmentPolygon.Id];
+            var interceptingRoutes = InterceptCollection.GetIntercepts(TreatmentPolygon.Id);
             return interceptingRoutes.Any(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
         }
 
         // Check that the current treatment route is still valid (still intercepts the treatment area)
         // Try to replace it with a valid route if it is not
-        public bool RevalidateTreatmentRoute()
+        public void RevalidateTreatmentRoute()
         {
-            var routeUpdated = false;
-
             if (SelectedInterceptRoute == null || !IsTreatmentRouteValid())
             {
                 var previousRoute = SelectedInterceptRoute;
-                var newRoute = InterceptCollection[TreatmentPolygon.Id].FirstOrDefault();
+                var newRoute = InterceptCollection.GetIntercepts(TreatmentPolygon.Id).FirstOrDefault();
                 if (previousRoute != newRoute)
                 {
                     SelectedInterceptRoute = newRoute;
-                    routeUpdated = true;
                 }
 
             }
@@ -352,11 +356,6 @@ namespace ACE_Mission_Control.Core.Models
                     Enabled = lastEnabledState ?? true;
                 }
             }
-
-            if (routeUpdated)
-                UpdateValidRoutes();
-
-            return routeUpdated;
         }
 
         public string GetTreatmentAreaString()

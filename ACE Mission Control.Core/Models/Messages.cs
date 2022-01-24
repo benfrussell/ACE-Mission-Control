@@ -49,22 +49,21 @@ namespace Pbdrone {
             "YWx0aXR1ZGUYBiABKAISCwoDbG9nGAcgASgJEg4KBmVycm9ycxgIIAEoCCJs",
             "CgVTdGFnZRIRCg1OT1RfQUNUSVZBVEVEEAASCQoFUkVBRFkQARILCgdFTlJP",
             "VVRFEAISDQoJRVhFQ1VUSU5HEAMSDQoJUkVUVVJOSU5HEAQSDAoIT1ZFUlJJ",
-            "REUQBRIMCghDT01QTEVURRAGImwKDU1pc3Npb25Db25maWcSGgoSdHJlYXRt",
-            "ZW50X2R1cmF0aW9uGAEgASgFEhgKEGZseV90aHJvdWdoX21vZGUYAiABKAgS",
-            "JQoGcm91dGVzGAYgAygLMhUucGJkcm9uZS5NaXNzaW9uUm91dGUiSAoPQ29t",
-            "bWFuZFJlc3BvbnNlEg8KB2NvbW1hbmQYASABKAkSEgoKc3VjY2Vzc2Z1bBgC",
-            "IAEoCBIQCghyZXNwb25zZRgDIAEoCSKCAQoKQXJlYVJlc3VsdBIOCgZhcmVh",
-            "SUQYASABKAUSKgoGc3RhdHVzGAIgASgOMhoucGJkcm9uZS5BcmVhUmVzdWx0",
-            "LlN0YXR1cyI4CgZTdGF0dXMSDwoLTk9UX1NUQVJURUQQABIPCgtJTl9QUk9H",
-            "UkVTUxABEgwKCEZJTklTSEVEEAIiMwoNQ29uZmlndXJhdGlvbhIiCgRsaXN0",
-            "GAEgAygLMhQucGJkcm9uZS5Db25maWdFbnRyeSJJCgtDb25maWdFbnRyeRIP",
-            "CgdzZWN0aW9uGAEgASgJEg4KBm9wdGlvbhgCIAEoCRINCgV2YWx1ZRgDIAEo",
-            "CRIKCgJpZBgEIAEoBSLYAQoMTWlzc2lvblJvdXRlEg8KB3JvdXRlSUQYASAB",
-            "KAUSLAoGc3RhdHVzGAIgASgOMhwucGJkcm9uZS5NaXNzaW9uUm91dGUuU3Rh",
-            "dHVzEhIKCmZseVRocm91Z2gYAyABKAgSHQoVbGFzdEVudHJ5TW9kaWZpY2F0",
-            "aW9uGAQgASgDEhwKFGxhc3RBcmVhTW9kaWZpY2F0aW9uGAUgASgDIjgKBlN0",
-            "YXR1cxIPCgtOT1RfU1RBUlRFRBAAEg8KC0lOX1BST0dSRVNTEAESDAoIRklO",
-            "SVNIRUQQAmIGcHJvdG8z"));
+            "REUQBRIMCghDT01QTEVURRAGIlIKDU1pc3Npb25Db25maWcSGgoSdHJlYXRt",
+            "ZW50X2R1cmF0aW9uGAEgASgFEiUKBnJvdXRlcxgGIAMoCzIVLnBiZHJvbmUu",
+            "TWlzc2lvblJvdXRlIkgKD0NvbW1hbmRSZXNwb25zZRIPCgdjb21tYW5kGAEg",
+            "ASgJEhIKCnN1Y2Nlc3NmdWwYAiABKAgSEAoIcmVzcG9uc2UYAyABKAkiggEK",
+            "CkFyZWFSZXN1bHQSDgoGYXJlYUlEGAEgASgFEioKBnN0YXR1cxgCIAEoDjIa",
+            "LnBiZHJvbmUuQXJlYVJlc3VsdC5TdGF0dXMiOAoGU3RhdHVzEg8KC05PVF9T",
+            "VEFSVEVEEAASDwoLSU5fUFJPR1JFU1MQARIMCghGSU5JU0hFRBACIjMKDUNv",
+            "bmZpZ3VyYXRpb24SIgoEbGlzdBgBIAMoCzIULnBiZHJvbmUuQ29uZmlnRW50",
+            "cnkiSQoLQ29uZmlnRW50cnkSDwoHc2VjdGlvbhgBIAEoCRIOCgZvcHRpb24Y",
+            "AiABKAkSDQoFdmFsdWUYAyABKAkSCgoCaWQYBCABKAUi2AEKDE1pc3Npb25S",
+            "b3V0ZRIPCgdyb3V0ZUlEGAEgASgFEiwKBnN0YXR1cxgCIAEoDjIcLnBiZHJv",
+            "bmUuTWlzc2lvblJvdXRlLlN0YXR1cxISCgpmbHlUaHJvdWdoGAMgASgIEh0K",
+            "FWxhc3RFbnRyeU1vZGlmaWNhdGlvbhgEIAEoAxIcChRsYXN0QXJlYU1vZGlm",
+            "aWNhdGlvbhgFIAEoAyI4CgZTdGF0dXMSDwoLTk9UX1NUQVJURUQQABIPCgtJ",
+            "Tl9QUk9HUkVTUxABEgwKCEZJTklTSEVEEAJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -76,7 +75,7 @@ namespace Pbdrone {
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.FlightAnomaly), global::Pbdrone.FlightAnomaly.Parser, new[]{ "Anomaly" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ACEError), global::Pbdrone.ACEError.Parser, new[]{ "Timestamp", "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionStatus), global::Pbdrone.MissionStatus.Parser, new[]{ "MissionStage", "Activated", "InProgress", "LastLongitude", "LastLatitude", "LastAltitude", "Log", "Errors" }, null, new[]{ typeof(global::Pbdrone.MissionStatus.Types.Stage) }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionConfig), global::Pbdrone.MissionConfig.Parser, new[]{ "TreatmentDuration", "FlyThroughMode", "Routes" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionConfig), global::Pbdrone.MissionConfig.Parser, new[]{ "TreatmentDuration", "Routes" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.CommandResponse), global::Pbdrone.CommandResponse.Parser, new[]{ "Command", "Successful", "Response" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.AreaResult), global::Pbdrone.AreaResult.Parser, new[]{ "AreaID", "Status" }, null, new[]{ typeof(global::Pbdrone.AreaResult.Types.Status) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Configuration), global::Pbdrone.Configuration.Parser, new[]{ "List" }, null, null, null, null),
@@ -1779,7 +1778,6 @@ namespace Pbdrone {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public MissionConfig(MissionConfig other) : this() {
       treatmentDuration_ = other.treatmentDuration_;
-      flyThroughMode_ = other.flyThroughMode_;
       routes_ = other.routes_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -1797,17 +1795,6 @@ namespace Pbdrone {
       get { return treatmentDuration_; }
       set {
         treatmentDuration_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "fly_through_mode" field.</summary>
-    public const int FlyThroughModeFieldNumber = 2;
-    private bool flyThroughMode_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool FlyThroughMode {
-      get { return flyThroughMode_; }
-      set {
-        flyThroughMode_ = value;
       }
     }
 
@@ -1835,7 +1822,6 @@ namespace Pbdrone {
         return true;
       }
       if (TreatmentDuration != other.TreatmentDuration) return false;
-      if (FlyThroughMode != other.FlyThroughMode) return false;
       if(!routes_.Equals(other.routes_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -1844,7 +1830,6 @@ namespace Pbdrone {
     public override int GetHashCode() {
       int hash = 1;
       if (TreatmentDuration != 0) hash ^= TreatmentDuration.GetHashCode();
-      if (FlyThroughMode != false) hash ^= FlyThroughMode.GetHashCode();
       hash ^= routes_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -1863,10 +1848,6 @@ namespace Pbdrone {
         output.WriteRawTag(8);
         output.WriteInt32(TreatmentDuration);
       }
-      if (FlyThroughMode != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(FlyThroughMode);
-      }
       routes_.WriteTo(output, _repeated_routes_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1878,9 +1859,6 @@ namespace Pbdrone {
       int size = 0;
       if (TreatmentDuration != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(TreatmentDuration);
-      }
-      if (FlyThroughMode != false) {
-        size += 1 + 1;
       }
       size += routes_.CalculateSize(_repeated_routes_codec);
       if (_unknownFields != null) {
@@ -1897,9 +1875,6 @@ namespace Pbdrone {
       if (other.TreatmentDuration != 0) {
         TreatmentDuration = other.TreatmentDuration;
       }
-      if (other.FlyThroughMode != false) {
-        FlyThroughMode = other.FlyThroughMode;
-      }
       routes_.Add(other.routes_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1914,10 +1889,6 @@ namespace Pbdrone {
             break;
           case 8: {
             TreatmentDuration = input.ReadInt32();
-            break;
-          }
-          case 16: {
-            FlyThroughMode = input.ReadBool();
             break;
           }
           case 50: {

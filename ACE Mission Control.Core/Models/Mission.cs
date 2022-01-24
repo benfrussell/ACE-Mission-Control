@@ -245,7 +245,6 @@ namespace ACE_Mission_Control.Core.Models
         public Mission()
         {
             MissionRetriever.AreaScanPolygonsUpdated += MissionRetriever_AreaScanPolygonsUpdated;
-            MissionRetriever.WaypointRoutesUpdated += MissionRetriever_WaypointRoutesUpdated;
             TreatmentInstructions = new ObservableCollection<ITreatmentInstruction>();
             startParameters = new StartTreatmentParameters();
             startParameters.SelectedModeChangedEvent += StartParameters_SelectedModeChangedEvent;
@@ -515,23 +514,6 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void MissionRetriever_WaypointRoutesUpdated(object sender, WaypointRoutesUpdatedArgs e)
-        {
-            foreach (ITreatmentInstruction instruction in TreatmentInstructions)
-            {
-                if (!instruction.HasValidTreatmentRoute())
-                    continue;
-
-                var routeModified = e.Updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentRoute.Id) != null;
-                var routeRemoved = e.Updates.RemovedRouteIDs.Contains(instruction.TreatmentRoute.Id);
-
-                if (routeModified || routeRemoved)
-                    instruction.UpdateTreatmentRoute();
-                else if (e.Updates.AddedRoutes.Count > 0)
-                    instruction.UpdateValidRoutes();
-            }
-        }
-
         private void MissionRetriever_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
         {
             updatingInstructions = true;
@@ -547,20 +529,22 @@ namespace ACE_Mission_Control.Core.Models
 
             foreach (ITreatmentInstruction instruction in TreatmentInstructions)
             {
-                var newTreatmentArea = e.Updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentPolygon.Id);
-                if (newTreatmentArea != null)
+                var instructionWithModifiedArea = e.Updates.ModifiedRoutes.FirstOrDefault(r => r.Id == instruction.TreatmentPolygon.Id);
+                if (instructionWithModifiedArea != null)
                 {
                     // Update treatment areas if they were modified
-                    instruction.UpdateTreatmentArea(newTreatmentArea);
+                    instruction.UpdateTreatmentArea(instructionWithModifiedArea);
                     UpdateCanUpload();
                     updatedInstructions.Instructions.Add(instruction);
                 }
-                else
-                {
-                    var routeUpdated = instruction.RevalidateTreatmentRoute();
-                    if (routeUpdated)
-                        updatedInstructions.Instructions.Add(instruction);
-                }
+                // If this instruction does not matche any area that was modified, then there would not have been any change to it...
+                // So there should be no need to revalidate the treatment route here
+                //else
+                //{
+                //    var routeUpdated = instruction.RevalidateTreatmentRoute();
+                //    if (routeUpdated)
+                //        updatedInstructions.Instructions.Add(instruction);
+                //}
             }
 
             // Add new treatment areas as instructions

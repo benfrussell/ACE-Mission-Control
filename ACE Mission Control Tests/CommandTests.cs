@@ -63,7 +63,7 @@ namespace ACE_Mission_Control_Tests
             var sut = new Drone(0, "test_drone", mockOBC.Object, mockMission.Object);
             sut.Synchronization = Drone.SyncState.Synchronized;
 
-            var eventArgs = new InstructionRouteUpdatedEventArgs();
+            var eventArgs = new InstructionRouteUpdatedArgs();
             eventArgs.Instruction = mockInstruction.Object;
 
             // Act

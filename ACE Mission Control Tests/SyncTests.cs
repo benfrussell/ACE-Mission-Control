@@ -31,7 +31,7 @@ namespace ACE_Mission_Control_Tests
             sut.Synchronization = Drone.SyncState.NotSynchronized;
 
             // Load an unsent change by raising a route update while the drone isn't synchronized
-            var routeUpdateArgs = new InstructionRouteUpdatedEventArgs();
+            var routeUpdateArgs = new InstructionRouteUpdatedArgs();
             routeUpdateArgs.Instruction = mockInstruction.Object;
 
             // Act
@@ -66,7 +66,7 @@ namespace ACE_Mission_Control_Tests
             sut.Synchronization = Drone.SyncState.NotSynchronized;
 
             // Load an unsent change by raising a route update while the drone isn't synchronized
-            var routeUpdateArgs = new InstructionRouteUpdatedEventArgs();
+            var routeUpdateArgs = new InstructionRouteUpdatedArgs();
             routeUpdateArgs.Instruction = mockInstruction.Object;
             mockMission.Raise(m => m.InstructionRouteUpdated += (sender, e) => { }, mockMission.Object, routeUpdateArgs);
 

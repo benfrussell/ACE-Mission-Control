@@ -58,12 +58,13 @@ namespace Pbdrone {
             "VEFSVEVEEAASDwoLSU5fUFJPR1JFU1MQARIMCghGSU5JU0hFRBACIjMKDUNv",
             "bmZpZ3VyYXRpb24SIgoEbGlzdBgBIAMoCzIULnBiZHJvbmUuQ29uZmlnRW50",
             "cnkiSQoLQ29uZmlnRW50cnkSDwoHc2VjdGlvbhgBIAEoCRIOCgZvcHRpb24Y",
-            "AiABKAkSDQoFdmFsdWUYAyABKAkSCgoCaWQYBCABKAUi2AEKDE1pc3Npb25S",
+            "AiABKAkSDQoFdmFsdWUYAyABKAkSCgoCaWQYBCABKAUi7AEKDE1pc3Npb25S",
             "b3V0ZRIPCgdyb3V0ZUlEGAEgASgFEiwKBnN0YXR1cxgCIAEoDjIcLnBiZHJv",
-            "bmUuTWlzc2lvblJvdXRlLlN0YXR1cxISCgpmbHlUaHJvdWdoGAMgASgIEh0K",
-            "FWxhc3RFbnRyeU1vZGlmaWNhdGlvbhgEIAEoAxIcChRsYXN0QXJlYU1vZGlm",
-            "aWNhdGlvbhgFIAEoAyI4CgZTdGF0dXMSDwoLTk9UX1NUQVJURUQQABIPCgtJ",
-            "Tl9QUk9HUkVTUxABEgwKCEZJTklTSEVEEAJiBnByb3RvMw=="));
+            "bmUuTWlzc2lvblJvdXRlLlN0YXR1cxISCgpmbHlUaHJvdWdoGAMgASgIEiAK",
+            "GGxhc3RQcm9wZXJ0eU1vZGlmaWNhdGlvbhgEIAEoAxIcChRsYXN0QXJlYU1v",
+            "ZGlmaWNhdGlvbhgFIAEoAxIPCgdlbmFibGVkGAYgASgIIjgKBlN0YXR1cxIP",
+            "CgtOT1RfU1RBUlRFRBAAEg8KC0lOX1BST0dSRVNTEAESDAoIRklOSVNIRUQQ",
+            "AmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -80,7 +81,7 @@ namespace Pbdrone {
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.AreaResult), global::Pbdrone.AreaResult.Parser, new[]{ "AreaID", "Status" }, null, new[]{ typeof(global::Pbdrone.AreaResult.Types.Status) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Configuration), global::Pbdrone.Configuration.Parser, new[]{ "List" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ConfigEntry), global::Pbdrone.ConfigEntry.Parser, new[]{ "Section", "Option", "Value", "Id" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionRoute), global::Pbdrone.MissionRoute.Parser, new[]{ "RouteID", "Status", "FlyThrough", "LastEntryModification", "LastAreaModification" }, null, new[]{ typeof(global::Pbdrone.MissionRoute.Types.Status) }, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionRoute), global::Pbdrone.MissionRoute.Parser, new[]{ "RouteID", "Status", "FlyThrough", "LastPropertyModification", "LastAreaModification", "Enabled" }, null, new[]{ typeof(global::Pbdrone.MissionRoute.Types.Status) }, null, null)
           }));
     }
     #endregion
@@ -2633,8 +2634,9 @@ namespace Pbdrone {
       routeID_ = other.routeID_;
       status_ = other.status_;
       flyThrough_ = other.flyThrough_;
-      lastEntryModification_ = other.lastEntryModification_;
+      lastPropertyModification_ = other.lastPropertyModification_;
       lastAreaModification_ = other.lastAreaModification_;
+      enabled_ = other.enabled_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2676,14 +2678,14 @@ namespace Pbdrone {
       }
     }
 
-    /// <summary>Field number for the "lastEntryModification" field.</summary>
-    public const int LastEntryModificationFieldNumber = 4;
-    private long lastEntryModification_;
+    /// <summary>Field number for the "lastPropertyModification" field.</summary>
+    public const int LastPropertyModificationFieldNumber = 4;
+    private long lastPropertyModification_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long LastEntryModification {
-      get { return lastEntryModification_; }
+    public long LastPropertyModification {
+      get { return lastPropertyModification_; }
       set {
-        lastEntryModification_ = value;
+        lastPropertyModification_ = value;
       }
     }
 
@@ -2695,6 +2697,17 @@ namespace Pbdrone {
       get { return lastAreaModification_; }
       set {
         lastAreaModification_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "enabled" field.</summary>
+    public const int EnabledFieldNumber = 6;
+    private bool enabled_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Enabled {
+      get { return enabled_; }
+      set {
+        enabled_ = value;
       }
     }
 
@@ -2714,8 +2727,9 @@ namespace Pbdrone {
       if (RouteID != other.RouteID) return false;
       if (Status != other.Status) return false;
       if (FlyThrough != other.FlyThrough) return false;
-      if (LastEntryModification != other.LastEntryModification) return false;
+      if (LastPropertyModification != other.LastPropertyModification) return false;
       if (LastAreaModification != other.LastAreaModification) return false;
+      if (Enabled != other.Enabled) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2725,8 +2739,9 @@ namespace Pbdrone {
       if (RouteID != 0) hash ^= RouteID.GetHashCode();
       if (Status != global::Pbdrone.MissionRoute.Types.Status.NotStarted) hash ^= Status.GetHashCode();
       if (FlyThrough != false) hash ^= FlyThrough.GetHashCode();
-      if (LastEntryModification != 0L) hash ^= LastEntryModification.GetHashCode();
+      if (LastPropertyModification != 0L) hash ^= LastPropertyModification.GetHashCode();
       if (LastAreaModification != 0L) hash ^= LastAreaModification.GetHashCode();
+      if (Enabled != false) hash ^= Enabled.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2752,13 +2767,17 @@ namespace Pbdrone {
         output.WriteRawTag(24);
         output.WriteBool(FlyThrough);
       }
-      if (LastEntryModification != 0L) {
+      if (LastPropertyModification != 0L) {
         output.WriteRawTag(32);
-        output.WriteInt64(LastEntryModification);
+        output.WriteInt64(LastPropertyModification);
       }
       if (LastAreaModification != 0L) {
         output.WriteRawTag(40);
         output.WriteInt64(LastAreaModification);
+      }
+      if (Enabled != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Enabled);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2777,11 +2796,14 @@ namespace Pbdrone {
       if (FlyThrough != false) {
         size += 1 + 1;
       }
-      if (LastEntryModification != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LastEntryModification);
+      if (LastPropertyModification != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LastPropertyModification);
       }
       if (LastAreaModification != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(LastAreaModification);
+      }
+      if (Enabled != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2803,11 +2825,14 @@ namespace Pbdrone {
       if (other.FlyThrough != false) {
         FlyThrough = other.FlyThrough;
       }
-      if (other.LastEntryModification != 0L) {
-        LastEntryModification = other.LastEntryModification;
+      if (other.LastPropertyModification != 0L) {
+        LastPropertyModification = other.LastPropertyModification;
       }
       if (other.LastAreaModification != 0L) {
         LastAreaModification = other.LastAreaModification;
+      }
+      if (other.Enabled != false) {
+        Enabled = other.Enabled;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2833,11 +2858,15 @@ namespace Pbdrone {
             break;
           }
           case 32: {
-            LastEntryModification = input.ReadInt64();
+            LastPropertyModification = input.ReadInt64();
             break;
           }
           case 40: {
             LastAreaModification = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            Enabled = input.ReadBool();
             break;
           }
         }

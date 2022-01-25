@@ -161,19 +161,6 @@ namespace ACE_Mission_Control.Core.Models
                 (Mission.Stage == MissionStatus.Types.Stage.Ready && Mission.MissionSet && FlightState == FlightStatus.Types.State.InAir && OBCClient.AutoTryingConnections);
         }
 
-        private bool _hasUnsentChanges;
-        public bool HasUnsentChanges
-        {
-            get => _hasUnsentChanges;
-            private set
-            {
-                if (_hasUnsentChanges == value)
-                    return;
-                _hasUnsentChanges = value;
-                NotifyPropertyChanged();
-            }
-        }
-
         private bool _canSynchronize;
         public bool CanSynchronize
         {
@@ -212,7 +199,6 @@ namespace ACE_Mission_Control.Core.Models
 
         private Queue<Command> directorCommandQueue;
         private Queue<Command> chaperoneCommandQueue;
-        private List<ITreatmentInstruction> unsentRouteChanges;
         private Command lastCommandSent;
 
         private bool configReceived;
@@ -230,7 +216,6 @@ namespace ACE_Mission_Control.Core.Models
             ManualCommandsOnly = false;
 
             syncCommandsSent = 0;
-            unsentRouteChanges = new List<ITreatmentInstruction>();
             configReceived = false;
 
             OBCClient = onboardComputer;
@@ -241,7 +226,7 @@ namespace ACE_Mission_Control.Core.Models
 
             Mission = mission;
             Mission.PropertyChanged += Mission_PropertyChanged;
-            Mission.StartParametersChangedEvent += StartParameters_StartParametersChangedEvent;
+            Mission.StartStopPointsUpdated += StartParameters_StartParametersChangedEvent;
             Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
             Mission.ProgressReset += Mission_ProgressReset;
 
@@ -265,7 +250,7 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedEventArgs e)
+        private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedArgs e)
         {
             // If the mission isn't set yet, all the details will be sent when the areas are uploaded
             if (!Mission.MissionSet)

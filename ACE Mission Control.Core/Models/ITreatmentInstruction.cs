@@ -7,9 +7,9 @@ namespace ACE_Mission_Control.Core.Models
 {
     public interface ITreatmentInstruction
     {
-        Coordinate AreaEntryCoordinate { get; }
-        Coordinate AreaExitCoordinate { get; }
-        AreaResult.Types.Status AreaStatus { get; set; }
+        Coordinate AreaEntryCoordinate { get; set; }
+        Coordinate AreaExitCoordinate { get; set; }
+        MissionRoute.Types.Status AreaStatus { get; set; }
         bool CanBeEnabled { get; }
         TreatmentInstruction.UploadStatus CurrentUploadStatus { get; set; }
         bool Enabled { get; set; }
@@ -24,12 +24,10 @@ namespace ACE_Mission_Control.Core.Models
         AreaScanPolygon TreatmentPolygon { get; }
         WaypointRoute TreatmentRoute { get; set; }
         IEnumerable<WaypointRoute> ValidTreatmentRoutes { get; }
-        long LastEntryExitModification { get; }
+        long LastSyncedPropertyModification { get; }
 
         event PropertyChangedEventHandler PropertyChanged;
 
-        string GetEntryCoordianteString();
-        string GetExitCoordinateString();
         string GetTreatmentAreaString();
         bool HasValidTreatmentRoute();
         bool IsTreatmentRouteValid();

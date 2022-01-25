@@ -146,6 +146,8 @@ message MissionRoute {
 	int32 routeID = 1;
 	Status status = 2;
 	bool flyThrough = 3;
-	int64 lastEntryModification = 4;
+	int64 lastPropertyModification = 4;
 	int64 lastAreaModification = 5;
+	bool enabled = 6;
+	int order = 7;
 }

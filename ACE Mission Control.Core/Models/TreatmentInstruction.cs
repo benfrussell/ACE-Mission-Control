@@ -7,9 +7,13 @@ using UGCS.Sdk.Protocol.Encoding;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Globalization;
+using System.Reflection;
 
 namespace ACE_Mission_Control.Core.Models
 {
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SyncedPropertyAttribute : Attribute { }
+
     public class TreatmentInstruction : INotifyPropertyChanged, ITreatmentInstruction
     {
         public static WaypointRouteInterceptCollection InterceptCollection = new WaypointRouteInterceptCollection();
@@ -47,7 +51,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (selectedInterceptRoute == value)
                     return;
                 selectedInterceptRoute = value;
-                LastEntryExitModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                LastSyncedPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 NotifyPropertyChanged("TreatmentRoute");
             }
         }
@@ -69,8 +73,8 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private AreaResult.Types.Status areaStatus;
-        public AreaResult.Types.Status AreaStatus
+        private MissionRoute.Types.Status areaStatus;
+        public MissionRoute.Types.Status AreaStatus
         {
             get => areaStatus;
             set
@@ -82,27 +86,31 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private Coordinate areaEntryCoordinate;
+        [SyncedProperty]
         public Coordinate AreaEntryCoordinate
         {
-            get
+            get => areaEntryCoordinate;
+            set
             {
-                if (SelectedInterceptRoute == null)
-                    RevalidateTreatmentRoute();
-                if (SelectedInterceptRoute != null)
-                    return SelectedInterceptRoute.EntryCoordinate;
-                return null;
+                if (areaEntryCoordinate == value)
+                    return;
+                areaEntryCoordinate = value;
+                NotifyPropertyChanged();
             }
         }
 
+        private Coordinate areaExitCoordinate;
+        [SyncedProperty]
         public Coordinate AreaExitCoordinate
         {
-            get
+            get => areaExitCoordinate;
+            set
             {
-                if (SelectedInterceptRoute == null)
-                    RevalidateTreatmentRoute();
-                if (SelectedInterceptRoute != null)
-                    return SelectedInterceptRoute.ExitCoordinate;
-                return null;
+                if (areaExitCoordinate == value)
+                    return;
+                areaExitCoordinate = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -140,6 +148,7 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private bool enabled;
+        [SyncedProperty]
         public bool Enabled
         {
             get => enabled;
@@ -165,8 +174,9 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        // Keep track of this positional data so reordering can be done easier in an item by item view
+        // Order includes both enabled and disabled instructions
         private int? order;
+        [SyncedProperty]
         public int? Order
         {
             get => order;
@@ -180,6 +190,9 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private bool firstInstruction;
+        // Mark this as synced because being the first instruction changes whether this instruction's start point is set by start mode or by the area entry
+        // It's not actually synced with the drone
+        [SyncedProperty]
         public bool FirstInstruction
         {
             get => firstInstruction;
@@ -244,15 +257,15 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private long lastEntryExitModificaiton;
-        public long LastEntryExitModification
+        private long lastSyncedPropertyModification;
+        public long LastSyncedPropertyModification
         {
-            get => lastEntryExitModificaiton;
-            private set
+            get => lastSyncedPropertyModification;
+            protected set
             {
-                if (lastEntryExitModificaiton == value)
+                if (lastSyncedPropertyModification == value)
                     return;
-                lastEntryExitModificaiton = value;
+                lastSyncedPropertyModification = value;
                 NotifyPropertyChanged();
             }
         }
@@ -265,7 +278,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             TreatmentPolygon = treatmentArea;
             ID = treatmentArea.SequentialID;
-            AreaStatus = AreaResult.Types.Status.NotStarted;
+            AreaStatus = MissionRoute.Types.Status.NotStarted;
 
             // Swath is generally half of the side distance (metres)
             if (!treatmentArea.Parameters.ContainsKey("sideDistance"))
@@ -295,8 +308,6 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged("ValidTreatmentRoutes");
                 if (e.InterceptsAffected.Contains(SelectedInterceptRoute))
                 {
-                    LastEntryExitModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    NotifyPropertyChanged("TreatmentRoute");
                     RevalidateTreatmentRoute();
                 }
             }
@@ -341,13 +352,14 @@ namespace ACE_Mission_Control.Core.Models
                 var previousRoute = SelectedInterceptRoute;
                 var newRoute = InterceptCollection.GetIntercepts(TreatmentPolygon.Id).FirstOrDefault();
                 if (previousRoute != newRoute)
-                {
                     SelectedInterceptRoute = newRoute;
-                }
             }
 
             if (SelectedInterceptRoute == null)
             {
+                AreaEntryCoordinate = null;
+                AreaExitCoordinate = null;
+
                 CanBeEnabled = false;
                 if (lastEnabledState != null)
                     lastEnabledState = Enabled;
@@ -355,6 +367,9 @@ namespace ACE_Mission_Control.Core.Models
             }
             else
             {
+                AreaEntryCoordinate = SelectedInterceptRoute.EntryCoordinate;
+                AreaExitCoordinate = SelectedInterceptRoute.ExitCoordinate;
+
                 if (CanBeEnabled == false)
                 {
                     CanBeEnabled = true;
@@ -392,28 +407,25 @@ namespace ACE_Mission_Control.Core.Models
             LastInList = lastItem;
         }
 
-        public string GetEntryCoordianteString()
-        {
-            // Returns in radians - latitude,longitude
-            string entryString = string.Format(
-                "{0},{1}",
-                AreaEntryCoordinate.Y,
-                AreaEntryCoordinate.X);
-            return entryString;
-        }
-
-        public string GetExitCoordinateString()
-        {
-            // Returns in radians - latitude,longitude
-            string entryString = string.Format(
-                "{0},{1}",
-                AreaExitCoordinate.Y,
-                AreaExitCoordinate.X);
-            return entryString;
-        }
-
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
+            PropertyInfo propertyInfo = null;
+            try
+            {
+                propertyInfo = typeof(TreatmentInstruction).GetProperty(propertyName);
+            }
+            catch (ArgumentNullException) { }
+            catch (AmbiguousMatchException) { }
+
+            // Updated SyncedPropertyModification if the property has the SyncedProperty attribute
+            if (propertyInfo != null)
+            {
+                var attributes = propertyInfo.GetCustomAttributes(false).ToList();
+
+                if (attributes.Any(a => a.GetType() == typeof(SyncedPropertyAttribute)))
+                    LastSyncedPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            }
+            
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }

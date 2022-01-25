@@ -60,6 +60,18 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private long lastStartPropertyModification;
+        public long LastStartPropertyModification
+        {
+            get => lastStartPropertyModification;
+            protected set
+            {
+                if (lastStartPropertyModification == value)
+                    return;
+                lastStartPropertyModification = value;
+            }
+        }
+
         // Only store the ID of the coordinate because we should search and confirm it still exists everytime we need to use it
         public string BoundStartWaypointID;
 
@@ -70,12 +82,14 @@ namespace ACE_Mission_Control.Core.Models
 
             SelectedMode = DefaultNoProgressMode;
             StopAndTurn = false;
+
+            LastStartPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
         }
 
         // Returns True for any changes, False for no changes
         public bool UpdateParameters(ITreatmentInstruction nextInstruction, Coordinate lastPosition, bool justReturned)
         {
-            bool inProgress = nextInstruction != null && lastPosition != null && nextInstruction.AreaStatus == AreaResult.Types.Status.InProgress;
+            bool inProgress = nextInstruction != null && lastPosition != null && nextInstruction.AreaStatus == MissionRoute.Types.Status.InProgress;
 
             UpdateMode(inProgress, justReturned);
 
@@ -145,6 +159,9 @@ namespace ACE_Mission_Control.Core.Models
                 StartCoordinate == null ||
                 (originalStart == null || originalStart.X != StartCoordinate.X || originalStart.Y != StartCoordinate.Y) ||
                 originalTurnMode != StopAndTurn;
+
+            if (anyChanges)
+                LastStartPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             return anyChanges;
         }

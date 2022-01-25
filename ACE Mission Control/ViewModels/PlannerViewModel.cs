@@ -181,7 +181,7 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             AttachedDrone.Mission.InstructionAreasUpdated += Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
-            AttachedDrone.Mission.StartParametersChangedEvent += Mission_StartParametersChangedEvent;
+            AttachedDrone.Mission.StartStopPointsUpdated += Mission_StartParametersChangedEvent;
 
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
 
@@ -191,7 +191,7 @@ namespace ACE_Mission_Control.ViewModels
                 MissionActivatedText = "Planner_ActivateButton".GetLocalized();
         }
 
-        private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedEventArgs e)
+        private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedArgs e)
         {
             UpdatePlannerMapAreas(e.Instruction);
             UpdatePlannerMapPoints(e.Instruction);
@@ -239,7 +239,7 @@ namespace ACE_Mission_Control.ViewModels
             });
         }
 
-        private void Mission_InstructionAreasUpdated(object sender, InstructionAreasUpdatedEventArgs e)
+        private void Mission_InstructionAreasUpdated(object sender, InstructionAreasUpdatedArgs e)
         {
             UpdatePlannerMapAreas(e.Instructions);
             UpdatePlannerMapPoints(e.Instructions);
@@ -288,7 +288,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.Mission.InstructionAreasUpdated -= Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
-            AttachedDrone.Mission.StartParametersChangedEvent -= Mission_StartParametersChangedEvent;
+            AttachedDrone.Mission.StartStopPointsUpdated -= Mission_StartParametersChangedEvent;
         }
 
         private bool isTreatmentDurationValid(string durationString)

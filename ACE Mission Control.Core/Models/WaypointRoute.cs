@@ -11,9 +11,41 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class WaypointRouteIntercept
     {
-        public WaypointRoute WaypointRoute { get; set; }
-        public Coordinate EntryCoordinate { get; set; }
-        public Coordinate ExitCoordinate { get; set; }
+        public AreaScanPolygon AreaScanPolygon { get; protected set; }
+        public WaypointRoute WaypointRoute { get; protected set; }
+        public Coordinate EntryCoordinate { get; protected set; }
+        public Coordinate ExitCoordinate { get; protected set; }
+
+        public bool UpdateWaypointRoute(WaypointRoute updatedRoute)
+        {
+            Coordinate previousEntry = EntryCoordinate.Copy();
+            Coordinate previousExit = ExitCoordinate.Copy();
+
+            WaypointRoute = updatedRoute;
+            CalculateIntercept();
+
+            // Return true if the coordinates changed after the update
+            return previousEntry != EntryCoordinate || previousExit != ExitCoordinate;
+
+        }
+
+        private void CalculateIntercept()
+        {
+            EntryCoordinate = WaypointRoute.CalcIntersectWithArea(AreaScanPolygon);
+            ExitCoordinate = WaypointRoute.CalcIntersectWithArea(AreaScanPolygon, reverse: true);
+        }
+
+        public static WaypointRouteIntercept CreateFromIntersectingRoute(WaypointRoute intersectingRoute, AreaScanPolygon intersectingArea)
+        {
+            var intercept = new WaypointRouteIntercept()
+            {
+                AreaScanPolygon = intersectingArea,
+                WaypointRoute = intersectingRoute,
+            };
+
+            intercept.CalculateIntercept();
+            return intercept;
+        }
     }
 
     public class WaypointRoute : LineString, IComparableRoute<WaypointRoute>

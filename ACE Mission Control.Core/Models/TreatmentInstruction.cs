@@ -47,6 +47,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (selectedInterceptRoute == value)
                     return;
                 selectedInterceptRoute = value;
+                LastEntryExitModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 NotifyPropertyChanged("TreatmentRoute");
             }
         }
@@ -292,7 +293,12 @@ namespace ACE_Mission_Control.Core.Models
             if (TreatmentPolygon != null && e.AreaIDsAffected.Contains(TreatmentPolygon.Id))
             {
                 NotifyPropertyChanged("ValidTreatmentRoutes");
-                RevalidateTreatmentRoute();
+                if (e.InterceptsAffected.Contains(SelectedInterceptRoute))
+                {
+                    LastEntryExitModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    NotifyPropertyChanged("TreatmentRoute");
+                    RevalidateTreatmentRoute();
+                }
             }
         }
 
@@ -338,7 +344,6 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     SelectedInterceptRoute = newRoute;
                 }
-
             }
 
             if (SelectedInterceptRoute == null)

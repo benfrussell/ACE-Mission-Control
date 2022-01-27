@@ -10,23 +10,30 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class Command
     {
+        public enum TriggerType
+        {
+            Normal,
+            Synchronize,
+            Update
+        }
+
         public string Input { get; private set; }
         public string Name { get; private set; }
         public string Parameters { get; private set; }
         // Is this command sent automatically
         public bool IsAutoCommand { get; private set; }
         // Is this command sent to sync the director and mission control
-        public bool IsSyncCommand { get; private set; }
+        public TriggerType Trigger { get; private set; }
         public object Tag { get; private set; }
 
-        public Command(string input, bool autoCommand = false, bool syncCommand = false, object tag = null)
+        public Command(string input, bool autoCommand = false, TriggerType trigger = TriggerType.Normal, object tag = null)
         {
             Input = input;
             var splitInput = input.Split(' ');
             Name = splitInput[0];
             Parameters = input.Substring(Name.Length);
             IsAutoCommand = autoCommand;
-            IsSyncCommand = syncCommand;
+            Trigger = trigger;
             Tag = tag;
         }
     }
@@ -35,11 +42,18 @@ namespace ACE_Mission_Control.Core.Models
     {
         public enum SyncState
         {
+            // Failed if any sync or update command failed
             SynchronizeFailed = 0,
+            // Initial state
             NotSynchronized = 1,
+            // The initial process of retrieving the drone state, sending the updated state, and confirming receipt
             Synchronizing = 2,
-            Paused = 3,
-            Synchronized = 4
+            // The state has been synchronized previously and an update is being sent to maintain sync.
+            SendingUpdate = 3,
+            // Syncing and updating is paused. After leaving this state another synchronization will need to be done.
+            Paused = 4,
+            // The drone and mission control are synchronized.
+            Synchronized = 5
         }
 
         public static List<string> ChaperoneCommandList = new List<string> { "get_error", "check_director", "start_director", "force_stop_payload" };
@@ -176,7 +190,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private void UpdateCanSynchronize()
         {
-            CanSynchronize = OBCClient.IsDirectorConnected && OBCClient.DirectorRequestClient.ReadyForCommand && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;  
+            CanSynchronize = OBCClient.IsDirectorConnected && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;  
         }
 
         private List<ConfigEntry> _configEntries;
@@ -192,6 +206,11 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        public bool AllSyncCommandsSent
+        {
+            get => missionStatusReceived && missionConfigReceived && interfaceStatusReceived && missionConfigHandled;
+        }
+
         public int ID;
 
         public IOnboardComputerClient OBCClient;
@@ -202,6 +221,13 @@ namespace ACE_Mission_Control.Core.Models
         private Command lastCommandSent;
 
         private bool configReceived;
+        
+        private bool missionStatusReceived;
+        private bool missionConfigReceived;
+        private bool interfaceStatusReceived;
+        private bool missionConfigHandled;
+
+        private int updateCommandsSent;
         private int syncCommandsSent;
 
         public Drone(int id, string name, IOnboardComputerClient onboardComputer, IMission mission)
@@ -215,8 +241,9 @@ namespace ACE_Mission_Control.Core.Models
             ConfigEntries = new List<ConfigEntry>();
             ManualCommandsOnly = false;
 
-            syncCommandsSent = 0;
             configReceived = false;
+
+            ResetSyncProgressFlags();
 
             OBCClient = onboardComputer;
             OBCClient.PropertyChanged += OBCClient_PropertyChanged;
@@ -226,12 +253,119 @@ namespace ACE_Mission_Control.Core.Models
 
             Mission = mission;
             Mission.PropertyChanged += Mission_PropertyChanged;
-            Mission.StartStopPointsUpdated += StartParameters_StartParametersChangedEvent;
-            Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
+            Mission.InstructionSyncedPropertyUpdated += Mission_InstructionSyncedPropertyUpdated;
+            Mission.InstructionAreasUpdated += Mission_InstructionAreasUpdated;
             Mission.ProgressReset += Mission_ProgressReset;
 
             InterfaceState = InterfaceStatus.Types.State.Offline;
             Synchronization = SyncState.NotSynchronized;
+        }
+
+        private void ResetSyncProgressFlags()
+        {
+            missionStatusReceived = false;
+            missionConfigReceived = false;
+            interfaceStatusReceived = false;
+            missionConfigHandled = false;
+
+            updateCommandsSent = 0;
+            syncCommandsSent = 0;
+        }
+
+        private void Mission_InstructionAreasUpdated(object sender, InstructionAreasUpdatedArgs e)
+        {
+            foreach (ITreatmentInstruction instruction in e.Instructions)
+            {
+                if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded)
+                    instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.Changes;
+            }
+
+            if (Synchronization != SyncState.Synchronized || Synchronization != SyncState.SendingUpdate)
+                return;
+
+            foreach (ITreatmentInstruction instruction in e.Instructions)
+            {
+                if (!instruction.Enabled || instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.NotUploaded)
+                    return;
+
+                SendInstructionArea(instruction, Command.TriggerType.Update);
+            }
+        }
+
+        private void Mission_InstructionSyncedPropertyUpdated(object sender, InstructionSyncedPropertyUpdatedArgs e)
+        {
+            if (Synchronization != SyncState.Synchronized || Synchronization != SyncState.SendingUpdate)
+                return;
+
+            var instruction = Mission.GetInstructionByID(e.InstructionID);
+
+            if (instruction == null)
+                return;
+
+            SendInstructionProperties(instruction, Command.TriggerType.Update);
+        }
+
+        private void SendEntireInstruction(ITreatmentInstruction instruction, Command.TriggerType trigger)
+        {
+            var command = string.Format("set_route -id {0} -order {1} -area_mod_time {2} -area {3} -entry {4} -exit {5} -property_mod_time {6} -status {7} -radians",
+                instruction.ID,
+                instruction.Order,
+                Mission.GetLastAreaModificationTime(instruction.ID),
+                instruction.GetTreatmentAreaString(),
+                Mission.GetStartCoordinateString(instruction.ID),
+                Mission.GetStopCoordinateString(instruction.ID),
+                Mission.GetLastPropertyModificationTime(instruction.ID),
+                (int)instruction.AreaStatus);
+
+            if (instruction.Enabled)
+                command = command + " -enabled";
+            else
+                command = command + " -disabled";
+
+            if (Mission.GetStartingTurnType(instruction.ID) == ACEEnums.TurnType.FlyThrough)
+                command = command + " -flythrough";
+
+            SendCommand(command, true, trigger, instruction.ID);
+        }
+
+        private void SendInstructionArea(ITreatmentInstruction instruction, Command.TriggerType trigger)
+        {
+            var command = string.Format("set_route -id {0} -area_mod_time {1} -area {2} -radians",
+                    instruction.ID,
+                    instruction.TreatmentPolygon.LastModificationTime,
+                    instruction.GetTreatmentAreaString());
+            SendCommand(command, true, trigger, instruction.ID);
+        }
+
+        private void SendInstructionProperties(ITreatmentInstruction instruction, Command.TriggerType trigger, List<string> properties = null)
+        {
+            bool allProperties = properties == null;
+
+            var command = $"set_route -id {instruction.ID} -property_mod_time {Mission.GetLastPropertyModificationTime(instruction.ID)}";
+
+            if (allProperties || properties.Contains("Order"))
+                command = command + $" -order {instruction.Order}";
+
+            if (allProperties || properties.Contains("AreaEntryExitCoordinates"))
+            {
+                command = command + string.Format(" -entry {0} -exit {1} -radians",
+                    Mission.GetStartCoordinateString(instruction.ID),
+                    Mission.GetStopCoordinateString(instruction.ID));
+            }
+
+            if (allProperties || properties.Contains("StartingTurnType"))
+            {
+                if (Mission.GetStartingTurnType(instruction.ID) == ACEEnums.TurnType.FlyThrough)
+                    command = command + " -flythrough";
+            }
+
+            if (allProperties || properties.Contains("Enabled"))
+            {
+                if (instruction.Enabled)
+                    command = command + " -enabled";
+                else
+                    command = command + " -disabled";
+            }
         }
 
         private void Mission_ProgressReset(object sender, EventArgs e)
@@ -240,45 +374,8 @@ namespace ACE_Mission_Control.Core.Models
                 SendCommand("reset_mission", true);
         }
 
-        private void StartParameters_StartParametersChangedEvent(object sender, EventArgs e)
-        {
-            if (Synchronization == SyncState.Synchronized && Mission.MissionSet)
-            {
-                // Send start mode commands right away if synchronized
-                // If not synchronized, they will be sent during synchronization
-                SendStartModeCommands(false);
-            }
-        }
-
-        private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedArgs e)
-        {
-            // If the mission isn't set yet, all the details will be sent when the areas are uploaded
-            if (!Mission.MissionSet)
-                return;
-
-            // We only care about enabled instructions
-            if (!e.Instruction.Enabled)
-                return;
-
-            // Send start mode commands right away if synchronized
-            // If not synchronized, they will be sent during synchronization
-            if (Synchronization == SyncState.Synchronized)
-            {
-                SendNewInstructionEntryCommand(e.Instruction);
-            }
-            else
-            {
-                unsentRouteChanges.RemoveAll(i => i.ID == e.Instruction.ID);
-                unsentRouteChanges.Add(e.Instruction);
-            }
-        }
-
         private void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // If we discover the mission is already set while synchronizing, send the start mode commands so the drone knows where we want to start
-            if (e.PropertyName == "MissionSet" && Mission.MissionSet && Synchronization == SyncState.Synchronizing)
-                SendStartModeCommands(false);
-
             if (e.PropertyName == "Stage" || e.PropertyName == "MissionSet")
             {
                 UpdateAwayOnMission();
@@ -321,61 +418,32 @@ namespace ACE_Mission_Control.Core.Models
             }
             else if (Synchronization == SyncState.NotSynchronized)
             {
-                syncCommandsSent = 0;
+                ResetSyncProgressFlags();
                 Synchronize();
             }
-        }
-
-        private void SendStartModeCommands(bool manuallySent = false)
-        {
-            if (!Mission.MissionSet)
-                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.None, "Tried to send the entry point but no mission is set!"));
-
-            // Only send these commands if the mission is set and syncing is not paused
-            if (!Mission.MissionSet || Synchronization == SyncState.Paused)
-                return;
-
-            var command = $"set_entry -entry {Mission.GetStartCoordinateString()} -radians";
-
-            if (!Mission.StopAndTurnStartMode)
-                command += " -fly_through";
-
-            SendCommand(command, !manuallySent, true);
-        }
-
-        private void SendNewInstructionEntryCommand(ITreatmentInstruction instruction, bool manuallySent = false)
-        {
-            // Only send these commands if the mission is set and syncing is not paused
-            if (!Mission.MissionSet || Synchronization == SyncState.Paused)
-                return;
-
-            var command = $"set_entry -id {instruction.ID} -entry {instruction.GetEntryCoordianteString()} -exit {instruction.GetExitCoordinateString()} -radians";
-
-            if (!instruction.FirstInstruction || !Mission.StopAndTurnStartMode)
-                command += " -fly_through";
-
-            SendCommand(command, !manuallySent, true);
         }
 
         // Check commands update the state of the Onboard Computer with Mission Control
         // They're sent everytime a connection to the director is re-established
         public void Synchronize(bool manualSyncronize = false)
         {
+            ResetSyncProgressFlags();
+            Synchronization = SyncState.Synchronizing;
             // Mission status needs to be checked first because it tells us the most important information (activated, stage)
             // Those details inform whether we can set new areas to finish synchronizing later on (after check_mission_config received)
-            SendCommand("check_mission_status", !manualSyncronize, true);
-            SendCommand("check_mission_config", !manualSyncronize, true);
-            SendCommand("check_interface", !manualSyncronize, true);
+            SendCommand("check_mission_status", !manualSyncronize, Command.TriggerType.Synchronize);
+            SendCommand("check_mission_config", !manualSyncronize, Command.TriggerType.Synchronize);
+            SendCommand("check_interface", !manualSyncronize, Command.TriggerType.Synchronize);
 
             if (!configReceived || manualSyncronize)
             {
-                SendCommand("check_ace_config", !manualSyncronize, true);
+                SendCommand("check_ace_config", !manualSyncronize);
             }
         }
 
-        public void SendCommand(string command, bool autoCommand = false, bool syncCommand = false, object tag = null)
+        public void SendCommand(string command, bool autoCommand = false, Command.TriggerType trigger = Command.TriggerType.Normal, object tag = null)
         {
-            SendCommand(new Command(command, autoCommand, syncCommand, tag));
+            SendCommand(new Command(command, autoCommand, trigger, tag));
         }
 
         // TODO: Should probably handle this in OnboardComputerClient but keep this as an interface for the ViewModel?
@@ -387,8 +455,12 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             }
 
-            // Don't allow any more sync commands if the sync failed - another sync attempt has to be triggered first
-            if (command.IsSyncCommand && Synchronization == SyncState.SynchronizeFailed)
+            // Only allow updates if we're synchronized or if we're sending updates
+            if (command.Trigger == Command.TriggerType.Update && (Synchronization == SyncState.Synchronized || Synchronization == SyncState.SendingUpdate))
+                return;
+
+            // Don't allow any more sync or update commands if the sync failed - another sync attempt has to be triggered first
+            if (command.Trigger != Command.TriggerType.Normal && Synchronization == SyncState.SynchronizeFailed)
                 return;
 
             // Check which connection the command should be sent on (Chaperone, if not assume Director)
@@ -418,12 +490,8 @@ namespace ACE_Mission_Control.Core.Models
                 }
                 else
                 {
-                    if (command.IsSyncCommand)
-                    {
-                        if (Synchronization != SyncState.Synchronizing)
-                            Synchronization = SyncState.Synchronizing;
-                        syncCommandsSent++;
-                    }
+                    if (command.Trigger == Command.TriggerType.Update)
+                        updateCommandsSent++;
                 }
 
             }
@@ -447,55 +515,13 @@ namespace ACE_Mission_Control.Core.Models
             return false;
         }
 
-        public void UploadMission()
-        {
-            var instructions = Mission.GetRemainingInstructions();
-            foreach (ITreatmentInstruction instruction in instructions)
-            {
-                if (instruction.Enabled)
-                {
-                    if (instruction.FirstInstruction)
-                    {
-                        string uploadCmd = string.Format("set_mission -data {0} -duration {1} -entry {2} -exit {3} -id {4} -radians",
-                            instruction.GetTreatmentAreaString(),
-                            Mission.TreatmentDuration,
-                            Mission.GetStartCoordinateString(),
-                            instruction.GetExitCoordinateString(),
-                            instruction.ID);
-
-                        if (!Mission.StopAndTurnStartMode)
-                            uploadCmd += " -fly_through";
-
-                        if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)
-                            uploadCmd += " -in_progress";
-
-                        SendCommand(uploadCmd, tag: instruction.ID);
-                        continue;
-                    }
-
-                    var areaCmd = string.Format("add_area -data {0} -entry {1} -exit {2} -id {3} -radians",
-                        instruction.GetTreatmentAreaString(),
-                        instruction.GetEntryCoordianteString(),
-                        instruction.GetExitCoordinateString(),
-                        instruction.ID);
-
-                    if (!Mission.StopAndTurnStartMode)
-                        areaCmd += " -fly_through";
-
-                    if (instruction.AreaStatus == AreaResult.Types.Status.InProgress)
-                        areaCmd += " -in_progress";
-
-                    SendCommand(areaCmd, tag: instruction.ID);
-                }
-            }
-        }
-
         private void DirectorMonitorClient_MessageReceivedEvent(object sender, MessageReceivedEventArgs e)
         {
             switch (e.MessageType)
             {
                 case ACEEnums.MessageType.InterfaceStatus:
                     var interfaceStatus = (InterfaceStatus)e.Message;
+                    interfaceStatusReceived = true;
                     InterfaceState = interfaceStatus.InterfaceState;
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Interface State"));
                     break;
@@ -505,22 +531,15 @@ namespace ACE_Mission_Control.Core.Models
                     break;
                 case ACEEnums.MessageType.MissionStatus:
                     var missionStatus = (MissionStatus)e.Message;
+                    missionStatusReceived = true;
                     Mission.UpdateMissionStatus(missionStatus);
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Status"));
                     break;
                 case ACEEnums.MessageType.MissionConfig:
                     var missionConfig = (MissionConfig)e.Message;
-                    Mission.UpdateMissionConfig(missionConfig);
+                    missionConfigReceived = true;
+                    HandleDroneMissionConfig(missionConfig);
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Config"));
-
-                    // Unsent route changes can only be sent after we've been updated about the mission config (tells us if there's a mission sent)
-                    if (Mission.MissionSet && HasUnsentChanges)
-                    {
-                        foreach (ITreatmentInstruction instruction in unsentRouteChanges)
-                            SendNewInstructionEntryCommand(instruction, false);
-                        unsentRouteChanges.Clear();
-                    }
-
                     break;
                 case ACEEnums.MessageType.Configuration:
                     var configuration = (Configuration)e.Message;
@@ -538,11 +557,60 @@ namespace ACE_Mission_Control.Core.Models
                     AddAlert(alert);
                     break;
                 case ACEEnums.MessageType.ACEError:
-                    if (syncCommandsSent > 0)
-                        HandleFailedSync();
+                    if (updateCommandsSent > 0 || !AllSyncCommandsSent)
+                        HandleUpdateOrSyncFailure();
                     break;
                 default:
                     break;
+            }
+        }
+
+        private void HandleDroneMissionConfig(MissionConfig missionConfig)
+        {
+            Mission.TreatmentDuration = missionConfig.TreatmentDuration;
+
+            if (missionConfig.Routes.Count > 0)
+            {
+                UpdateMissionWithDroneRoutes(missionConfig.Routes);
+                SendMissionStateDifferences(missionConfig.Routes);
+            }
+
+            missionConfigHandled = true;
+
+            // If no sync commands were sent after handling the mission config, then the sync could be finished here
+            if (syncCommandsSent == 0 && Synchronization == SyncState.Synchronizing && AllSyncCommandsSent)
+                Synchronization = SyncState.Synchronized;
+        }
+
+        private void UpdateMissionWithDroneRoutes(IEnumerable<MissionRoute> routes)
+        {
+            foreach (MissionRoute route in routes)
+            {
+                if ((int)route.Status > (int)Mission.GetAreaStatus(route.ID))
+                    Mission.SetInstructionAreaStatus(route.ID, route.Status);
+            }
+
+            Mission.ReorderInstructionsByID(routes.OrderBy(r => r.Order).Select(r => r.ID).ToList());
+        }
+
+        private void SendMissionStateDifferences(IEnumerable<MissionRoute> routes)
+        {
+            foreach (MissionRoute route in routes)
+            {
+                ITreatmentInstruction instruction = Mission.GetInstructionByID(route.ID);
+
+                if (instruction == null)
+                    continue;
+
+                bool propertiesOutdated = Mission.GetLastPropertyModificationTime(route.ID) > route.LastPropertyModification;
+                bool areaOutdated = Mission.GetLastAreaModificationTime(route.ID) > route.LastAreaModification;
+
+                if (propertiesOutdated && areaOutdated)
+                    SendEntireInstruction(instruction, Command.TriggerType.Synchronize);
+                else if (propertiesOutdated)
+                    SendInstructionProperties(instruction, Command.TriggerType.Synchronize);
+                else if (areaOutdated)
+                    SendInstructionArea(instruction, Command.TriggerType.Synchronize);
             }
         }
 
@@ -557,12 +625,12 @@ namespace ACE_Mission_Control.Core.Models
                     if (Synchronization != SyncState.Paused)
                         Synchronization = SyncState.NotSynchronized;
                     directorCommandQueue.Clear();
-                    syncCommandsSent = 0;
+                    updateCommandsSent = 0;
                     InterfaceState = InterfaceStatus.Types.State.Offline;
                 }
                 else
                 {
-                    // Reconnecting always puts the paused state to not synchronized.
+                    // Reconnecting should always puts the paused state to not synchronized.
                     // Paused depends on the mission stage which may have changed. We need to resync to get the current stage.
                     if (Synchronization == SyncState.Paused)
                         Synchronization = SyncState.NotSynchronized;
@@ -586,36 +654,28 @@ namespace ACE_Mission_Control.Core.Models
             if (lastCommandSent == null)
                 return;
 
-            // Special handling for sync commands
-            if (lastCommandSent.IsSyncCommand)
+            switch (lastCommandSent.Trigger)
             {
-                if (e.Line.Contains("(FAILURE)"))
-                {
-                    HandleFailedSync();
-                }
-                else if (e.Line.Contains("(SUCCESS)"))
-                {
-                    // Something isn't right if we have 0 sync commands sent, but we receive a successful sync command response (likely connection was interrupted)
-                    // Restart the sync process
-                    if (syncCommandsSent == 0)
-                    {
-                        if (CanSynchronize)
-                            Synchronize();
-                    }
-                    else
-                    {
-                        bool syncCommandQueued = directorCommandQueue.Any(c => c.IsSyncCommand);
+                case Command.TriggerType.Synchronize:
+                    if (e.Line.Contains("(FAILURE)"))
+                        HandleUpdateOrSyncFailure();
+                    else if (e.Line.Contains("(SUCCESS)"))
+                        HandleSyncCommandSuccess();
 
-                        syncCommandsSent--;
-                        // If no more sync commands are sent out and none are coming down the pipe, we're finished synchronizing
-                        if (syncCommandsSent == 0 && !syncCommandQueued)
-                        {
-                            Synchronization = SyncState.Synchronized;
-                        }
-                    }
-                }
+                    break;
+                case Command.TriggerType.Update:
+                    if (e.Line.Contains("(FAILURE)"))
+                        HandleUpdateOrSyncFailure();
+                    else if (e.Line.Contains("(SUCCESS)"))
+                        HandleUpdateCommandSuccess();
+
+                    break;
+                default:
+                    break;
             }
-            else if (lastCommandSent.Name == "set_mission" || lastCommandSent.Name == "add_area")
+
+            if (lastCommandSent.Name == "set_mission" || lastCommandSent.Name == "add_area" || 
+                (lastCommandSent.Name == "set_route" && lastCommandSent.Parameters.Contains("area")))
             {
                 if (e.Line.Contains("(SUCCESS)"))
                     Mission.SetInstructionUploaded((int)lastCommandSent.Tag);
@@ -636,11 +696,40 @@ namespace ACE_Mission_Control.Core.Models
             lastCommandSent = null;
         }
 
-        private void HandleFailedSync()
+        private void HandleSyncCommandSuccess()
         {
-            // If a sync command fails then clear the Queue of all sync commands
-            directorCommandQueue = new Queue<Command>(directorCommandQueue.Where(c => c.IsSyncCommand == false));
-            syncCommandsSent = 0;
+            // Something isn't right if we have 0 sync commands sent, but we receive a successful sync command response (likely connection was interrupted)
+            // Restart the sync process
+            if (syncCommandsSent == 0)
+            {
+                if (CanSynchronize)
+                    Synchronize();
+            }
+            else
+            {
+                syncCommandsSent--;
+                // If no more sync commands are sent out and none are coming down the pipe, we're finished synchronizing
+                if (syncCommandsSent == 0 && Synchronization == SyncState.Synchronizing && AllSyncCommandsSent)
+                    Synchronization = SyncState.Synchronized;
+            }
+        }
+
+        private void HandleUpdateCommandSuccess()
+        {
+            updateCommandsSent--;
+            if (updateCommandsSent <= 0)
+            {
+                if (Synchronization == SyncState.SendingUpdate)
+                    Synchronization = SyncState.Synchronized;
+            }
+        }
+
+        private void HandleUpdateOrSyncFailure()
+        {
+            Synchronization = SyncState.SynchronizeFailed;
+            // If a sync command fails then clear the Queue of all commands
+            directorCommandQueue.Clear();
+            ResetSyncProgressFlags();
             Synchronization = SyncState.SynchronizeFailed;
         }
 

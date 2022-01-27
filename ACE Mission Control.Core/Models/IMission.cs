@@ -20,14 +20,13 @@ namespace ACE_Mission_Control.Core.Models
         bool MissionSet { get; }
         MissionStatus.Types.Stage Stage { get; }
         StartTreatmentParameters.Mode StartMode { get; set; }
-        bool StopAndTurnStartMode { get; }
         int TreatmentDuration { get; set; }
         ObservableCollection<ITreatmentInstruction> TreatmentInstructions { get; set; }
 
         event EventHandler<InstructionAreasUpdatedArgs> InstructionAreasUpdated;
         event EventHandler<InstructionRouteUpdatedArgs> InstructionRouteUpdated;
         event EventHandler<EventArgs> ProgressReset;
-        event EventHandler<EventArgs> StartStopPointsUpdated;
+        event EventHandler<InstructionSyncedPropertyUpdatedArgs> InstructionSyncedPropertyUpdated;
 
         ITreatmentInstruction GetNextInstruction();
         List<ITreatmentInstruction> GetRemainingInstructions();
@@ -36,6 +35,10 @@ namespace ACE_Mission_Control.Core.Models
         Coordinate GetStopCoordinate(int instructionID);
         string GetStopCoordinateString(int instructionID);
         long GetLastPropertyModificationTime(int instructionID);
+        long GetLastAreaModificationTime(int instructionID);
+        ITreatmentInstruction GetInstructionByID(int instructionID);
+        ACEEnums.TurnType GetStartingTurnType(int instructionID);
+        MissionRoute.Types.Status GetAreaStatus(int instructionID);
         void Lock();
         void SetInstructionAreaStatus(int instructionID, MissionRoute.Types.Status status);
         void ReorderInstructionsByID(List<int> orderedIDs);

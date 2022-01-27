@@ -14,12 +14,10 @@ namespace ACE_Mission_Control.Core.Models
         IMission Mission { get; set; }
         string Name { get; set; }
         Drone.SyncState Synchronization { get; set; }
-        bool HasUnsentChanges { get; }
 
         void AddAlert(AlertEntry entry, bool blockDuplicates = false);
         void SendCommand(Command command);
-        void SendCommand(string command, bool autoCommand = false, bool syncCommand = false, object tag = null);
+        void SendCommand(string command, bool autoCommand = false, Command.TriggerType trigger = Command.TriggerType.Normal, object tag = null);
         void Synchronize(bool manualSyncronize = false);
-        void UploadMission();
     }
 }

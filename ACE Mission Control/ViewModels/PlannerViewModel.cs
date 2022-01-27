@@ -181,7 +181,7 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             AttachedDrone.Mission.InstructionAreasUpdated += Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
-            AttachedDrone.Mission.StartStopPointsUpdated += Mission_StartParametersChangedEvent;
+            AttachedDrone.Mission.InstructionSyncedPropertyUpdated += Mission_StartParametersChangedEvent;
 
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
 
@@ -288,7 +288,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.Mission.InstructionAreasUpdated -= Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
-            AttachedDrone.Mission.StartStopPointsUpdated -= Mission_StartParametersChangedEvent;
+            AttachedDrone.Mission.InstructionSyncedPropertyUpdated -= Mission_StartParametersChangedEvent;
         }
 
         private bool isTreatmentDurationValid(string durationString)

@@ -58,13 +58,13 @@ namespace Pbdrone {
             "VEFSVEVEEAASDwoLSU5fUFJPR1JFU1MQARIMCghGSU5JU0hFRBACIjMKDUNv",
             "bmZpZ3VyYXRpb24SIgoEbGlzdBgBIAMoCzIULnBiZHJvbmUuQ29uZmlnRW50",
             "cnkiSQoLQ29uZmlnRW50cnkSDwoHc2VjdGlvbhgBIAEoCRIOCgZvcHRpb24Y",
-            "AiABKAkSDQoFdmFsdWUYAyABKAkSCgoCaWQYBCABKAUi7AEKDE1pc3Npb25S",
-            "b3V0ZRIPCgdyb3V0ZUlEGAEgASgFEiwKBnN0YXR1cxgCIAEoDjIcLnBiZHJv",
-            "bmUuTWlzc2lvblJvdXRlLlN0YXR1cxISCgpmbHlUaHJvdWdoGAMgASgIEiAK",
-            "GGxhc3RQcm9wZXJ0eU1vZGlmaWNhdGlvbhgEIAEoAxIcChRsYXN0QXJlYU1v",
-            "ZGlmaWNhdGlvbhgFIAEoAxIPCgdlbmFibGVkGAYgASgIIjgKBlN0YXR1cxIP",
-            "CgtOT1RfU1RBUlRFRBAAEg8KC0lOX1BST0dSRVNTEAESDAoIRklOSVNIRUQQ",
-            "AmIGcHJvdG8z"));
+            "AiABKAkSDQoFdmFsdWUYAyABKAkSCgoCaWQYBCABKAUi9gEKDE1pc3Npb25S",
+            "b3V0ZRIKCgJJRBgBIAEoBRIsCgZzdGF0dXMYAiABKA4yHC5wYmRyb25lLk1p",
+            "c3Npb25Sb3V0ZS5TdGF0dXMSEgoKZmx5VGhyb3VnaBgDIAEoCBIgChhsYXN0",
+            "UHJvcGVydHlNb2RpZmljYXRpb24YBCABKAMSHAoUbGFzdEFyZWFNb2RpZmlj",
+            "YXRpb24YBSABKAMSDwoHZW5hYmxlZBgGIAEoCBINCgVvcmRlchgHIAEoBSI4",
+            "CgZTdGF0dXMSDwoLTk9UX1NUQVJURUQQABIPCgtJTl9QUk9HUkVTUxABEgwK",
+            "CEZJTklTSEVEEAJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -81,7 +81,7 @@ namespace Pbdrone {
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.AreaResult), global::Pbdrone.AreaResult.Parser, new[]{ "AreaID", "Status" }, null, new[]{ typeof(global::Pbdrone.AreaResult.Types.Status) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.Configuration), global::Pbdrone.Configuration.Parser, new[]{ "List" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.ConfigEntry), global::Pbdrone.ConfigEntry.Parser, new[]{ "Section", "Option", "Value", "Id" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionRoute), global::Pbdrone.MissionRoute.Parser, new[]{ "RouteID", "Status", "FlyThrough", "LastPropertyModification", "LastAreaModification", "Enabled" }, null, new[]{ typeof(global::Pbdrone.MissionRoute.Types.Status) }, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Pbdrone.MissionRoute), global::Pbdrone.MissionRoute.Parser, new[]{ "ID", "Status", "FlyThrough", "LastPropertyModification", "LastAreaModification", "Enabled", "Order" }, null, new[]{ typeof(global::Pbdrone.MissionRoute.Types.Status) }, null, null)
           }));
     }
     #endregion
@@ -2631,12 +2631,13 @@ namespace Pbdrone {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public MissionRoute(MissionRoute other) : this() {
-      routeID_ = other.routeID_;
+      iD_ = other.iD_;
       status_ = other.status_;
       flyThrough_ = other.flyThrough_;
       lastPropertyModification_ = other.lastPropertyModification_;
       lastAreaModification_ = other.lastAreaModification_;
       enabled_ = other.enabled_;
+      order_ = other.order_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2645,14 +2646,14 @@ namespace Pbdrone {
       return new MissionRoute(this);
     }
 
-    /// <summary>Field number for the "routeID" field.</summary>
-    public const int RouteIDFieldNumber = 1;
-    private int routeID_;
+    /// <summary>Field number for the "ID" field.</summary>
+    public const int IDFieldNumber = 1;
+    private int iD_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int RouteID {
-      get { return routeID_; }
+    public int ID {
+      get { return iD_; }
       set {
-        routeID_ = value;
+        iD_ = value;
       }
     }
 
@@ -2711,6 +2712,17 @@ namespace Pbdrone {
       }
     }
 
+    /// <summary>Field number for the "order" field.</summary>
+    public const int OrderFieldNumber = 7;
+    private int order_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Order {
+      get { return order_; }
+      set {
+        order_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as MissionRoute);
@@ -2724,24 +2736,26 @@ namespace Pbdrone {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (RouteID != other.RouteID) return false;
+      if (ID != other.ID) return false;
       if (Status != other.Status) return false;
       if (FlyThrough != other.FlyThrough) return false;
       if (LastPropertyModification != other.LastPropertyModification) return false;
       if (LastAreaModification != other.LastAreaModification) return false;
       if (Enabled != other.Enabled) return false;
+      if (Order != other.Order) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (RouteID != 0) hash ^= RouteID.GetHashCode();
+      if (ID != 0) hash ^= ID.GetHashCode();
       if (Status != global::Pbdrone.MissionRoute.Types.Status.NotStarted) hash ^= Status.GetHashCode();
       if (FlyThrough != false) hash ^= FlyThrough.GetHashCode();
       if (LastPropertyModification != 0L) hash ^= LastPropertyModification.GetHashCode();
       if (LastAreaModification != 0L) hash ^= LastAreaModification.GetHashCode();
       if (Enabled != false) hash ^= Enabled.GetHashCode();
+      if (Order != 0) hash ^= Order.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2755,9 +2769,9 @@ namespace Pbdrone {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (RouteID != 0) {
+      if (ID != 0) {
         output.WriteRawTag(8);
-        output.WriteInt32(RouteID);
+        output.WriteInt32(ID);
       }
       if (Status != global::Pbdrone.MissionRoute.Types.Status.NotStarted) {
         output.WriteRawTag(16);
@@ -2779,6 +2793,10 @@ namespace Pbdrone {
         output.WriteRawTag(48);
         output.WriteBool(Enabled);
       }
+      if (Order != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(Order);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -2787,8 +2805,8 @@ namespace Pbdrone {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (RouteID != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(RouteID);
+      if (ID != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ID);
       }
       if (Status != global::Pbdrone.MissionRoute.Types.Status.NotStarted) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
@@ -2805,6 +2823,9 @@ namespace Pbdrone {
       if (Enabled != false) {
         size += 1 + 1;
       }
+      if (Order != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Order);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -2816,8 +2837,8 @@ namespace Pbdrone {
       if (other == null) {
         return;
       }
-      if (other.RouteID != 0) {
-        RouteID = other.RouteID;
+      if (other.ID != 0) {
+        ID = other.ID;
       }
       if (other.Status != global::Pbdrone.MissionRoute.Types.Status.NotStarted) {
         Status = other.Status;
@@ -2834,6 +2855,9 @@ namespace Pbdrone {
       if (other.Enabled != false) {
         Enabled = other.Enabled;
       }
+      if (other.Order != 0) {
+        Order = other.Order;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -2846,7 +2870,7 @@ namespace Pbdrone {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            RouteID = input.ReadInt32();
+            ID = input.ReadInt32();
             break;
           }
           case 16: {
@@ -2867,6 +2891,10 @@ namespace Pbdrone {
           }
           case 48: {
             Enabled = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Order = input.ReadInt32();
             break;
           }
         }

@@ -7,6 +7,11 @@ using System.Linq;
 
 namespace ACE_Mission_Control.Core.Models
 {
+    public class StartParametersChangedArgs
+    {
+        public List<string> ParameterNames { get; set; }
+    }
+
     public class StartTreatmentParameters
     {
         public enum Mode
@@ -20,6 +25,8 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         public event EventHandler<EventArgs> SelectedModeChangedEvent;
+
+        public event EventHandler<StartParametersChangedArgs> StartParametersChanged;
 
         private Mode selectedMode;
         public Mode SelectedMode
@@ -50,13 +57,13 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool stopAndTurn;
-        public bool StopAndTurn
+        private ACEEnums.TurnType startingTurnType;
+        public ACEEnums.TurnType StartingTurnType
         {
-            get => stopAndTurn;
+            get => startingTurnType;
             protected set
             {
-                stopAndTurn = value;
+                startingTurnType = value;
             }
         }
 
@@ -81,7 +88,7 @@ namespace ACE_Mission_Control.Core.Models
             DefaultProgressMode = Mode.Flythrough;
 
             SelectedMode = DefaultNoProgressMode;
-            StopAndTurn = false;
+            StartingTurnType = ACEEnums.TurnType.FlyThrough;
 
             LastStartPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
         }
@@ -97,15 +104,15 @@ namespace ACE_Mission_Control.Core.Models
                 return false;
 
             var originalStart = StartCoordinate?.Copy();
-            var originalTurnMode = StopAndTurn;
+            var originalTurnMode = StartingTurnType;
 
             // Update the parameters based on mode
 
             switch (SelectedMode)
             {
                 case Mode.FirstEntry:
-                    StartCoordinate = nextInstruction.AreaEntryCoordinate;
-                    StopAndTurn = false;
+                    StartCoordinate = nextInstruction.AreaEntryExitCoordinates.Item1;
+                    StartingTurnType = ACEEnums.TurnType.FlyThrough;
                     break;
                 case Mode.SelectedWaypoint:
                     SetStartCoordToBoundWaypoint(nextInstruction);
@@ -127,7 +134,7 @@ namespace ACE_Mission_Control.Core.Models
                             if (WaypointRoute.IsCoordinateInArea(boundWaypoint, lastPosition, nextInstruction.Swath))
                             {
                                 StartCoordinate = boundWaypoint.Coordinate;
-                                StopAndTurn = boundWaypoint.TurnType == "STOP_AND_TURN";
+                                StartingTurnType = boundWaypoint.TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
                             } 
                             else
                             {
@@ -138,7 +145,7 @@ namespace ACE_Mission_Control.Core.Models
                     break;
                 case Mode.ContinueMission:
                     StartCoordinate = lastPosition;
-                    StopAndTurn = true;
+                    StartingTurnType = ACEEnums.TurnType.StopAndTurn;
                     break;
                 case Mode.Flythrough:
                     if (nextInstruction.TreatmentPolygon.IntersectsCoordinate(lastPosition))
@@ -149,19 +156,25 @@ namespace ACE_Mission_Control.Core.Models
                     {
                         StartCoordinate = nextInstruction.TreatmentRoute.CalcIntersectAfterCoordinate(lastPosition, 7.5f, nextInstruction.TreatmentPolygon);
                         if (StartCoordinate == null)
-                            StartCoordinate = nextInstruction.AreaEntryCoordinate;
+                            StartCoordinate = nextInstruction.AreaEntryExitCoordinates.Item1;
                     }
-                    StopAndTurn = false;
+                    StartingTurnType = ACEEnums.TurnType.FlyThrough;
                     break;
             }
 
             bool anyChanges =
                 StartCoordinate == null ||
                 (originalStart == null || originalStart.X != StartCoordinate.X || originalStart.Y != StartCoordinate.Y) ||
-                originalTurnMode != StopAndTurn;
+                originalTurnMode != StartingTurnType;
 
             if (anyChanges)
+            {
                 LastStartPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                // Just say all start parameters changed - no harm caused
+                var changedParametersList = new List<string> { "AreaEntryExitCoordinates", "StartingTurnType" };
+                StartParametersChanged?.Invoke(this, new StartParametersChangedArgs { ParameterNames = changedParametersList });
+            }
+                
 
             return anyChanges;
         }
@@ -208,7 +221,7 @@ namespace ACE_Mission_Control.Core.Models
             BoundStartWaypointID = newWaypoint.ID;
 
             StartCoordinate = newWaypoint.Coordinate; 
-            StopAndTurn = newWaypoint.TurnType == "STOP_AND_TURN";
+            StartingTurnType = newWaypoint.TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
         }
 
         private void SetStartCoordToBoundWaypoint(ITreatmentInstruction instruction)
@@ -219,13 +232,13 @@ namespace ACE_Mission_Control.Core.Models
             if (boundCoord != null)
             {
                 StartCoordinate = boundCoord.Coordinate;
-                StopAndTurn = boundCoord.TurnType == "STOP_AND_TURN";
+                StartingTurnType = boundCoord.TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
             }
             else
             {
                 BoundStartWaypointID = waypoints.First().ID;
                 StartCoordinate = waypoints.First().Coordinate;
-                StopAndTurn = waypoints.First().TurnType == "STOP_AND_TURN";
+                StartingTurnType = waypoints.First().TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
             }
         }
     }

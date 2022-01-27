@@ -25,5 +25,12 @@ namespace ACE_Mission_Control.Core.Models
             ConfigEntry = 12,
             MissionRoute = 13
         }
+
+        public enum TurnType : int
+        {
+            NotSpecified = 0,
+            StopAndTurn = 1,
+            FlyThrough = 2
+        }
     }
 }

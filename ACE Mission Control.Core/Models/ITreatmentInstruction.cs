@@ -1,5 +1,6 @@
 ﻿using NetTopologySuite.Geometries;
 using Pbdrone;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -7,8 +8,7 @@ namespace ACE_Mission_Control.Core.Models
 {
     public interface ITreatmentInstruction
     {
-        Coordinate AreaEntryCoordinate { get; set; }
-        Coordinate AreaExitCoordinate { get; set; }
+        Tuple<Coordinate, Coordinate> AreaEntryExitCoordinates { get; set; }
         MissionRoute.Types.Status AreaStatus { get; set; }
         bool CanBeEnabled { get; }
         TreatmentInstruction.UploadStatus CurrentUploadStatus { get; set; }
@@ -27,6 +27,7 @@ namespace ACE_Mission_Control.Core.Models
         long LastSyncedPropertyModification { get; }
 
         event PropertyChangedEventHandler PropertyChanged;
+        event PropertyChangedEventHandler SyncedPropertyChanged;
 
         string GetTreatmentAreaString();
         bool HasValidTreatmentRoute();

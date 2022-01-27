@@ -29,7 +29,9 @@ namespace ACE_Mission_Control.Core.Models
         event EventHandler<InstructionSyncedPropertyUpdatedArgs> InstructionSyncedPropertyUpdated;
 
         ITreatmentInstruction GetNextInstruction();
+        ITreatmentInstruction GetLastInstruction();
         List<ITreatmentInstruction> GetRemainingInstructions();
+        Coordinate GetStartCoordinate();
         Coordinate GetStartCoordinate(int instructionID);
         string GetStartCoordinateString(int instructionID);
         Coordinate GetStopCoordinate(int instructionID);

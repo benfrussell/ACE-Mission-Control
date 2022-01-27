@@ -183,7 +183,8 @@ namespace ACE_Mission_Control.Core.Models
         public void SetSelectedWaypoint(string waypointID, ITreatmentInstruction nextInstruction)
         {
             BoundStartWaypointID = waypointID;
-            SetStartCoordToBoundWaypoint(nextInstruction);
+            if (SelectedMode == Mode.SelectedWaypoint)
+                UpdateParameters(nextInstruction, null, false);
         }
 
         private bool DoesModeRequireProgress(Mode mode)

@@ -69,6 +69,9 @@ namespace ACE_Mission_Control.Core.Models
                 if (value == null || (SelectedInterceptRoute != null && SelectedInterceptRoute.WaypointRoute == value))
                     return;
                 SelectedInterceptRoute = InterceptCollection.GetIntercepts(TreatmentPolygon.Id).FirstOrDefault(r => r.WaypointRoute == value);
+                AreaEntryExitCoordinates = new Tuple<Coordinate, Coordinate>(
+                    SelectedInterceptRoute.EntryCoordinate,
+                    SelectedInterceptRoute.ExitCoordinate);
                 NotifyPropertyChanged();
             }
         }
@@ -390,7 +393,9 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-        {
+        {            
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
             PropertyInfo propertyInfo = null;
             try
             {
@@ -410,8 +415,6 @@ namespace ACE_Mission_Control.Core.Models
                     SyncedPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
                 }
             }
-            
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

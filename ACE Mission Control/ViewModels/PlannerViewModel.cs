@@ -86,24 +86,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public List<string> AvailablePayloads
-        {
-            get { return AttachedDrone.Mission.AvailablePayloads; }
-        }
-
-        private int _selectedPayload;
-        public int SelectedPayload
-        {
-            get { return _selectedPayload; }
-            set
-            {
-                if (_selectedPayload == value)
-                    return;
-                _selectedPayload = value;
-                RaisePropertyChanged();
-            }
-        }
-
         private int _selectedStartMode;
         public int SelectedStartMode
         {
@@ -181,7 +163,7 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             AttachedDrone.Mission.InstructionAreasUpdated += Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
-            AttachedDrone.Mission.InstructionSyncedPropertyUpdated += Mission_StartParametersChangedEvent;
+            AttachedDrone.Mission.InstructionSyncedPropertyUpdated += Mission_InstructionSyncedPropertyUpdated;
 
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
 
@@ -199,14 +181,42 @@ namespace ACE_Mission_Control.ViewModels
                 CheckStartModeError();
         }
 
-        private async void Mission_StartParametersChangedEvent(object sender, EventArgs e)
+        private async void Mission_InstructionSyncedPropertyUpdated(object sender, InstructionSyncedPropertyUpdatedArgs e)
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                var nextInstruction = AttachedDrone.Mission.GetNextInstruction();
-                if (nextInstruction != null)
-                    UpdatePlannerMapPoints(nextInstruction);
-                CheckStartModeError();
+                var instruction = AttachedDrone.Mission.GetInstructionByID(e.InstructionID);
+                if (instruction == null)
+                    return;
+
+                if (e.UpdatedParameters.Contains("AreaEntryExitCoordinates"))
+                {
+                    UpdatePlannerMapPoints(instruction);
+                    CheckStartModeError();
+                }
+                else if (e.UpdatedParameters.Contains("Enabled"))
+                {
+                    UpdatePlannerMapAreas(instruction);
+                    UpdatePlannerMapPoints(instruction);
+                    // If there's a new first instruction after this change, which WASN'T this instruction, we need to draw it's route on the map now
+                    if (!instruction.FirstInstruction)
+                    {
+                        var nextInstruction = AttachedDrone.Mission.GetNextInstruction();
+                        if (nextInstruction == null)
+                            return;
+
+                        UpdatePlannerMapAreas(nextInstruction);
+                        UpdatePlannerMapPoints(nextInstruction);
+                    }
+                        
+                    // Same deal for the last instruction, we draw it's points differently
+                    if (!instruction.LastInstruction)
+                    {
+                        var lastInstruction = AttachedDrone.Mission.GetLastInstruction();
+                        if (lastInstruction != null)
+                            UpdatePlannerMapPoints(AttachedDrone.Mission.GetLastInstruction());
+                    }
+                }
             });
         }
 
@@ -226,10 +236,6 @@ namespace ACE_Mission_Control.ViewModels
                         break;
                     case "TreatmentDuration":
                         TreatmentDuration = AttachedDrone.Mission.TreatmentDuration.ToString();
-                        break;
-                    case "SelectedPayload":
-                        suppressPayloadCommand = true;
-                        SelectedPayload = AttachedDrone.Mission.SelectedPayload;
                         break;
                     case "StartMode":
                         SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
@@ -288,7 +294,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.Mission.InstructionAreasUpdated -= Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
-            AttachedDrone.Mission.InstructionSyncedPropertyUpdated -= Mission_StartParametersChangedEvent;
+            AttachedDrone.Mission.InstructionSyncedPropertyUpdated -= Mission_InstructionSyncedPropertyUpdated;
         }
 
         private bool isTreatmentDurationValid(string durationString)
@@ -314,12 +320,6 @@ namespace ACE_Mission_Control.ViewModels
         {
             if (isTreatmentDurationValid(TreatmentDuration))
                 AttachedDrone.SendCommand("set_duration -duration " + TreatmentDuration.ToString());
-        }
-
-        public RelayCommand UploadCommand => new RelayCommand(() => uploadCommand());
-        private void uploadCommand()
-        {
-            AttachedDrone.UploadMission();
         }
 
         public RelayCommand ActivateCommand => new RelayCommand(() => activateCommand());
@@ -445,7 +445,7 @@ namespace ACE_Mission_Control.ViewModels
                 polygon.StrokeColor = colour;
                 polygon.StrokeThickness = 3;
                 polygon.StrokeDashed = false;
-                colour.A = 100;
+                colour.A = 60;
                 polygon.FillColor = colour;
                 ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Add(polygon);
             }
@@ -526,7 +526,8 @@ namespace ACE_Mission_Control.ViewModels
                 }
                 else
                 {
-                    startIcon.Location = CoordToGeopoint(instruction.AreaEntryCoordinate.X, instruction.AreaEntryCoordinate.Y);
+                    var startCoord = AttachedDrone.Mission.GetStartCoordinate(instruction.ID);
+                    startIcon.Location = CoordToGeopoint(startCoord.X, startCoord.Y);
                 }
 
                 startIcon.Image = StartImage;
@@ -535,7 +536,8 @@ namespace ACE_Mission_Control.ViewModels
 
                 // Add a MapIcon for the exit point for each area
                 MapIcon stopIcon = new MapIcon();
-                stopIcon.Location = CoordToGeopoint(instruction.AreaExitCoordinate.X, instruction.AreaExitCoordinate.Y);
+                var stopCoord = AttachedDrone.Mission.GetStopCoordinate(instruction.ID);
+                stopIcon.Location = CoordToGeopoint(stopCoord.X, stopCoord.Y);
                 stopIcon.Image = instruction.LastInstruction ? StopImage : NextImage;
                 layer.MapElements.Add(stopIcon);
             }

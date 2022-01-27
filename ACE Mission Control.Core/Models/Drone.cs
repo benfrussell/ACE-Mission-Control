@@ -148,7 +148,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (_synchronization == value)
                     return;
                 _synchronization = value;
-                UpdateCanSynchronize();
+                UpdateCanStartSynchronize();
                 UpdateMissionLockState();
                 NotifyPropertyChanged();
             }
@@ -176,7 +176,7 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         private bool _canSynchronize;
-        public bool CanSynchronize
+        public bool CanStartSynchronize
         {
             get { return _canSynchronize; }
             private set
@@ -188,9 +188,9 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private void UpdateCanSynchronize()
+        private void UpdateCanStartSynchronize()
         {
-            CanSynchronize = OBCClient.IsDirectorConnected && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;  
+            CanStartSynchronize = OBCClient.IsDirectorConnected && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;  
         }
 
         private List<ConfigEntry> _configEntries;
@@ -206,9 +206,14 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public bool AllSyncCommandsSent
+        private bool AllSyncCommandsSent
         {
             get => missionStatusReceived && missionConfigReceived && interfaceStatusReceived && missionConfigHandled;
+        }
+
+        private bool CanUpdate
+        {
+            get => OBCClient.IsDirectorConnected && (Synchronization == SyncState.Synchronized || Synchronization == SyncState.SendingUpdate);
         }
 
         public int ID;
@@ -280,7 +285,7 @@ namespace ACE_Mission_Control.Core.Models
                     instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.Changes;
             }
 
-            if (Synchronization != SyncState.Synchronized || Synchronization != SyncState.SendingUpdate)
+            if (!CanUpdate)
                 return;
 
             foreach (ITreatmentInstruction instruction in e.Instructions)
@@ -294,7 +299,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private void Mission_InstructionSyncedPropertyUpdated(object sender, InstructionSyncedPropertyUpdatedArgs e)
         {
-            if (Synchronization != SyncState.Synchronized || Synchronization != SyncState.SendingUpdate)
+            if (!CanUpdate)
                 return;
 
             var instruction = Mission.GetInstructionByID(e.InstructionID);
@@ -389,7 +394,7 @@ namespace ACE_Mission_Control.Core.Models
                     // If we're no longer away on mission but syncing is still paused, try to resync
                     // This could happen if the OBC was connected for the entire flight (normally the reconnect triggers the unpause)
                     Synchronization = SyncState.NotSynchronized;
-                    if (CanSynchronize)
+                    if (CanStartSynchronize)
                         Synchronize();
                 }
             }
@@ -405,7 +410,6 @@ namespace ACE_Mission_Control.Core.Models
                     if (OBCClient.IsDirectorConnected)
                         CommandsReadied();
                 }
-                UpdateCanSynchronize();
             }
         }
 
@@ -413,14 +417,9 @@ namespace ACE_Mission_Control.Core.Models
         {
             // Not Synchronized means it should be synchronized first if commands are ready to go
             if (Synchronization != SyncState.NotSynchronized && directorCommandQueue.Count > 0)
-            {
                 SendCommand(directorCommandQueue.Dequeue());
-            }
             else if (Synchronization == SyncState.NotSynchronized)
-            {
-                ResetSyncProgressFlags();
                 Synchronize();
-            }
         }
 
         // Check commands update the state of the Onboard Computer with Mission Control
@@ -436,9 +435,7 @@ namespace ACE_Mission_Control.Core.Models
             SendCommand("check_interface", !manualSyncronize, Command.TriggerType.Synchronize);
 
             if (!configReceived || manualSyncronize)
-            {
                 SendCommand("check_ace_config", !manualSyncronize);
-            }
         }
 
         public void SendCommand(string command, bool autoCommand = false, Command.TriggerType trigger = Command.TriggerType.Normal, object tag = null)
@@ -455,12 +452,10 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             }
 
-            // Only allow updates if we're synchronized or if we're sending updates
-            if (command.Trigger == Command.TriggerType.Update && (Synchronization == SyncState.Synchronized || Synchronization == SyncState.SendingUpdate))
+            if (command.Trigger == Command.TriggerType.Update && CanUpdate)
                 return;
 
-            // Don't allow any more sync or update commands if the sync failed - another sync attempt has to be triggered first
-            if (command.Trigger != Command.TriggerType.Normal && Synchronization == SyncState.SynchronizeFailed)
+            if (command.Trigger == Command.TriggerType.Synchronize && Synchronization == SyncState.SynchronizeFailed)
                 return;
 
             // Check which connection the command should be sent on (Chaperone, if not assume Director)
@@ -492,6 +487,8 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     if (command.Trigger == Command.TriggerType.Update)
                         updateCommandsSent++;
+                    else if (command.Trigger == Command.TriggerType.Synchronize)
+                        syncCommandsSent++;
                 }
 
             }
@@ -639,7 +636,7 @@ namespace ACE_Mission_Control.Core.Models
                         CommandsReadied();
                 }
 
-                UpdateCanSynchronize();
+                UpdateCanStartSynchronize();
                 UpdateMissionLockState();
             }
             else if (e.PropertyName == "AutoTryingConnections")
@@ -702,7 +699,7 @@ namespace ACE_Mission_Control.Core.Models
             // Restart the sync process
             if (syncCommandsSent == 0)
             {
-                if (CanSynchronize)
+                if (CanStartSynchronize)
                     Synchronize();
             }
             else

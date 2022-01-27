@@ -358,6 +358,11 @@ namespace ACE_Mission_Control.Core.Models
                 return instruction.AreaEntryExitCoordinates.Item1;
         }
 
+        public Coordinate GetStartCoordinate()
+        {
+            return startParameters.StartCoordinate;
+        }
+
         public Coordinate GetStopCoordinate(int instructionID)
         {
             var instruction = TreatmentInstructions.FirstOrDefault(i => i.ID == instructionID);
@@ -536,7 +541,21 @@ namespace ACE_Mission_Control.Core.Models
         // Only considers enabled instructions that are not finished - this should always be the FirstInstruction if the instruction order is up to date
         public ITreatmentInstruction GetNextInstruction()
         {
-            foreach (ITreatmentInstruction instruction in TreatmentInstructions)
+            foreach (ITreatmentInstruction instruction in TreatmentInstructions.OrderBy(i => i.Order))
+            {
+                if (!instruction.Enabled)
+                    continue;
+
+                if (instruction.AreaStatus == MissionRoute.Types.Status.NotStarted || instruction.AreaStatus == MissionRoute.Types.Status.InProgress)
+                    return instruction;
+            }
+
+            return null;
+        }
+
+        public ITreatmentInstruction GetLastInstruction()
+        {
+            foreach (ITreatmentInstruction instruction in TreatmentInstructions.OrderByDescending(i => i.Order))
             {
                 if (!instruction.Enabled)
                     continue;
@@ -636,6 +655,8 @@ namespace ACE_Mission_Control.Core.Models
                     UpdateCanUpload();
                     break;
                 case "TreatmentRoute":
+                    if (instruction.FirstInstruction)
+                        startParameters.UpdateParameters(instruction, LastPosition, false);
                     InstructionRouteUpdated?.Invoke(this, new InstructionRouteUpdatedArgs { Instruction = instruction });
                     break;
                 default:

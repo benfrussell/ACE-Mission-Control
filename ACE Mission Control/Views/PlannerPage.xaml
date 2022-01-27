@@ -242,33 +242,13 @@
                     Background="{ThemeResource SystemChromeMediumLowColor}"
                     BorderBrush="ForestGreen"
                     BorderThickness="3,0,0,0"/>
-            
+
             <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Left"
                 Grid.Row="0"
                 Margin="10,4,0,8">
-                <StackPanel
-                    Orientation="Vertical">
-                    <TextBlock
-                        x:Uid="Planner_SetPayload"
-                        Margin="0,0,0,4"/>
-                    <ComboBox
-                        x:Name="PayloadComboBox"
-                        MinWidth="150"
-                        Style="{ThemeResource ACEComboBox}"
-                        IsEnabled="False"
-                        ItemsSource="{x:Bind ViewModel.AvailablePayloads, Mode=OneWay}"
-                        SelectedIndex="{x:Bind ViewModel.SelectedPayload, Mode=OneWay}">
-                        <i:Interaction.Behaviors>
-                            <core:EventTriggerBehavior EventName="SelectionChanged">
-                                <core:InvokeCommandAction Command="{x:Bind ViewModel.PayloadSelectionCommand}"
-                                                          CommandParameter="{x:Bind PayloadComboBox}"/>
-                            </core:EventTriggerBehavior>
-                        </i:Interaction.Behaviors>
-                    </ComboBox>
-                </StackPanel>
-                
+
                 <StackPanel Orientation="Vertical"
                             Margin="8,0,0,0">
                     <TextBlock x:Uid="Planner_SetDuration"
@@ -496,11 +476,6 @@
                 HorizontalAlignment="Left"
                 Grid.Row="1"
                 Margin="10,0,0,8">
-                <Button x:Name="UploadButton"
-                        x:Uid="Planner_UploadButton"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanUpload, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.UploadCommand}"/>
                 <Button x:Name="ActivateButton"
                         x:Uid="Planner_ActivateButton"
                         Margin="8,0,0,0"

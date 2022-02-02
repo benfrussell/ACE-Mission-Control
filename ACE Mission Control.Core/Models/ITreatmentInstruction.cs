@@ -19,7 +19,7 @@ namespace ACE_Mission_Control.Core.Models
         bool LastInList { get; }
         bool LastInstruction { get; }
         string Name { get; }
-        int? Order { get; }
+        int Order { get; }
         float Swath { get; }
         AreaScanPolygon TreatmentPolygon { get; }
         WaypointRoute TreatmentRoute { get; set; }

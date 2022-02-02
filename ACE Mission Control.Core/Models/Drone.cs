@@ -279,21 +279,18 @@ namespace ACE_Mission_Control.Core.Models
 
         private void Mission_InstructionAreasUpdated(object sender, InstructionAreasUpdatedArgs e)
         {
-            foreach (ITreatmentInstruction instruction in e.Instructions)
-            {
-                if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded)
-                    instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.Changes;
-            }
-
             if (!CanUpdate)
                 return;
 
             foreach (ITreatmentInstruction instruction in e.Instructions)
             {
-                if (!instruction.Enabled || instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.NotUploaded)
+                if (!instruction.Enabled)
                     return;
 
-                SendInstructionArea(instruction, Command.TriggerType.Update);
+                if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.NotUploaded)
+                    SendEntireInstruction(instruction, Command.TriggerType.Update);
+                else
+                    SendInstructionArea(instruction, Command.TriggerType.Update);
             }
         }
 
@@ -307,7 +304,14 @@ namespace ACE_Mission_Control.Core.Models
             if (instruction == null)
                 return;
 
-            SendInstructionProperties(instruction, Command.TriggerType.Update);
+            // Only send updates for disabled commands if the update was the Enabled parameter
+            if (!instruction.Enabled && !e.UpdatedParameters.Contains("Enabled"))
+                return;
+
+            if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.NotUploaded)
+                SendEntireInstruction(instruction, Command.TriggerType.Update);
+            else
+                SendInstructionProperties(instruction, Command.TriggerType.Update, e.UpdatedParameters);
         }
 
         private void SendEntireInstruction(ITreatmentInstruction instruction, Command.TriggerType trigger)
@@ -329,7 +333,7 @@ namespace ACE_Mission_Control.Core.Models
 
             if (Mission.GetStartingTurnType(instruction.ID) == ACEEnums.TurnType.FlyThrough)
                 command = command + " -flythrough";
-
+            Mission.SetInstructionUploadStatus(instruction.ID, TreatmentInstruction.UploadStatus.Uploading);
             SendCommand(command, true, trigger, instruction.ID);
         }
 
@@ -339,6 +343,7 @@ namespace ACE_Mission_Control.Core.Models
                     instruction.ID,
                     instruction.TreatmentPolygon.LastModificationTime,
                     instruction.GetTreatmentAreaString());
+            Mission.SetInstructionUploadStatus(instruction.ID, TreatmentInstruction.UploadStatus.Uploading);
             SendCommand(command, true, trigger, instruction.ID);
         }
 
@@ -371,6 +376,8 @@ namespace ACE_Mission_Control.Core.Models
                 else
                     command = command + " -disabled";
             }
+
+            SendCommand(command, true, trigger, instruction.ID);
         }
 
         private void Mission_ProgressReset(object sender, EventArgs e)
@@ -452,7 +459,7 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             }
 
-            if (command.Trigger == Command.TriggerType.Update && CanUpdate)
+            if (command.Trigger == Command.TriggerType.Update && !CanUpdate)
                 return;
 
             if (command.Trigger == Command.TriggerType.Synchronize && Synchronization == SyncState.SynchronizeFailed)
@@ -505,6 +512,9 @@ namespace ACE_Mission_Control.Core.Models
 
             if (sendSuccessful)
             {
+                if (command.Name == "set_route")
+                    System.Diagnostics.Debug.WriteLine("****** " + command.Input);
+
                 lastCommandSent = command;
                 return true;
             }
@@ -520,6 +530,7 @@ namespace ACE_Mission_Control.Core.Models
                     var interfaceStatus = (InterfaceStatus)e.Message;
                     interfaceStatusReceived = true;
                     InterfaceState = interfaceStatus.InterfaceState;
+                    CheckIfSyncComplete();
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Interface State"));
                     break;
                 case ACEEnums.MessageType.FlightStatus:
@@ -530,6 +541,7 @@ namespace ACE_Mission_Control.Core.Models
                     var missionStatus = (MissionStatus)e.Message;
                     missionStatusReceived = true;
                     Mission.UpdateMissionStatus(missionStatus);
+                    CheckIfSyncComplete();
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Status"));
                     break;
                 case ACEEnums.MessageType.MissionConfig:
@@ -566,27 +578,25 @@ namespace ACE_Mission_Control.Core.Models
         {
             Mission.TreatmentDuration = missionConfig.TreatmentDuration;
 
-            if (missionConfig.Routes.Count > 0)
-            {
-                UpdateMissionWithDroneRoutes(missionConfig.Routes);
-                SendMissionStateDifferences(missionConfig.Routes);
-            }
+            UpdateMissionWithDroneRoutes(missionConfig.Routes);
+            SendMissionStateDifferences(missionConfig.Routes);
+            SendNotUploadedRoutes();
 
             missionConfigHandled = true;
 
             // If no sync commands were sent after handling the mission config, then the sync could be finished here
-            if (syncCommandsSent == 0 && Synchronization == SyncState.Synchronizing && AllSyncCommandsSent)
-                Synchronization = SyncState.Synchronized;
+            CheckIfSyncComplete();
         }
-
+                
         private void UpdateMissionWithDroneRoutes(IEnumerable<MissionRoute> routes)
         {
             foreach (MissionRoute route in routes)
             {
                 if ((int)route.Status > (int)Mission.GetAreaStatus(route.ID))
-                    Mission.SetInstructionAreaStatus(route.ID, route.Status);
+                    Mission.SetInstructionAreaStatus(route.ID, route.Status);                      
             }
 
+            Mission.SetUploadedInstructions(routes.Select(r => r.ID));
             Mission.ReorderInstructionsByID(routes.OrderBy(r => r.Order).Select(r => r.ID).ToList());
         }
 
@@ -602,12 +612,21 @@ namespace ACE_Mission_Control.Core.Models
                 bool propertiesOutdated = Mission.GetLastPropertyModificationTime(route.ID) > route.LastPropertyModification;
                 bool areaOutdated = Mission.GetLastAreaModificationTime(route.ID) > route.LastAreaModification;
 
-                if (propertiesOutdated && areaOutdated)
+                if (propertiesOutdated && areaOutdated && instruction.CurrentUploadStatus != TreatmentInstruction.UploadStatus.Uploading)
                     SendEntireInstruction(instruction, Command.TriggerType.Synchronize);
                 else if (propertiesOutdated)
                     SendInstructionProperties(instruction, Command.TriggerType.Synchronize);
-                else if (areaOutdated)
+                else if (areaOutdated && instruction.CurrentUploadStatus != TreatmentInstruction.UploadStatus.Uploading)
                     SendInstructionArea(instruction, Command.TriggerType.Synchronize);
+            }
+        }
+
+        private void SendNotUploadedRoutes()
+        {
+            foreach (ITreatmentInstruction instruction in Mission.GetRemainingInstructions())
+            {
+                if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.NotUploaded)
+                    SendEntireInstruction(instruction, Command.TriggerType.Synchronize);
             }
         }
 
@@ -654,28 +673,30 @@ namespace ACE_Mission_Control.Core.Models
             switch (lastCommandSent.Trigger)
             {
                 case Command.TriggerType.Synchronize:
+                    syncCommandsSent--;
                     if (e.Line.Contains("(FAILURE)"))
                         HandleUpdateOrSyncFailure();
                     else if (e.Line.Contains("(SUCCESS)"))
-                        HandleSyncCommandSuccess();
+                        CheckIfSyncComplete();
 
                     break;
                 case Command.TriggerType.Update:
+                    updateCommandsSent--;
                     if (e.Line.Contains("(FAILURE)"))
                         HandleUpdateOrSyncFailure();
                     else if (e.Line.Contains("(SUCCESS)"))
-                        HandleUpdateCommandSuccess();
+                        CheckIfUpdateComplete();
 
                     break;
                 default:
                     break;
             }
 
-            if (lastCommandSent.Name == "set_mission" || lastCommandSent.Name == "add_area" || 
-                (lastCommandSent.Name == "set_route" && lastCommandSent.Parameters.Contains("area")))
+            if (lastCommandSent.Name == "set_mission" || lastCommandSent.Name == "add_area" ||
+               (lastCommandSent.Name == "set_route" && lastCommandSent.Parameters.Contains("area")))
             {
                 if (e.Line.Contains("(SUCCESS)"))
-                    Mission.SetInstructionUploaded((int)lastCommandSent.Tag);
+                    Mission.SetInstructionUploadStatus((int)lastCommandSent.Tag, TreatmentInstruction.UploadStatus.Uploaded);
             }
             else if (lastCommandSent.Name == "set_config_entry")
             {
@@ -685,35 +706,31 @@ namespace ACE_Mission_Control.Core.Models
                     var entry_index = ConfigEntries.IndexOf(ConfigEntries.FirstOrDefault(c => c.Id == updated_entry.Id));
 
                     ConfigEntries[entry_index].Value = updated_entry.Value;
+                    NotifyPropertyChanged("ConfigEntries");
                 }
-
-                NotifyPropertyChanged("ConfigEntries");
             }
 
             lastCommandSent = null;
         }
 
-        private void HandleSyncCommandSuccess()
+        private void CheckIfSyncComplete()
         {
-            // Something isn't right if we have 0 sync commands sent, but we receive a successful sync command response (likely connection was interrupted)
-            // Restart the sync process
-            if (syncCommandsSent == 0)
+            // Something isn't right if we have 0 sync commands sent. Restart the sync process
+            if (syncCommandsSent < 0)
             {
                 if (CanStartSynchronize)
                     Synchronize();
             }
             else
             {
-                syncCommandsSent--;
                 // If no more sync commands are sent out and none are coming down the pipe, we're finished synchronizing
                 if (syncCommandsSent == 0 && Synchronization == SyncState.Synchronizing && AllSyncCommandsSent)
                     Synchronization = SyncState.Synchronized;
             }
         }
 
-        private void HandleUpdateCommandSuccess()
+        private void CheckIfUpdateComplete()
         {
-            updateCommandsSent--;
             if (updateCommandsSent <= 0)
             {
                 if (Synchronization == SyncState.SendingUpdate)
@@ -723,7 +740,6 @@ namespace ACE_Mission_Control.Core.Models
 
         private void HandleUpdateOrSyncFailure()
         {
-            Synchronization = SyncState.SynchronizeFailed;
             // If a sync command fails then clear the Queue of all commands
             directorCommandQueue.Clear();
             ResetSyncProgressFlags();

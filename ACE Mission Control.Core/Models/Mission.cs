@@ -326,8 +326,6 @@ namespace ACE_Mission_Control.Core.Models
                 TreatmentInstructions.Add(instruction);
 
             UpdateInstructionOrder();
-
-            InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedArgs() { Instructions = TreatmentInstructions.ToList() });
         }
 
         public void ReorderInstruction(ITreatmentInstruction instruction, int newPosition)
@@ -342,8 +340,6 @@ namespace ACE_Mission_Control.Core.Models
             var updatedInstructions = new List<ITreatmentInstruction> { instruction };
             if (displacedInstruction != null)
                 updatedInstructions.Add(displacedInstruction);
-
-            InstructionAreasUpdated?.Invoke(this, new InstructionAreasUpdatedArgs { Instructions = updatedInstructions });
         }
 
         public Coordinate GetStartCoordinate(int instructionID)
@@ -572,13 +568,24 @@ namespace ACE_Mission_Control.Core.Models
             return TreatmentInstructions.Where(i => i.Enabled && i.AreaStatus != MissionRoute.Types.Status.Finished).ToList();
         }
 
-        public void SetInstructionUploaded(int id)
+        public void SetInstructionUploadStatus(int id, TreatmentInstruction.UploadStatus status)
         {
             var instruction = TreatmentInstructions.FirstOrDefault(i => i.ID == id);
             if (instruction != null)
             {
-                instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.Uploaded;
+                instruction.CurrentUploadStatus = status;
                 UpdateCanUpload();
+            }
+        }
+
+        public void SetUploadedInstructions(IEnumerable<int> ids)
+        {
+            foreach (ITreatmentInstruction instruction in TreatmentInstructions)
+            {
+                if (ids.Contains(instruction.ID))
+                    instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.Uploaded;
+                else
+                    instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.NotUploaded;
             }
         }
 

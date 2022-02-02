@@ -21,7 +21,7 @@ namespace ACE_Mission_Control.Core.Models
         public enum UploadStatus
         {
             NotUploaded = 0,
-            Changes = 1,
+            Uploading = 1,
             Uploaded = 2
         }
 
@@ -96,7 +96,7 @@ namespace ACE_Mission_Control.Core.Models
             get => areaEntryExitCoordinates;
             set
             {
-                if (areaEntryExitCoordinates == value)
+                if (areaEntryExitCoordinates.Item1 == value.Item1 && areaEntryExitCoordinates.Item2 == value.Item2)
                     return;
                 areaEntryExitCoordinates = value;
                 NotifyPropertyChanged();
@@ -163,9 +163,9 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private int? order;
+        private int order;
         [SyncedProperty]
-        public int? Order
+        public int Order
         {
             get => order;
             private set
@@ -273,12 +273,13 @@ namespace ACE_Mission_Control.Core.Models
             Swath = float.Parse(sideDistance, CultureInfo.InvariantCulture) / 2;
             CurrentUploadStatus = UploadStatus.NotUploaded;
 
-            Order = null;
             FirstInstruction = false;
             FirstInList = false;
             LastInList = false;
 
-            Enabled = true;
+            order = 0;
+            enabled = false;
+            areaEntryExitCoordinates = new Tuple<Coordinate, Coordinate>(new Coordinate(), new Coordinate());
             lastEnabledState = null;
 
             InterceptCollection.AreaInterceptsModified += InterceptCollection_AreaInterceptsModified;
@@ -313,8 +314,6 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged("Name");
 
             RevalidateTreatmentRoute();
-            if (CurrentUploadStatus == UploadStatus.Uploaded)
-                CurrentUploadStatus = UploadStatus.Changes;
         }
 
         public bool HasValidTreatmentRoute()
@@ -342,7 +341,7 @@ namespace ACE_Mission_Control.Core.Models
 
             if (SelectedInterceptRoute == null)
             {
-                AreaEntryExitCoordinates = new Tuple<Coordinate, Coordinate>(null, null);
+                AreaEntryExitCoordinates = new Tuple<Coordinate, Coordinate>(new Coordinate(), new Coordinate());
 
                 CanBeEnabled = false;
                 if (lastEnabledState != null)
@@ -358,7 +357,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (CanBeEnabled == false)
                 {
                     CanBeEnabled = true;
-                    Enabled = lastEnabledState ?? true;
+                    Enabled = lastEnabledState ?? false;
                 }
             }
         }
@@ -379,13 +378,8 @@ namespace ACE_Mission_Control.Core.Models
 
         public void SetOrder(int? order, bool firstInstruction, bool lastInstruction, bool firstItem, bool lastItem)
         {
-            if (Order != order)
-            {
-                if (CurrentUploadStatus == UploadStatus.Uploaded)
-                    CurrentUploadStatus = UploadStatus.Changes;
-            }
-
-            Order = order;
+            if (order != null)
+                Order = order ?? 0;
             FirstInstruction = firstInstruction;
             LastInstruction = lastInstruction;
             FirstInList = firstItem;
@@ -412,6 +406,7 @@ namespace ACE_Mission_Control.Core.Models
                 if (attributes.Any(a => a.GetType() == typeof(SyncedPropertyAttribute)))
                 {
                     LastSyncedPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    System.Diagnostics.Debug.WriteLine($"Updating time in {ID} to {LastSyncedPropertyModification} because of a change to {propertyName}");
                     SyncedPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
                 }
             }

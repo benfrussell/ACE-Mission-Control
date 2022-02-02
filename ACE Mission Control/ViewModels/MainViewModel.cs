@@ -171,7 +171,6 @@ namespace ACE_Mission_Control.ViewModels
                 {
                     foreach (AlertEntry entry in e.NewItems)
                         Alerts.Add(entry);
-                    System.Diagnostics.Debug.WriteLine("Add alert");
                 }
 
                 var msg = new ScrollAlertDataGridMessage() { newEntry = Alerts[Alerts.Count - 1] };

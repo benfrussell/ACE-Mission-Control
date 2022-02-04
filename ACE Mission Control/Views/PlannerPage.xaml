@@ -258,7 +258,7 @@
                         IsSpellCheckEnabled="False"
                         MaxWidth="100"
                         Style="{ThemeResource ACETextBox}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanBeModified, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.AttachedDrone.AcceptingMissionCommands, Mode=OneWay}"
                         BorderBrush="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
                         Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                         helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"
@@ -476,13 +476,6 @@
                 HorizontalAlignment="Left"
                 Grid.Row="1"
                 Margin="10,0,0,8">
-                <Button x:Name="ActivateButton"
-                        x:Uid="Planner_ActivateButton"
-                        Margin="8,0,0,0"
-                        Style="{ThemeResource ACEButton}"
-                        Content="{x:Bind ViewModel.MissionActivatedText, Mode=OneWay}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanToggleActivation, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.ActivateCommand}"/>
                 <Button x:Name="ResetButton"
                         x:Uid="Planner_ResetButton"
                         Margin="8,0,0,0"

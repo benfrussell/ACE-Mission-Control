@@ -97,7 +97,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public bool OBCCanBeTested
         {
-            get { return !Mission.Activated && OBCClient.IsDirectorConnected; }
+            get { return !Mission.Locked && OBCClient.IsDirectorConnected; }
         }
 
         private IMission _mission;
@@ -149,7 +149,7 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 _synchronization = value;
                 UpdateCanStartSynchronize();
-                UpdateMissionLockState();
+                UpdateAcceptingMissionCommands();
                 NotifyPropertyChanged();
             }
         }
@@ -175,6 +175,25 @@ namespace ACE_Mission_Control.Core.Models
                 (Mission.Stage == MissionStatus.Types.Stage.Ready && Mission.MissionSet && FlightState == FlightStatus.Types.State.InAir && OBCClient.AutoTryingConnections);
         }
 
+        private bool _acceptingMissionCommands;
+        public bool AcceptingMissionCommands
+        {
+            get => _acceptingMissionCommands;
+            private set
+            {
+                if (_acceptingMissionCommands == value)
+                    return;
+                _acceptingMissionCommands = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private void UpdateAcceptingMissionCommands()
+        {
+            AcceptingMissionCommands = OBCClient.IsDirectorConnected && !Mission.Locked && 
+                (Synchronization == SyncState.Synchronized || Synchronization == SyncState.SendingUpdate || Synchronization == SyncState.Paused);
+        }
+
         private bool _canSynchronize;
         public bool CanStartSynchronize
         {
@@ -190,7 +209,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private void UpdateCanStartSynchronize()
         {
-            CanStartSynchronize = OBCClient.IsDirectorConnected && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;  
+            CanStartSynchronize = OBCClient.IsDirectorConnected && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;
         }
 
         private List<ConfigEntry> _configEntries;
@@ -656,7 +675,7 @@ namespace ACE_Mission_Control.Core.Models
                 }
 
                 UpdateCanStartSynchronize();
-                UpdateMissionLockState();
+                UpdateAcceptingMissionCommands();
             }
             else if (e.PropertyName == "AutoTryingConnections")
             {
@@ -756,14 +775,6 @@ namespace ACE_Mission_Control.Core.Models
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private void UpdateMissionLockState()
-        {
-            if (OBCClient.IsDirectorConnected && Synchronization == SyncState.Synchronized)
-                Mission.Unlock();
-            else
-                Mission.Lock();
         }
     }
 }

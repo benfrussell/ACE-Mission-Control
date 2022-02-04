@@ -9,11 +9,7 @@ namespace ACE_Mission_Control.Core.Models
 {
     public interface IMission : INotifyPropertyChanged
     {
-        bool Activated { get; }
-        bool CanBeModified { get; }
         bool CanBeReset { get; }
-        bool CanToggleActivation { get; }
-        bool CanUpload { get; }
         Coordinate LastPosition { get; }
         bool Locked { get; }
         bool MissionHasProgress { get; }

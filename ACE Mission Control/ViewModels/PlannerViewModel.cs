@@ -40,19 +40,19 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private string _missionActivatedText;
-        public string MissionActivatedText
+        private string _missionLockText;
+        public string MissionLockText
         {
             set
             {
-                if (value == _missionActivatedText)
+                if (value == _missionLockText)
                     return;
-                _missionActivatedText = value;
+                _missionLockText = value;
                 RaisePropertyChanged();
             }
             get
             {
-                return _missionActivatedText;
+                return _missionLockText;
             }
         }
 
@@ -167,10 +167,10 @@ namespace ACE_Mission_Control.ViewModels
 
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
 
-            if (AttachedDrone.Mission.Activated)
-                MissionActivatedText = "Planner_DeactivateButton".GetLocalized();
+            if (AttachedDrone.Mission.Locked)
+                MissionLockText = "Planner_LockButton".GetLocalized();
             else
-                MissionActivatedText = "Planner_ActivateButton".GetLocalized();
+                MissionLockText = "Planner_UnlockButton".GetLocalized();
         }
 
         private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedArgs e)
@@ -228,11 +228,11 @@ namespace ACE_Mission_Control.ViewModels
 
                 switch (e.PropertyName)
                 {
-                    case "Activated":
-                        if (AttachedDrone.Mission.Activated)
-                            MissionActivatedText = "Planner_DeactivateButton".GetLocalized();
+                    case "Locked":
+                        if (AttachedDrone.Mission.Locked)
+                            MissionLockText = "Planner_LockButton".GetLocalized();
                         else
-                            MissionActivatedText = "Planner_ActivateButton".GetLocalized();
+                            MissionLockText = "Planner_UnlockButton".GetLocalized();
                         break;
                     case "TreatmentDuration":
                         TreatmentDuration = AttachedDrone.Mission.TreatmentDuration.ToString();
@@ -322,13 +322,13 @@ namespace ACE_Mission_Control.ViewModels
                 AttachedDrone.SendCommand("set_duration -duration " + TreatmentDuration.ToString());
         }
 
-        public RelayCommand ActivateCommand => new RelayCommand(() => activateCommand());
-        private void activateCommand()
+        public RelayCommand LockCommand => new RelayCommand(() => lockCommand());
+        private void lockCommand()
         {
-            if (AttachedDrone.Mission.Activated)
-                AttachedDrone.SendCommand("deactivate_mission");
+            if (!AttachedDrone.Mission.Locked)
+                AttachedDrone.SendCommand("lock_mission");
             else
-                AttachedDrone.SendCommand("activate_mission");
+                AttachedDrone.SendCommand("unlock_mission");
         }
 
         public RelayCommand ResetCommand => new RelayCommand(() => resetCommand());

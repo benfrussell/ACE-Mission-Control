@@ -64,22 +64,23 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool activated;
-        public bool Activated
+        private bool missionHasProgress;
+        public bool MissionHasProgress
         {
-            get => activated;
+            get => missionHasProgress;
             private set
             {
-                if (activated == value)
+                if (missionHasProgress == value)
                     return;
-                activated = value;
+                missionHasProgress = value;
                 NotifyPropertyChanged();
             }
         }
 
-        public bool MissionHasProgress
+        private void UpdateMissionHasProgress()
         {
-            get => TreatmentInstructions.Any(i => i.AreaStatus != MissionRoute.Types.Status.NotStarted);
+            MissionHasProgress = TreatmentInstructions.Any(i => i.AreaStatus != MissionRoute.Types.Status.NotStarted);
+            UpdateCanBeReset();
         }
 
         private Coordinate lastPosition;
@@ -108,18 +109,6 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private bool canBeModified;
-        public bool CanBeModified
-        {
-            get => canBeModified;
-            private set
-            {
-                if (canBeModified == value)
-                    return;
-                canBeModified = value;
-                NotifyPropertyChanged();
-            }
-        }
         private bool canBeReset;
         public bool CanBeReset
         {
@@ -132,31 +121,9 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged();
             }
         }
-
-        private bool canToggleActivation;
-        public bool CanToggleActivation
+        private void UpdateCanBeReset()
         {
-            get => canToggleActivation;
-            private set
-            {
-                if (canToggleActivation == value)
-                    return;
-                canToggleActivation = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private bool canUpload;
-        public bool CanUpload
-        {
-            get => canUpload;
-            private set
-            {
-                if (canUpload == value)
-                    return;
-                canUpload = value;
-                NotifyPropertyChanged();
-            }
+            CanBeReset = !Locked && MissionHasProgress;
         }
 
         private bool missionSet;
@@ -170,6 +137,11 @@ namespace ACE_Mission_Control.Core.Models
                 missionSet = value;
                 NotifyPropertyChanged();
             }
+        }
+
+        private void UpdateMissionSet()
+        {
+            MissionHasProgress = TreatmentInstructions.Any(i => i.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded);
         }
 
         private int treatmentDuration;
@@ -215,44 +187,22 @@ namespace ACE_Mission_Control.Core.Models
             startParameters.SelectedModeChangedEvent += StartParameters_SelectedModeChangedEvent;
             startParameters.StartParametersChanged += StartParameters_StartParametersChanged;
 
-            Activated = false;
-            Lock();
+            MissionHasProgress = false;
+            CanBeReset = false;
+            Locked = false;
         }
 
         // Lock or unlock user changes to the mission
         public void Lock()
         {
             Locked = true;
-            CanBeModified = false;
-            UpdateCanUpload();
             UpdateCanBeReset();
-            UpdateCanToggleActivation();
         }
 
         public void Unlock()
         {
             Locked = false;
-            CanBeModified = !Activated;
-            UpdateCanUpload();
             UpdateCanBeReset();
-            UpdateCanToggleActivation();
-        }
-
-        private void UpdateCanUpload()
-        {
-            CanUpload =
-                CanBeModified &&
-                TreatmentInstructions.Any(i => i.Enabled && i.CurrentUploadStatus != TreatmentInstruction.UploadStatus.Uploaded);
-        }
-
-        private void UpdateCanBeReset()
-        {
-            CanBeReset = CanBeModified && MissionHasProgress;
-        }
-
-        private void UpdateCanToggleActivation()
-        {
-            CanToggleActivation = MissionSet;
         }
 
         private void StartParameters_SelectedModeChangedEvent(object sender, EventArgs e)
@@ -268,30 +218,21 @@ namespace ACE_Mission_Control.Core.Models
         public void UpdateMissionStatus(MissionStatus newStatus)
         {
             bool justReturned =
-                (Stage != MissionStatus.Types.Stage.Returning &&
-                Stage != MissionStatus.Types.Stage.Override) &&
+                Stage != MissionStatus.Types.Stage.Returning &&
+                Stage != MissionStatus.Types.Stage.Override &&
                 (newStatus.MissionStage == MissionStatus.Types.Stage.Returning ||
                 newStatus.MissionStage == MissionStatus.Types.Stage.Override);
 
             Stage = newStatus.MissionStage;
 
-            Activated = newStatus.Activated;
-            CanBeModified = !Locked & !Activated;
-
             UpdateCanBeReset();
-            UpdateCanUpload();
 
             if (newStatus.LastLongitude != 0 && newStatus.LastLatitude != 0)
-            {
                 LastPosition = new Coordinate(
                   (newStatus.LastLongitude / 180) * Math.PI,
                   (newStatus.LastLatitude / 180) * Math.PI);
-                NotifyPropertyChanged("MissionHasProgress");
-            }
             else if (!MissionHasProgress)
-            {
                 LastPosition = null;
-            }
 
             startParameters.UpdateParameters(GetNextInstruction(), LastPosition, justReturned);
         }
@@ -303,6 +244,7 @@ namespace ACE_Mission_Control.Core.Models
                 return;
 
             instruction.AreaStatus = status;
+            UpdateMissionHasProgress();
         }
 
         // Takes a complete or partial list of instruction IDs and orders our list to match it
@@ -499,32 +441,23 @@ namespace ACE_Mission_Control.Core.Models
 
         public void ResetStatus()
         {
-            Activated = false;
-            CanBeModified = false;
             Stage = MissionStatus.Types.Stage.NotActivated;
         }
 
         public void ResetProgress()
         {
-            UpdateCanBeReset();
-            if (CanBeReset)
+            foreach (ITreatmentInstruction instruction in TreatmentInstructions)
             {
-                foreach (ITreatmentInstruction instruction in TreatmentInstructions)
+                if (instruction.AreaStatus != MissionRoute.Types.Status.NotStarted)
                 {
-                    if (instruction.AreaStatus != MissionRoute.Types.Status.NotStarted)
-                    {
-                        instruction.AreaStatus = MissionRoute.Types.Status.NotStarted;
-                    }
+                    instruction.AreaStatus = MissionRoute.Types.Status.NotStarted;
                 }
-
-                LastPosition = null;
-                startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
-
-                UpdateCanBeReset();
-                NotifyPropertyChanged("MissionHasProgress");
-
-                ProgressReset?.Invoke(this, new EventArgs());
             }
+
+            LastPosition = null;
+            startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
+
+            ProgressReset?.Invoke(this, new EventArgs());
         }
 
         public void SetSelectedStartWaypoint(string waypointID)
@@ -572,10 +505,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             var instruction = TreatmentInstructions.FirstOrDefault(i => i.ID == id);
             if (instruction != null)
-            {
                 instruction.CurrentUploadStatus = status;
-                UpdateCanUpload();
-            }
+            UpdateMissionSet();
         }
 
         public void SetUploadedInstructions(IEnumerable<int> ids)
@@ -587,6 +518,7 @@ namespace ACE_Mission_Control.Core.Models
                 else
                     instruction.CurrentUploadStatus = TreatmentInstruction.UploadStatus.NotUploaded;
             }
+            UpdateMissionSet();
         }
 
         private void MissionRetriever_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
@@ -609,7 +541,6 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     // Update treatment areas if they were modified
                     instruction.UpdateTreatmentArea(instructionWithModifiedArea);
-                    UpdateCanUpload();
                     updatedInstructions.Instructions.Add(instruction);
                 }
                 // If this instruction does not matche any area that was modified, then there would not have been any change to it...
@@ -659,7 +590,6 @@ namespace ACE_Mission_Control.Core.Models
             {
                 case "Enabled":
                     UpdateInstructionOrder();
-                    UpdateCanUpload();
                     break;
                 case "TreatmentRoute":
                     if (instruction.FirstInstruction)

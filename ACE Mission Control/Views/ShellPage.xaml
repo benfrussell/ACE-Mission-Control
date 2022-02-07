@@ -10,7 +10,8 @@
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:behaviors="using:ACE_Mission_Control.Behaviors"
     xmlns:helper="using:ACE_Mission_Control.Helpers"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
 
     <Page.Resources>
         <Style x:Key="SymbolTextBlockStyle" TargetType="TextBlock">
@@ -33,54 +34,68 @@
         SelectedItem="{x:Bind ViewModel.Selected, Mode=OneWay}"
         IsSettingsVisible="True"
         IsPaneOpen="True"
-        Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
+        Background="{ThemeResource SystemControlBackgroundAltMediumBrush}"
         MenuItemsSource="{x:Bind ViewModel.MenuItems, Mode=OneWay}"
         OpenPaneLength="200">
 
         <winui:NavigationView.PaneFooter>
-            <Button Command="{x:Bind ViewModel.RefreshUGCSMissionsCommand}"
-                    Background="{ThemeResource NavigationViewExpandedPaneBackground}"
-                    IsEnabled="{x:Bind model:UGCSClient.RequestingMissions, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Margin="0,0,0,0"
-                    HorizontalContentAlignment="Left"
-                    Height="40"
-                    CornerRadius="0">
-                <Button.Resources>
-                    <ResourceDictionary>
-                        <ResourceDictionary.ThemeDictionaries>
-                            <ResourceDictionary x:Key="Dark">
-                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemBaseLowColor}"/>
+            <StackPanel Orientation="Vertical">
+                <RelativePanel Margin="16,0,16,4">
+                    <TextBlock x:Uid="Main_UGCSHeader"
+                               x:Name="UGCSHeader"
+                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               Margin="0,0,0,0"/>
+                    <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
+                               RelativePanel.Below="UGCSHeader"
+                               VerticalAlignment="Center"
+                               Text="{x:Bind ViewModel.UGCSConnectText, Mode=OneWay}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Height="20"/>
+                    <Rectangle Height="1"
+                               Stretch="UniformToFill"
+                               Fill="{ThemeResource SystemBaseLowColor}"
+                               HorizontalAlignment="Stretch"
+                               RelativePanel.Below="UGCSMissionRetrieveTextBlock"
+                               Margin="0,8,0,0"/>
+                </RelativePanel>
+                <Border Margin="2,0,4,0">
+                    <Button Command="{x:Bind ViewModel.RefreshUGCSMissionsCommand}"
+                            Background="{ThemeResource NavigationViewExpandedPaneBackground}"
+                            IsEnabled="{x:Bind ViewModel.IsUgCSRefreshEnabled, Mode=OneWay}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Margin="4,0,0,0"
+                            HorizontalContentAlignment="Left"
+                            Height="38"
+                            CornerRadius="4"
+                            BorderThickness="0">
+                        <Button.Resources>
+                            <ResourceDictionary>
+                                <ResourceDictionary.ThemeDictionaries>
+                                    <ResourceDictionary x:Key="Dark">
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemChromeLowColor}"/>
+                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackLowColor}"/>
+                                    </ResourceDictionary>
+                                    <ResourceDictionary x:Key="Light">
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemChromeLowColor}"/>
+                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackLowColor}"/>
+                                    </ResourceDictionary>
+                                </ResourceDictionary.ThemeDictionaries>
                             </ResourceDictionary>
-                            <ResourceDictionary x:Key="Light">
-                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemBaseHighColor}"/>
-                            </ResourceDictionary>
-                        </ResourceDictionary.ThemeDictionaries>
-                    </ResourceDictionary>
-                </Button.Resources>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Style="{StaticResource SymbolTextBlockStyle}"
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource SymbolTextBlockStyle}"
                                Text="&#xE149;"
-                               Margin="2,0,0,0"/>
-                    <TextBlock x:Uid="Shell_RefreshUGCSMissions"
+                               Margin="0,2,0,0"/>
+                            <TextBlock x:Uid="Shell_RefreshUGCSMissions"
                                Margin="12,0,0,0"/>
-                </StackPanel>
-            </Button>
+                        </StackPanel>
+                    </Button>
+                </Border>
+            </StackPanel>
         </winui:NavigationView.PaneFooter>
 
         <i:Interaction.Behaviors>
-            <behaviors:NavigationViewHeaderBehavior DefaultHeader="{x:Bind ViewModel.Header, Mode=OneWay}">
-                <behaviors:NavigationViewHeaderBehavior.DefaultHeaderTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <TextBlock Text="{Binding}"
-                                       Style="{ThemeResource SubheaderTextBlockStyle}"
-                                       Margin="0,0,0,0" />
-                        </Grid>
-                    </DataTemplate>
-                </behaviors:NavigationViewHeaderBehavior.DefaultHeaderTemplate>
-            </behaviors:NavigationViewHeaderBehavior>
             <ic:EventTriggerBehavior EventName="ItemInvoked">
                 <ic:InvokeCommandAction Command="{x:Bind ViewModel.ItemInvokedCommand}" />
             </ic:EventTriggerBehavior>

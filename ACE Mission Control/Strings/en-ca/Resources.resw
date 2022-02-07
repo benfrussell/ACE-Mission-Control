@@ -493,4 +493,7 @@
   <data name="Alert_SynchronizeUpdate" xml:space="preserve">
     <value>Synchronized the</value>
   </data>
+  <data name="ConnectionBool_True" xml:space="preserve">
+    <value>Connected</value>
+  </data>
 </root>

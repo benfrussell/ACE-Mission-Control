@@ -21,6 +21,7 @@
                 <ResourceDictionary Source="/Styles/PasswordBox.xaml"/>
                 <ResourceDictionary Source="/Styles/Frame.xaml"/>
                 <ResourceDictionary Source="/Styles/ComboBox.xaml"/>
+                <ResourceDictionary Source="/Styles/Expander.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

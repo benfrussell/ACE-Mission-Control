@@ -10,7 +10,6 @@
     xmlns:ic="using:Microsoft.Xaml.Interactions.Core"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
-    Style="{StaticResource PageStyle}"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -25,7 +24,8 @@
 
     <Grid 
         x:Name="ContentArea"
-        Margin="0,0,0,12">
+        Margin="0,0,0,12"
+        Background="{ThemeResource SystemControlBackgroundAltMediumLowBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="{x:Bind ViewModel.FrameHeight, Mode=OneWay}"/>
@@ -33,7 +33,6 @@
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition />
             <ColumnDefinition />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
@@ -63,12 +62,6 @@
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Margin="4,2,0,0"/>
             <TextBlock
-                VerticalAlignment="Center"
-                Text="{x:Bind ViewModel.AttachedDrone.Mission.Activated, Mode=OneWay, Converter={StaticResource MissionActivatedToString}}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Foreground="{x:Bind ViewModel.AttachedDrone.Mission.Activated, Mode=OneWay, Converter={StaticResource MissionActivatedToColour}}"
-                Margin="4,0,0,0"/>
-            <TextBlock
                 Visibility="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
                 Text="{x:Bind ViewModel.AttachedDrone.Synchronization, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
                 Foreground="{x:Bind ViewModel.AttachedDrone.Synchronization,Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
@@ -79,86 +72,6 @@
                 Visibility="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay}"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Margin="4,0,0,0" />
-        </StackPanel>
-
-        <Border Grid.Row="0" Grid.Column="1" BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>
-        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="8,0,0,0">
-            <TextBlock
-                x:Uid="Main_OBCHeader"
-                Style="{ThemeResource SubtitleTextBlockStyle}"
-                Margin="4,0,0,0"/>
-            <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Margin="4,2,0,0">
-                <TextBlock
-                    x:Uid="Main_ChaperoneConnectionLabel"
-                    VerticalAlignment="Center"
-                    Height="20"
-                    Margin="0,0,0,0"
-                    Style="{StaticResource CaptionTextBlockStyle}"/>
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Height="20"
-                    Margin="4,0,0,0"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.OBCChaperoneConnectedText, Mode=OneWay}"
-                    Foreground="{x:Bind ViewModel.OBCChaperoneConnectedColour, Mode=OneWay}"/>
-            </StackPanel>
-            <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Margin="4,-2,0,0">
-                <TextBlock
-                    x:Uid="Main_DirectorConnectionLabel"
-                    VerticalAlignment="Center"
-                    Height="20"
-                    Margin="0,0,0,0"
-                    Style="{StaticResource CaptionTextBlockStyle}"/>
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Height="20"
-                    Margin="4,0,0,0"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.OBCDirectorConnectedText, Mode=OneWay}"
-                    Foreground="{x:Bind ViewModel.OBCDirectorConnectedColour, Mode=OneWay}"/>
-            </StackPanel>
-            <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Margin="4,-2,0,0">
-                <TextBlock
-                    x:Uid="Main_DroneConnectionLabel"
-                    VerticalAlignment="Center"
-                    Height="20"
-                    Margin="0,0,0,0"
-                    Style="{StaticResource CaptionTextBlockStyle}"/>
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Height="20"
-                    Margin="4,0,0,0"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.OBCDroneConnectedText, Mode=OneWay}"
-                    Foreground="{x:Bind ViewModel.OBCDroneConnectedColour, Mode=OneWay}"/>
-            </StackPanel>
-        </StackPanel>
-
-        <Border Grid.Row="0" Grid.Column="2" BorderBrush="DarkOrange" BorderThickness="3,0,0,0"/>
-        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Vertical" Margin="8,0,0,0">
-            <TextBlock
-                x:Uid="Main_UGCSHeader"
-                Style="{ThemeResource SubtitleTextBlockStyle}"
-                Margin="4,0,0,0"/>
-            <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Margin="4,2,0,0">
-                <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
-                       VerticalAlignment="Center"
-                       Text="{x:Bind ace:UGCSClient.ConnectionMessage, Mode=OneWay}"
-                       Style="{StaticResource CaptionTextBlockStyle}"
-                       Height="20"/>
-            </StackPanel>
         </StackPanel>
 
         <Pivot x:Name="Items"

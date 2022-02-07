@@ -22,24 +22,13 @@ using Windows.UI.Xaml.Navigation;
 using WinUI = Microsoft.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.ApplicationModel.Resources.Core;
+using Windows.ApplicationModel.Core;
+using System.ComponentModel;
 
 namespace ACE_Mission_Control.ViewModels
 {
     public class ShellViewModel : ViewModelBase
     {
-        private string _header;
-        public string Header
-        {
-            get { return _header; }
-            set
-            {
-                if (_header == value)
-                    return;
-                _header = value;
-                RaisePropertyChanged("Header");
-            }
-        }
-
         private List<WinUI.NavigationViewItemBase> _menuItems;
         public List<WinUI.NavigationViewItemBase> MenuItems
         {
@@ -51,6 +40,21 @@ namespace ACE_Mission_Control.ViewModels
                 _menuItems = value;
                 RaisePropertyChanged("MenuItems");
             }
+        }
+
+        private string _ugcsConnectText;
+        public string UGCSConnectText
+        {
+            get { return _ugcsConnectText; }
+            set { Set(ref _ugcsConnectText, value); }
+        }
+
+        private bool _isUgCSRefreshEnabled;
+
+        public bool IsUgCSRefreshEnabled
+        {
+            get { return _isUgCSRefreshEnabled; }
+            set { Set(ref _isUgCSRefreshEnabled, value); }
         }
 
         // Generated Code
@@ -100,6 +104,10 @@ namespace ACE_Mission_Control.ViewModels
 
             DroneController.Drones.CollectionChanged += Drones_CollectionChanged;
             SettingsViewModel.LanguageChangedEvent += SettingsViewModel_LanguageChangedEvent;
+
+            IsUgCSRefreshEnabled = UGCSClient.IsConnected;
+            UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
+            UGCSConnectText = UGCSClient.ConnectionMessage;
         }
 
         private void SettingsViewModel_LanguageChangedEvent(object sender, EventArgs e)
@@ -116,17 +124,22 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private async void UGCSClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (e.PropertyName == "ConnectionMessage")
+                    UGCSConnectText = UGCSClient.ConnectionMessage;
+                else if (e.PropertyName == "IsConnected")
+                    IsUgCSRefreshEnabled = UGCSClient.IsConnected;
+            });
+        }
+
         private void Drone_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Name")
             {
                 MenuItems = GetMenuItems().ToList();
-                if (NavigationService.Frame.Content is MainPage)
-                {
-                    Drone drone = sender as Drone;
-                    if ((NavigationService.Frame.Content as MainPage).DroneID == drone.ID)
-                        Header = drone.Name;
-                }
             }
         }
 
@@ -205,46 +218,18 @@ namespace ACE_Mission_Control.ViewModels
             if (e.SourcePageType == typeof(SettingsPage))
             {
                 Selected = _navigationView.SettingsItem as WinUI.NavigationViewItem;
-                Header = "Shell_SettingsItem".GetLocalized();
             }
             else if (e.SourcePageType == typeof(WelcomePage))
             {
                 Selected = _navigationView.MenuItems
                             .OfType<WinUI.NavigationViewItem>()
                             .FirstOrDefault(menuItem => IsMenuItemForPageType(menuItem, e.SourcePageType));
-                Header = " ";
             }
             else
             {
                 Selected = _navigationView.MenuItems
                             .OfType<WinUI.NavigationViewItem>()
                             .FirstOrDefault(menuItem => IsMenuItemForPageType(menuItem, e.SourcePageType));
-
-                if (e.SourcePageType == typeof(MainPage))
-                {
-                    if (e.Parameter.GetType() == typeof(int))
-                    {
-                        foreach (Drone d in DroneController.Drones)
-                        {
-                            if (d.ID == (int)e.Parameter)
-                            {
-                                Header = (d as Drone).Name;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (DroneController.Drones.Count > 0)
-                        {
-                            Header = DroneController.Drones[0].Name;
-                        }
-                    }
-                }
-                else
-                {
-                    Header = Selected.Content as string;
-                }
             }
         }
 

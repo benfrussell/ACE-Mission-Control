@@ -13,24 +13,17 @@ Force stop payload stopped working
 UGCS routes don't always grab
 	- Maybe it takes too long and interrupts itself?
 	- Adding blocking until the requests are complete. Added more logging.
+	- Could be fixed now?
 
 --- IMPORTANT
 
-When the route starts within the treatment area it sets the start point as it exits.
-
 TCP "pinging" is not reliable, at least on busy slow networks - create ping script to execute
 	- Not working for Gabe
+	- Should switch to using DNS-SD/mDNS to discover devices on the network 
 
 Mission Control Core text isn't translated
 
 Onboard Computer text isn't translated
-
-Mission Control doesn't send reset progress to the Pi when it reports an area as being in progress
-	- When in Override? Related to CanBeModified?
-	- Fixed?
-
-Upload Areas should reset the progress enum?
-	- Fixed?
 
 Flythrough error does not unset?
 
@@ -40,6 +33,10 @@ Sometimes the map just dies. Usually after doing something too quickly. Reboot b
 
 Save and restore instruction and connection details
 
+Onboard computer logs aren't good.
+	- Multiple logs are started. Seems to be related to the chaperone because, it causes another log file to start. Maybe check by process ID?
+	- Time and date is wrong because the Pi never knows the time and date. Update it from ACE?
+
 --- LOWER PRIORITY
 
 Reset Defaults config button(s)
@@ -47,6 +44,7 @@ Reset Defaults config button(s)
 Button to exclude emulation drones from the drone list
 
 Disconnection causes three disconnect messages in MissionControl
+	- Fixed?
 
 Sometimes the treatment areas are not grabbed 
 	- Areas are added to the TreatmentInstructions - it's just the polygon is not drawn on the map
@@ -54,9 +52,12 @@ Sometimes the treatment areas are not grabbed
 
 Unnecessary no connection messages
 
-Network search is slow
-
 ConfigEntry response causes the entire list to clone and rebuild, because it's badly done (:
+
+When the route starts within the treatment area it sets the start point as it exits.
+	- This is because it is still the "first intersection"
+	- Should be easy to fix but my first attempt failed.
+	- Easier to work around with different start modes. Leaving it for now.
 
 --- DOCUMENTATION
 

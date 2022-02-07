@@ -27,4 +27,9 @@
         <Setter Property="AllowFocusOnInteraction" Value="False" />
     </Style>
 
+    <Style x:Key="ExpanderTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource NavigationViewItemHeaderTextStyle}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
 </ResourceDictionary>

@@ -161,6 +161,7 @@
     <Compile Include="Helpers\AlertToString.cs" />
     <Compile Include="Helpers\EnterKeyHelpers.cs" />
     <Compile Include="Helpers\NavHelper.cs" />
+    <Compile Include="Helpers\NavigationViewItemTemplateSelector.cs" />
     <Compile Include="Helpers\SettingsStorageExtensions.cs" />
     <Compile Include="Services\ActivationService.cs" />
     <Compile Include="Activation\DefaultActivationHandler.cs" />
@@ -171,7 +172,6 @@
     <Compile Include="ViewModels\DroneViewModelBase.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\MissionViewModel.cs" />
-    <Compile Include="ViewModels\PlannerViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
@@ -190,9 +190,6 @@
     </Compile>
     <Compile Include="Views\MissionPage.xaml.cs">
       <DependentUpon>MissionPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\PlannerPage.xaml.cs">
-      <DependentUpon>PlannerPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
@@ -278,10 +275,6 @@
     <Page Include="Views\MissionPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\PlannerPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>

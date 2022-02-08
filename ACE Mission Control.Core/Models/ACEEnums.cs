@@ -32,5 +32,16 @@ namespace ACE_Mission_Control.Core.Models
             StopAndTurn = 1,
             FlyThrough = 2
         }
+
+        public enum ConnectionSummary
+        {
+            ConnectionDisabled,
+            TryingACEConnection,
+            ConnectedACELimited,
+            ConnectedACE,
+            TryingDroneConnection,
+            ConnectedACEDroneLimited,
+            ConnectedACEDrone
+        }
     }
 }

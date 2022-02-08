@@ -7,8 +7,6 @@
     xmlns:helper="using:ACE_Mission_Control.Helpers"
     xmlns:ace="using:ACE_Mission_Control.Core.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ic="using:Microsoft.Xaml.Interactions.Core"
-    xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d">
 
@@ -25,11 +23,10 @@
     <Grid 
         x:Name="ContentArea"
         Margin="0,0,0,12"
-        Background="{ThemeResource SystemControlBackgroundAltMediumLowBrush}">
+        Background="{ThemeResource SystemChromeBlackLowColor}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="{x:Bind ViewModel.FrameHeight, Mode=OneWay}"/>
-            <RowDefinition Height="{x:Bind ViewModel.AlertGridHeight, Mode=OneWay}"/>
+            <RowDefinition MinHeight="100"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -49,50 +46,20 @@
             </Storyboard>
         </Grid.Resources>
 
-        <Border Grid.Row="0" Grid.Column="0" BorderBrush="DarkOrange" BorderThickness="3,0,0,0" Margin="12,0,0,0"/>
-        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical" Margin="20,0,0,0">
-            <TextBlock
-                x:Uid="Main_MissionStatusHeader"
-                x:Name="MissionHeaderTest"
-                Style="{ThemeResource SubtitleTextBlockStyle}"
-                Margin="4,0,0,0"/>
-            <TextBlock
-                VerticalAlignment="Center"
-                Text="{x:Bind ViewModel.AttachedDrone.Mission.Stage, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Margin="4,2,0,0"/>
-            <TextBlock
-                Visibility="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
-                Text="{x:Bind ViewModel.AttachedDrone.Synchronization, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
-                Foreground="{x:Bind ViewModel.AttachedDrone.Synchronization,Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Margin="4,0,0,0" />
-            <TextBlock
-                x:Uid="Main_AwayOnMissionLabel"
-                Visibility="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Margin="4,0,0,0" />
-        </StackPanel>
 
         <Pivot x:Name="Items"
                Margin="0,-4,0,0"
-               Grid.Row="1"
+               Grid.Row="0"
                Grid.ColumnSpan="3">
             <Pivot.HeaderTemplate>
                 <DataTemplate>
                     <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{Binding}" />
                 </DataTemplate>
             </Pivot.HeaderTemplate>
-            
+
             <PivotItem x:Uid="Main_MissionPivotItem" x:Name="MissionItem">
                 <Grid x:Name="MissionGrid">
                     <Frame x:Name="MissionFrame" Style="{ThemeResource ACEFrame}" />
-                </Grid>
-            </PivotItem>
-
-            <PivotItem x:Uid="Main_PlannerPivotItem" x:Name="PlannerItem">
-                <Grid>
-                    <Frame x:Name="PlannerFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
 
@@ -107,17 +74,10 @@
                     <Frame x:Name="ConsoleFrame" Style="{ThemeResource ACEFrame}"/>
                 </Grid>
             </PivotItem>
-
-            <i:Interaction.Behaviors>
-                <ic:EventTriggerBehavior EventName="SelectionChanged">
-                    <ic:InvokeCommandAction Command="{x:Bind ViewModel.PivotSelectionChangedCommand}"
-                                            CommandParameter="{x:Bind Items}"/>
-                </ic:EventTriggerBehavior>
-            </i:Interaction.Behaviors>
         </Pivot>
 
         <Border Grid.ColumnSpan="3"
-                Grid.Row="2"
+                Grid.Row="1"
                 Margin="12,8,12,0"
                 Background="{ThemeResource SystemChromeMediumLowColor}"/>
 
@@ -126,7 +86,7 @@
                            ColumnHeaderHeight="9"
                            Margin="12,8,12,0"
                            Grid.ColumnSpan="3"
-                           Grid.Row="2"
+                           Grid.Row="1"
                            ClipboardCopyMode="ExcludeHeader"
                            x:Name="AlertDataGrid">
 

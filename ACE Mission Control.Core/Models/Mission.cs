@@ -141,7 +141,7 @@ namespace ACE_Mission_Control.Core.Models
 
         private void UpdateMissionSet()
         {
-            MissionHasProgress = TreatmentInstructions.Any(i => i.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded);
+            MissionSet = TreatmentInstructions.Any(i => i.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded);
         }
 
         private int treatmentDuration;

@@ -79,6 +79,7 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 _interfaceState = value;
                 NotifyPropertyChanged();
+                UpdateConnectionStage();
             }
         }
 
@@ -210,6 +211,37 @@ namespace ACE_Mission_Control.Core.Models
         private void UpdateCanStartSynchronize()
         {
             CanStartSynchronize = OBCClient.IsDirectorConnected && Synchronization != SyncState.Paused && Synchronization != SyncState.Synchronizing;
+        }
+
+        private ACEEnums.ConnectionSummary _connectionStage;
+        public ACEEnums.ConnectionSummary ConnectionStage
+        {
+            get { return _connectionStage; }
+            private set
+            {
+                if (_connectionStage == value)
+                    return;
+                _connectionStage = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private void UpdateConnectionStage()
+        {
+            if (InterfaceState == InterfaceStatus.Types.State.Online && OBCClient.IsDirectorConnected && OBCClient.IsChaperoneConnected)
+                ConnectionStage = ACEEnums.ConnectionSummary.ConnectedACEDrone;
+            else if (InterfaceState == InterfaceStatus.Types.State.Online && OBCClient.IsDirectorConnected)
+                ConnectionStage = ACEEnums.ConnectionSummary.ConnectedACEDroneLimited;
+            else if (InterfaceState == InterfaceStatus.Types.State.Attempting && OBCClient.IsDirectorConnected)
+                ConnectionStage = ACEEnums.ConnectionSummary.TryingDroneConnection;
+            else if (OBCClient.IsDirectorConnected && OBCClient.IsChaperoneConnected)
+                ConnectionStage = ACEEnums.ConnectionSummary.ConnectedACE;
+            else if (OBCClient.IsDirectorConnected)
+                ConnectionStage = ACEEnums.ConnectionSummary.ConnectedACELimited;
+            else if (OBCClient.AutoTryingConnections)
+                ConnectionStage = ACEEnums.ConnectionSummary.TryingACEConnection;
+            else
+                ConnectionStage = ACEEnums.ConnectionSummary.ConnectionDisabled;
         }
 
         private List<ConfigEntry> _configEntries;
@@ -676,10 +708,16 @@ namespace ACE_Mission_Control.Core.Models
 
                 UpdateCanStartSynchronize();
                 UpdateAcceptingMissionCommands();
+                UpdateConnectionStage();
             }
             else if (e.PropertyName == "AutoTryingConnections")
             {
                 UpdateAwayOnMission();
+                UpdateConnectionStage();
+            }
+            else if (e.PropertyName == "IsChaperoneConnected")
+            {
+                UpdateConnectionStage();
             }
         }
 

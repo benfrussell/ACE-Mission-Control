@@ -36,28 +36,24 @@ namespace ACE_Mission_Control.Views
             if (Items.SelectedItem == null || (Items.SelectedItem as PivotItem).Name == "MissionItem")
             {
                 MissionFrame.Navigate(typeof(MissionPage), DroneID, e.NavigationTransitionInfo);
-                PlannerFrame.Navigate(typeof(PlannerPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, new SuppressNavigationTransitionInfo());
             }
             else if ((Items.SelectedItem as PivotItem).Name == "PlannerItem")
             {
                 MissionFrame.Navigate(typeof(MissionPage), DroneID, new SuppressNavigationTransitionInfo());
-                PlannerFrame.Navigate(typeof(PlannerPage), DroneID, e.NavigationTransitionInfo);
                 ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, new SuppressNavigationTransitionInfo());
             }
             else if ((Items.SelectedItem as PivotItem).Name == "ConfigItem")
             {
                 MissionFrame.Navigate(typeof(MissionPage), DroneID, new SuppressNavigationTransitionInfo());
-                PlannerFrame.Navigate(typeof(PlannerPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConfigFrame.Navigate(typeof(ConfigPage), DroneID, e.NavigationTransitionInfo);
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, new SuppressNavigationTransitionInfo());
             }
             else if ((Items.SelectedItem as PivotItem).Name == "ConsoleItem")
             {
                 MissionFrame.Navigate(typeof(MissionPage), DroneID, new SuppressNavigationTransitionInfo());
-                PlannerFrame.Navigate(typeof(PlannerPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, e.NavigationTransitionInfo);
             }

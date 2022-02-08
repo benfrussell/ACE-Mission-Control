@@ -25,8 +25,40 @@ namespace ACE_Mission_Control.ViewModels
 {
     public class MissionViewModel : DroneViewModelBase
     {
+        public enum ConnectStatus
+        {
+            NotConnected,
+            AttemptingConnection,
+            Connected
+        }
         // --- Connection properties
-        
+
+        private ConnectStatus _chaperoneStatus;
+        public ConnectStatus ChaperoneStatus
+        {
+            get { return _chaperoneStatus; }
+            set
+            {
+                if (_chaperoneStatus == value)
+                    return;
+                _chaperoneStatus = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private ConnectStatus _directorStatus;
+        public ConnectStatus DirectorStatus
+        {
+            get { return _directorStatus; }
+            set
+            {
+                if (_directorStatus == value)
+                    return;
+                _directorStatus = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private string _hostname_text;
         public string Hostname_Text
         {
@@ -108,85 +140,33 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private string _obcChaperoneConnectedText;
-        public string OBCChaperoneConnectedText
-        {
-            get => _obcChaperoneConnectedText;
-            set
-            {
-                if (value == _obcChaperoneConnectedText)
-                    return;
-                _obcChaperoneConnectedText = value;
-                RaisePropertyChanged("OBCChaperoneConnectedText");
-            }
-        }
-
-        private SolidColorBrush _obcChaperoneConnectedColour;
-        public SolidColorBrush OBCChaperoneConnectedColour
-        {
-            get => _obcChaperoneConnectedColour;
-            set
-            {
-                if (value == _obcChaperoneConnectedColour)
-                    return;
-                _obcChaperoneConnectedColour = value;
-                RaisePropertyChanged("OBCChaperoneConnectedColour");
-            }
-        }
-
-        private string _obcDirectorConnectedText;
-        public string OBCDirectorConnectedText
-        {
-            get => _obcDirectorConnectedText;
-            set
-            {
-                if (value == _obcDirectorConnectedText)
-                    return;
-                _obcDirectorConnectedText = value;
-                RaisePropertyChanged("OBCDirectorConnectedText");
-            }
-        }
-
-        private SolidColorBrush _obcDirectorConnectedColour;
-        public SolidColorBrush OBCDirectorConnectedColour
-        {
-            get => _obcDirectorConnectedColour;
-            set
-            {
-                if (value == _obcDirectorConnectedColour)
-                    return;
-                _obcDirectorConnectedColour = value;
-                RaisePropertyChanged("OBCDirectorConnectedColour");
-            }
-        }
-
-        private string _obcDroneConnectedText;
-        public string OBCDroneConnectedText
-        {
-            get => _obcDroneConnectedText;
-            set
-            {
-                if (value == _obcDroneConnectedText)
-                    return;
-                _obcDroneConnectedText = value;
-                RaisePropertyChanged("OBCDroneConnectedText");
-            }
-        }
-
-        private SolidColorBrush _obcDroneConnectedColour;
-        public SolidColorBrush OBCDroneConnectedColour
-        {
-            get => _obcDroneConnectedColour;
-            set
-            {
-                if (value == _obcDroneConnectedColour)
-                    return;
-                _obcDroneConnectedColour = value;
-                RaisePropertyChanged("OBCDroneConnectedColour");
-            }
-        }
-
         // --- Planner properties
+
+        private string _plannerStatus;
+        public string PlannerStatus
+        {
+            get { return _plannerStatus; }
+            set
+            {
+                if (_plannerStatus == value)
+                    return;
+                _plannerStatus = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private SolidColorBrush _plannerStatusColour;
+        public SolidColorBrush PlannerStatusColour
+        {
+            get { return _plannerStatusColour; }
+            set
+            {
+                if (_plannerStatusColour == value)
+                    return;
+                _plannerStatusColour = value;
+                RaisePropertyChanged();
+            }
+        }
 
         private string _treatmentDuration;
         public string TreatmentDuration
@@ -317,9 +297,9 @@ namespace ACE_Mission_Control.ViewModels
             startModeErrorNotificationSent = false;
             CheckStartModeError();
 
-            SetChaperoneConnectedText();
-            SetDirectorConnectedText();
-            SetDroneConnectedText();
+            UpdateConnectionStatuses();
+            UpdatePlannerStatus();
+
 
             DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
                 AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
@@ -331,22 +311,8 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                if (e.PropertyName == "IsDirectorConnected")
-                {
-                    RaisePropertyChanged("IsDirectorConnected");
-                    SetDirectorConnectedText();
-                    connectDroneCommand();
-                }
-                else if (e.PropertyName == "ConnectionInProgress")
-                {
-                    SetDirectorConnectedText();
-                    SetChaperoneConnectedText();
-                }
-                else if (e.PropertyName == "IsChaperoneConnected")
-                {
-                    RaisePropertyChanged("IsChaperoneConnected");
-                    SetChaperoneConnectedText();
-                }
+                if (e.PropertyName == "IsDirectorConnected" || e.PropertyName == "IsChaperoneConnected" || e.PropertyName == "ConnectionInProgress")
+                    UpdateConnectionStatuses();
             });
         }
 
@@ -371,6 +337,9 @@ namespace ACE_Mission_Control.ViewModels
                         SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
                         CheckStartModeError();
                         break;
+                    case "MissionSet":
+                        UpdatePlannerStatus();
+                        break;
                 }
             });
         }
@@ -383,7 +352,6 @@ namespace ACE_Mission_Control.ViewModels
                 {
                     case "InterfaceState":
                         DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting || AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
-                        SetDroneConnectedText();
                         break;
                 }
             });
@@ -453,60 +421,34 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.InstructionSyncedPropertyUpdated -= Mission_InstructionSyncedPropertyUpdated;
         }
 
-        private void SetChaperoneConnectedText()
-        {
-            if (AttachedDrone.OBCClient.IsChaperoneConnected)
-            {
-                OBCChaperoneConnectedText = "Connected";
-                OBCChaperoneConnectedColour = new SolidColorBrush(Colors.ForestGreen);
-            }
-            else if (AttachedDrone.OBCClient.ConnectionInProgress)
-            {
-                OBCChaperoneConnectedText = "Attempting Connection";
-                OBCChaperoneConnectedColour = new SolidColorBrush(Colors.Yellow);
-            }
-            else
-            {
-                OBCChaperoneConnectedText = "Not Connected";
-                OBCChaperoneConnectedColour = new SolidColorBrush(Colors.OrangeRed);
-            }
-        }
-
-        private void SetDirectorConnectedText()
+        private void UpdateConnectionStatuses()
         {
             if (AttachedDrone.OBCClient.IsDirectorConnected)
-            {
-                OBCDirectorConnectedText = "Connected";
-                OBCDirectorConnectedColour = new SolidColorBrush(Colors.ForestGreen);
-            }
+                DirectorStatus = ConnectStatus.Connected;
             else if (AttachedDrone.OBCClient.ConnectionInProgress)
-            {
-                OBCDirectorConnectedText = "Attempting Connection";
-                OBCDirectorConnectedColour = new SolidColorBrush(Colors.Yellow);
-            }
+                DirectorStatus = ConnectStatus.AttemptingConnection;
             else
-            {
-                OBCDirectorConnectedText = "Not Connected";
-                OBCDirectorConnectedColour = new SolidColorBrush(Colors.OrangeRed);
-            }
+                DirectorStatus = ConnectStatus.NotConnected;
+
+            if (AttachedDrone.OBCClient.IsChaperoneConnected)
+                ChaperoneStatus = ConnectStatus.Connected;
+            else if (AttachedDrone.OBCClient.ConnectionInProgress)
+                ChaperoneStatus = ConnectStatus.AttemptingConnection;
+            else
+                ChaperoneStatus = ConnectStatus.NotConnected;
         }
 
-        private void SetDroneConnectedText()
+        private void UpdatePlannerStatus()
         {
-            if (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online)
+            if (AttachedDrone.Mission.MissionSet)
             {
-                OBCDroneConnectedText = "Connected";
-                OBCDroneConnectedColour = new SolidColorBrush(Colors.ForestGreen);
-            }
-            else if (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting)
-            {
-                OBCDroneConnectedText = "Attempting Connection";
-                OBCDroneConnectedColour = new SolidColorBrush(Colors.Yellow);
+                PlannerStatus = "Mission_PlannerMissionSet".GetLocalized();
+                PlannerStatusColour = new SolidColorBrush(Colors.ForestGreen);
             }
             else
             {
-                OBCDroneConnectedText = "Not Connected";
-                OBCDroneConnectedColour = new SolidColorBrush(Colors.OrangeRed);
+                PlannerStatus = "Mission_PlannerMissionNotSet".GetLocalized();
+                PlannerStatusColour = new SolidColorBrush(Colors.Yellow);
             }
         }
 

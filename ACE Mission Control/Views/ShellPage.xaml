@@ -5,11 +5,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:winui="using:Microsoft.UI.Xaml.Controls"
-    xmlns:model="using:ACE_Mission_Control.Core.Models"
+    xmlns:ace="using:ACE_Mission_Control.Core.Models"
     xmlns:ic="using:Microsoft.Xaml.Interactions.Core"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:behaviors="using:ACE_Mission_Control.Behaviors"
     xmlns:helper="using:ACE_Mission_Control.Helpers"
+    xmlns:vm="using:ACE_Mission_Control.ViewModels"
     mc:Ignorable="d"
     Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
 
@@ -18,7 +19,53 @@
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
             <Setter Property="FontSize" Value="16"/>
         </Style>
+        
         <helper:NegateBoolean x:Key="NegateBoolean"/>
+        <helper:EnumToResourceString x:Key="EnumToResourceString" />
+        <helper:EnumToRYGColour x:Key="EnumToRYGColour"/>
+
+        <DataTemplate x:Key="NavigationItemDroneTemplate" x:DataType="ace:Drone">
+            <winui:NavigationViewItem Icon="Send" Tag="{x:Bind ID, Mode=OneWay}">
+                <RelativePanel>
+                    <TextBlock x:Name="DroneName"
+                                   Text="{x:Bind Name, Mode=OneWay}"
+                                   Style="{ThemeResource NavigationViewItemHeaderTextStyle}"
+                                   Margin="0,2,0,0"/>
+                    <TextBlock x:Name="DroneMissionStage"
+                                   RelativePanel.Below="DroneName"
+                                   Text="{x:Bind Mission.Stage, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Margin="0,-2,0,0"/>
+                    <TextBlock x:Name="DroneSynchronization"
+                                   RelativePanel.Below="DroneMissionStage"
+                                   Visibility="{x:Bind AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                                   Text="{x:Bind Synchronization, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                   Foreground="{x:Bind Synchronization,Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Margin="0,0,0,4" />
+                    <TextBlock x:Uid="Main_AwayOnMissionLabel"
+                                   RelativePanel.Below="DroneMissionStage"
+                                   Visibility="{x:Bind AwayOnMission, Mode=OneWay}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Margin="0,0,0,4" />
+                </RelativePanel>
+            </winui:NavigationViewItem>
+        </DataTemplate>
+
+        <DataTemplate x:Key="NavigationItemWelcomeTemplate" x:DataType="vm:WelcomeViewModel">
+            <winui:NavigationViewItem Icon="Home" Tag="ACE_Mission_Control.ViewModels.WelcomeViewModel">
+                <TextBlock x:Name="HomeName"
+                           Text="{x:Bind WelcomeTitle, Mode=OneWay}"
+                           RelativePanel.Below="HomeSymbol"
+                           Style="{ThemeResource NavigationViewItemHeaderTextStyle}"
+                           Margin="0,0,0,0"/>
+            </winui:NavigationViewItem>
+        </DataTemplate>
+
+        <helper:NavigationViewItemTemplateSelector x:Key="NavigationViewTemplateSelector"
+                                                   WelcomePageTemplate="{StaticResource NavigationItemWelcomeTemplate}"
+                                                   DroneTemplate="{StaticResource NavigationItemDroneTemplate}" />
+
     </Page.Resources>
 
     <i:Interaction.Behaviors>
@@ -36,7 +83,9 @@
         IsPaneOpen="True"
         Background="{ThemeResource SystemControlBackgroundAltMediumBrush}"
         MenuItemsSource="{x:Bind ViewModel.MenuItems, Mode=OneWay}"
-        OpenPaneLength="200">
+        MenuItemTemplateSelector="{ThemeResource NavigationViewTemplateSelector}"
+        OpenPaneLength="205"
+        ExpandedModeThresholdWidth="0">
 
         <winui:NavigationView.PaneFooter>
             <StackPanel Orientation="Vertical">
@@ -44,6 +93,7 @@
                     <TextBlock x:Uid="Main_UGCSHeader"
                                x:Name="UGCSHeader"
                                Style="{ThemeResource SubtitleTextBlockStyle}"
+                               TextWrapping="NoWrap"
                                Margin="0,0,0,0"/>
                     <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
                                RelativePanel.Below="UGCSHeader"
@@ -74,11 +124,11 @@
                                 <ResourceDictionary.ThemeDictionaries>
                                     <ResourceDictionary x:Key="Dark">
                                         <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemChromeLowColor}"/>
-                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackLowColor}"/>
+                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackMediumLowColor}"/>
                                     </ResourceDictionary>
                                     <ResourceDictionary x:Key="Light">
                                         <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemChromeLowColor}"/>
-                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackLowColor}"/>
+                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackMediumLowColor}"/>
                                     </ResourceDictionary>
                                 </ResourceDictionary.ThemeDictionaries>
                             </ResourceDictionary>
@@ -88,7 +138,7 @@
                                Text="&#xE149;"
                                Margin="0,2,0,0"/>
                             <TextBlock x:Uid="Shell_RefreshUGCSMissions"
-                               Margin="12,0,0,0"/>
+                               Margin="14,0,0,0"/>
                         </StackPanel>
                     </Button>
                 </Border>

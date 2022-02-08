@@ -165,9 +165,6 @@
     <value>Contrôle de mission ACE est un outil pour automatiser une charge utile de missions de drone en combinaison avec UgCS et l'ordinateur embarqué ACE.</value>
     <comment>About this application description for Settings</comment>
   </data>
-  <data name="Config_OBCConnectionLabel.Text" xml:space="preserve">
-    <value>Connexion de ordinateur embarqué</value>
-  </data>
   <data name="Config_OBCIPLabel.Text" xml:space="preserve">
     <value>Adresse IP</value>
   </data>
@@ -180,9 +177,6 @@
   </data>
   <data name="Config_ResetButton.Content" xml:space="preserve">
     <value>Réinitialiser</value>
-  </data>
-  <data name="Mission_OBCHeader.Text" xml:space="preserve">
-    <value>Ordinateur embarqué</value>
   </data>
   <data name="Main_ConsolePivotItem.Header" xml:space="preserve">
     <value>Console</value>
@@ -212,16 +206,13 @@
     <value>Ordinateur embarqué est lent. Délai de réponse</value>
   </data>
   <data name="Planner_ResetButton.Content" xml:space="preserve">
-    <value>Réinitialiser le progrès de mission</value>
+    <value>Réinitialiser le mission</value>
   </data>
   <data name="Mission_RestartOBC.Content" xml:space="preserve">
     <value>Réinitialiser le Directeur</value>
   </data>
   <data name="Planner_SetDuration.Text" xml:space="preserve">
     <value>Durée</value>
-  </data>
-  <data name="Planner_SetPayload.Text" xml:space="preserve">
-    <value>Charge Utile</value>
   </data>
   <data name="Mission_TestInterface.Content" xml:space="preserve">
     <value>Test de l'interface drone</value>
@@ -277,9 +268,6 @@
   <data name="Planner_SetupWaypointRouteHeader.Text" xml:space="preserve">
     <value>Route de Waypoints</value>
   </data>
-  <data name="Planner_Subtitle.Text" xml:space="preserve">
-    <value>Ordre de traitement et paramètres</value>
-  </data>
   <data name="Planner_Title.Text" xml:space="preserve">
     <value>Plannificateur de mission</value>
   </data>
@@ -291,12 +279,6 @@
   </data>
   <data name="Config_ManualCommandsCheckbox.Content" xml:space="preserve">
     <value>Activer les commandes manuelles seulement</value>
-  </data>
-  <data name="Mission_ConnectOBCSwitch.OffContent" xml:space="preserve">
-    <value>Connecte à l'ordinateur à bord</value>
-  </data>
-  <data name="Mission_ConnectOBCSwitch.OnContent" xml:space="preserve">
-    <value>Connecte à l'ordinateur à bord</value>
   </data>
   <data name="Main_ChaperoneConnectionLabel.Text" xml:space="preserve">
     <value>Escorte:</value>
@@ -485,7 +467,7 @@
     <value>Début</value>
   </data>
   <data name="Config_UGCSConnectionLabel.Text" xml:space="preserve">
-    <value>Mission de UGCS</value>
+    <value>Mission de UgCS</value>
   </data>
   <data name="Alert_UGCSStatus" xml:space="preserve">
     <value>Statut UgCS:</value>

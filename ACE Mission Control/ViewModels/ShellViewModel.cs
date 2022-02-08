@@ -29,8 +29,8 @@ namespace ACE_Mission_Control.ViewModels
 {
     public class ShellViewModel : ViewModelBase
     {
-        private List<WinUI.NavigationViewItemBase> _menuItems;
-        public List<WinUI.NavigationViewItemBase> MenuItems
+        private List<object> _menuItems;
+        public List<object> MenuItems
         {
             get { return _menuItems; }
             set
@@ -65,7 +65,7 @@ namespace ACE_Mission_Control.ViewModels
         private bool _isBackEnabled;
         private IList<KeyboardAccelerator> _keyboardAccelerators;
         private WinUI.NavigationView _navigationView;
-        private WinUI.NavigationViewItem _selected;
+        private object _selected;
         private ICommand _loadedCommand;
         private ICommand _itemInvokedCommand;
 
@@ -77,7 +77,7 @@ namespace ACE_Mission_Control.ViewModels
 
         public static NavigationServiceEx NavigationService => ViewModelLocator.Current.NavigationService;
 
-        public WinUI.NavigationViewItem Selected
+        public object Selected
         {
             get { return _selected; }
             set { Set(ref _selected, value); }
@@ -100,7 +100,6 @@ namespace ACE_Mission_Control.ViewModels
             NavigationService.NavigationFailed += Frame_NavigationFailed;
             NavigationService.Navigated += Frame_Navigated;
             _navigationView.BackRequested += OnBackRequested;
-            MenuItems = GetMenuItems().ToList();
 
             DroneController.Drones.CollectionChanged += Drones_CollectionChanged;
             SettingsViewModel.LanguageChangedEvent += SettingsViewModel_LanguageChangedEvent;
@@ -108,6 +107,8 @@ namespace ACE_Mission_Control.ViewModels
             IsUgCSRefreshEnabled = UGCSClient.IsConnected;
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
             UGCSConnectText = UGCSClient.ConnectionMessage;
+
+            MenuItems = GetMenuItems().ToList();
         }
 
         private void SettingsViewModel_LanguageChangedEvent(object sender, EventArgs e)
@@ -143,23 +144,13 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        public IEnumerable<WinUI.NavigationViewItemBase> GetMenuItems()
+        public IEnumerable<object> GetMenuItems()
         {
-            yield return new WinUI.NavigationViewItem()
-            {
-                Content = "Shell_HomeItem".GetLocalized(),
-                Icon = new SymbolIcon(Symbol.Home),
-                Tag = typeof(WelcomeViewModel).FullName
-            };
+            yield return ViewModelLocator.Current.WelcomeViewModel; 
 
             foreach (Drone d in DroneController.Drones)
             {
-                yield return new WinUI.NavigationViewItem()
-                {
-                    Content = d.Name,
-                    Icon = new SymbolIcon(Symbol.Send),
-                    Tag = d
-                };
+                yield return d;
             }
         }
 
@@ -181,19 +172,18 @@ namespace ACE_Mission_Control.ViewModels
                 return;
             }
 
-            var item = args.InvokedItemContainer as WinUI.NavigationViewItem;
-
-            if (item.Tag is Drone)
+            object itemTag = (args.InvokedItemContainer as WinUI.NavigationViewItem).Tag;
+            if (itemTag.GetType() == typeof(int))
             {
                 // Suppress the transition if navigating from the same type of page
                 if (NavigationService.Frame.CurrentSourcePageType == typeof(MainPage))
-                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (item.Tag as Drone).ID, new SuppressNavigationTransitionInfo());
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (int)itemTag, new SuppressNavigationTransitionInfo());
                 else
-                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (item.Tag as Drone).ID);
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (int)itemTag);
             }
             else
             {
-                NavigationService.Navigate(item.Tag as string);
+                NavigationService.Navigate(itemTag as string);
             }
         }
         public RelayCommand RefreshUGCSMissionsCommand => new RelayCommand(() => refreshUGCSMissionsCommand());

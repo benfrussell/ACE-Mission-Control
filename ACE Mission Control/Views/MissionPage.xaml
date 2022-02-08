@@ -21,729 +21,762 @@
         <helper:ErrorBooleanToColour x:Key="ErrorBooleanToColour"/>
         <helper:InstructionNumberToColour x:Key="InstructionNumberToColour"/>
     </Page.Resources>
-    
-    <StackPanel Orientation="Vertical"
-                x:Name="ContentArea">
-        
-        <muxc:Expander Style="{ThemeResource ACEExpander}">
-            <muxc:Expander.Header>
-                <StackPanel Orientation="Vertical">
-                    <TextBlock x:Uid="Config_OBCConnectionLabel"
-                               Style="{ThemeResource ExpanderTitleStyle}"/>
-                </StackPanel>
-            </muxc:Expander.Header>
-            
-            <muxc:Expander.Content>
-                <StackPanel Orientation="Horizontal" Margin="0,-12,-10,-12">
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock x:Uid="Config_OBCIPLabel" />
 
-                        <TextBox Text="{x:Bind ViewModel.Hostname_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     x:Name="OBCHostnameBox"
-                     IsSpellCheckEnabled="False"
-                     Style="{ThemeResource ACETextBox}"
-                     helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.ApplyChangesCommand}" />
+    <ScrollViewer MaxHeight="530">
+        <StackPanel Orientation="Vertical"
+                    Background="{ThemeResource SystemChromeBlackLowColor}"
+                    x:Name="ContentArea"
+                    Grid.Row="0">
 
-                        <StackPanel Margin="{StaticResource XSmallTopMargin}" Orientation="Horizontal" VerticalAlignment="Top">
-
-                            <Button x:Name="ApplyButton"
-                        x:Uid="Config_ApplyButton"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
-                        Command="{x:Bind ViewModel.ApplyChangesCommand}"/>
-
-                            <Button x:Name="ResetButton"
-                        x:Uid="Config_ResetButton"
-                        Margin="8,0,0,0"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
-                        Command="{x:Bind ViewModel.ResetChangesCommand}" />
-
-                            <Button x:Uid="Config_SearchButton"
-                        Margin="8,0,0,0"
-                        Style="{ThemeResource ACEButton}">
-                                <Button.Flyout>
-                                    <Flyout>
-                                        <Grid Width="250">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="35" />
-                                                <RowDefinition Height="150" />
-                                                <RowDefinition Height="35" />
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock x:Uid="Config_SearchFlyoutTitle"
-                                           Grid.Row="0"
-                                           Style="{StaticResource SubtitleTextBlockStyle}"/>
-
-                                            <Border Grid.Row="1"
-                                        Margin="0,0,0,8"
-                                        Background="{ThemeResource SystemChromeMediumLowColor}">
-
-                                                <ListView ItemsSource="{x:Bind ViewModel.EntriesFound}"
-                                              x:Name="SearchResultsList">
-
-                                                    <ListView.ItemTemplate>
-                                                        <DataTemplate x:DataType="sys:Tuple">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition/>
-                                                                    <ColumnDefinition/>
-                                                                </Grid.ColumnDefinitions>
-
-                                                                <TextBlock Text="{Binding Item1}"
-                                                               Grid.Column="0"
-                                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                                               HorizontalAlignment="Left"/>
-
-                                                                <TextBlock Text="{Binding Item2}"
-                                                               Grid.Column="1"
-                                                               Margin="16,0,0,0"
-                                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                                               HorizontalAlignment="Right"/>
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ListView.ItemTemplate>
-
-                                                    <i:Interaction.Behaviors>
-                                                        <core:EventTriggerBehavior EventName="SelectionChanged">
-                                                            <core:InvokeCommandAction Command="{x:Bind ViewModel.SearchResultClickedCommand}"
-                                                                          CommandParameter="{x:Bind SearchResultsList}"/>
-                                                        </core:EventTriggerBehavior>
-                                                    </i:Interaction.Behaviors>
-
-                                                </ListView>
-                                            </Border>
-
-                                            <StackPanel Orientation="Horizontal"
-                                            Grid.Row="2">
-                                                <Button x:Uid="Config_StartSearchButton"
-                                            IsEnabled="{x:Bind ViewModel.Searching, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
-                                            Command="{x:Bind ViewModel.StartSearch}"
-                                            Style="{StaticResource ACEButton}"/>
-
-                                                <muxc:ProgressRing IsActive="{x:Bind ViewModel.Searching, Mode=OneWay}"
-                                                    Margin="8,0,0,0"
-                                                    IsIndeterminate="False"
-                                                    Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-
-                            <muxc:ProgressRing IsActive="{x:Bind ViewModel.Searching, Mode=OneWay}"
-                                Margin="8,0,0,0"
-                                IsIndeterminate="False"
-                                Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
-                        </StackPanel>
+            <muxc:Expander Style="{ThemeResource ACEExpander}" IsExpanded="True">
+                <muxc:Expander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Uid="Config_OBCConnectionLabel"
+                                    Style="{ThemeResource ExpanderTitleStyle}"/>
+                        <Border BorderBrush="{x:Bind ViewModel.AttachedDrone.ConnectionStage, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
+                                BorderThickness="4,0,0,0"
+                                CornerRadius="2"
+                                Margin="8,4,0,2">
+                            <TextBlock Text="{x:Bind ViewModel.AttachedDrone.ConnectionStage, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                        Margin="4,0,0,0"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource SystemControlForegroundBaseMediumHighBrush}"/>
+                        </Border>
                     </StackPanel>
-                    
-                    <RelativePanel>
-                        <ToggleSwitch x:Name="ConnectOBCSwitch"
-                                      x:Uid="Mission_ConnectOBCSwitch"
-                                      Margin="0,0,0,0">
-                            <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="Toggled">
-                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectOBCCommand}"/>
-                                </core:EventTriggerBehavior>
-                            </i:Interaction.Behaviors>
-                        </ToggleSwitch>
+                </muxc:Expander.Header>
 
-                        <TextBlock x:Uid="Main_ChaperoneConnectionLabel"
-                                   x:Name="ChaperoneConnectionLabel"
-                                   RelativePanel.Below="ConnectOBCSwitch"
-                                   VerticalAlignment="Center"
-                                   Height="20"
-                                   Margin="0,-6,0,0"
-                                   Style="{StaticResource CaptionTextBlockStyle}"/>
-                        <TextBlock VerticalAlignment="Center"
-                                   RelativePanel.AlignVerticalCenterWith="ChaperoneConnectionLabel"
-                                   RelativePanel.RightOf="ChaperoneConnectionLabel"
-                                   Height="20"
-                                   Margin="4,-6,0,0"
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Text="{x:Bind ViewModel.OBCChaperoneConnectedText, Mode=OneWay}"
-                                   Foreground="{x:Bind ViewModel.OBCChaperoneConnectedColour, Mode=OneWay}"/>
+                <muxc:Expander.Content>
+                    <StackPanel Orientation="Horizontal" Margin="0,-12,-10,-12">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock x:Uid="Config_OBCIPLabel" />
 
-                        <TextBlock x:Uid="Main_DirectorConnectionLabel"
-                                x:Name="DirectorConnectionLabel"
-                                VerticalAlignment="Center"
-                                RelativePanel.Below="ChaperoneConnectionLabel"
-                                Height="20"
-                                Margin="0,-2,0,0"
-                                Style="{StaticResource CaptionTextBlockStyle}"/>
-                        <TextBlock VerticalAlignment="Center"
-                                   RelativePanel.AlignVerticalCenterWith="DirectorConnectionLabel"
-                                   RelativePanel.RightOf="DirectorConnectionLabel"
-                                   Height="20"
-                                   Margin="4,-2,0,0"
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Text="{x:Bind ViewModel.OBCDirectorConnectedText, Mode=OneWay}"
-                                   Foreground="{x:Bind ViewModel.OBCDirectorConnectedColour, Mode=OneWay}"/>
+                            <TextBox Text="{x:Bind ViewModel.Hostname_Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            x:Name="OBCHostnameBox"
+                            IsSpellCheckEnabled="False"
+                            Style="{ThemeResource ACETextBox}"
+                            helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.ApplyChangesCommand}" />
 
-                        <ToggleSwitch x:Name="ConnectDroneSwitch"
-                                      x:Uid="Mission_ConnectDroneSwitch"
-                                      RelativePanel.Below="DirectorConnectionLabel"
-                                      Margin="0,-4,0,0"
-                                      IsOn="{x:Bind ViewModel.DroneConnectionOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                            <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="Toggled">
-                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectDroneCommand}"
-                                                      CommandParameter="{x:Bind ConnectDroneSwitch}"/>
-                                </core:EventTriggerBehavior>
-                            </i:Interaction.Behaviors>
-                        </ToggleSwitch>
+                            <StackPanel Margin="{StaticResource XSmallTopMargin}" Orientation="Horizontal" VerticalAlignment="Top">
 
-                        <TextBlock x:Uid="Main_DroneConnectionLabel"
-                                   x:Name="DroneConnectionLabel"
-                                   VerticalAlignment="Center"
-                                   RelativePanel.Below="ConnectDroneSwitch"
-                                   Height="20"
-                                   Margin="0,-6,0,0"
-                                   Style="{StaticResource CaptionTextBlockStyle}"/>
-                        <TextBlock VerticalAlignment="Center"
-                                   RelativePanel.AlignVerticalCenterWith="DroneConnectionLabel"
-                                   RelativePanel.RightOf="DroneConnectionLabel"
-                                   Height="20"
-                                   Margin="4,-6,0,0"
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Text="{x:Bind ViewModel.OBCDroneConnectedText, Mode=OneWay}"
-                                   Foreground="{x:Bind ViewModel.OBCDroneConnectedColour, Mode=OneWay}"/>
-                    </RelativePanel>
-                </StackPanel>
-            </muxc:Expander.Content>
-        </muxc:Expander>
+                                <Button x:Name="ApplyButton"
+                            x:Uid="Config_ApplyButton"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
+                            Command="{x:Bind ViewModel.ApplyChangesCommand}"/>
 
-        <muxc:Expander Style="{ThemeResource ACEExpander}">
-            <muxc:Expander.Header>
-                <TextBlock x:Uid="Planner_Subtitle"
-                           Style="{ThemeResource ExpanderTitleStyle}"/>
-            </muxc:Expander.Header>
-            
-            <muxc:Expander.Content>
-                <Grid Margin="-18,-18,-18,-18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition MinWidth="480" MaxWidth="502" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                                <Button x:Name="ResetButton"
+                            x:Uid="Config_ResetButton"
+                            Margin="8,0,0,0"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.UnsavedChanges, Mode=TwoWay}"
+                            Command="{x:Bind ViewModel.ResetChangesCommand}" />
 
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                                <Button x:Uid="Config_SearchButton"
+                            Margin="8,0,0,0"
+                            Style="{ThemeResource ACEButton}">
+                                    <Button.Flyout>
+                                        <Flyout>
+                                            <Grid Width="250">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="35" />
+                                                    <RowDefinition Height="150" />
+                                                    <RowDefinition Height="35" />
+                                                </Grid.RowDefinitions>
 
-                    <Border Grid.Column="0"
-                            Grid.Row="0"
-                            Margin="8,8,4,8"
-                            Background="{ThemeResource SystemChromeMediumLowColor}">
-                        <ListView x:Name="SetupMissionRoutesList"
-                      ItemsSource="{x:Bind ViewModel.AttachedDrone.Mission.TreatmentInstructions, Mode=OneWay}"
-                      DataContext="{x:Bind ViewModel}"
-                      IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}">
+                                                <TextBlock x:Uid="Config_SearchFlyoutTitle"
+                                                Grid.Row="0"
+                                                Style="{StaticResource SubtitleTextBlockStyle}"/>
 
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Border Grid.Row="1"
+                                            Margin="0,0,0,8"
+                                            Background="{ThemeResource SystemChromeMediumLowColor}">
 
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListViewItem">
-                                                <ListViewItemPresenter ContentMargin="0" Padding="0" />
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListView.ItemContainerStyle>
+                                                    <ListView ItemsSource="{x:Bind ViewModel.EntriesFound}"
+                                                    x:Name="SearchResultsList">
 
-                            <ListView.Header>
-                                <Grid Background="{ThemeResource SystemChromeLowColor}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="10"/>
-                                        <ColumnDefinition Width="30"/>
-                                        <ColumnDefinition Width="50"/>
-                                        <ColumnDefinition />
-                                        <ColumnDefinition Width="200" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.ColumnSpan="5"
-                                BorderBrush="{ThemeResource SystemChromeHighColor}"
-                                BorderThickness="0,0,0,1"/>
-                                    <TextBlock Grid.Column="1"
-                                   Margin="0,0,0,2"
-                                   HorizontalAlignment="Center"
-                                   FontWeight="SemiBold"
-                                   FontSize="12"
-                                   Text="#"/>
-                                    <TextBlock Grid.Column="2"
-                                   Margin="4,0,0,2"
-                                   x:Uid="Planner_SetupTreatmentEnabledHeader"
-                                   HorizontalAlignment="Center"
-                                   FontWeight="SemiBold"
-                                   FontSize="12"/>
-                                    <TextBlock Grid.Column="3"
-                                   Margin="4,0,0,2"
-                                   x:Uid="Planner_SetupAreaNameHeader"
-                                   HorizontalAlignment="Left"
-                                   FontWeight="SemiBold"
-                                   FontSize="12"/>
-                                    <TextBlock Grid.Column="4"
-                                   Margin="4,0,0,2"
-                                   x:Uid="Planner_SetupWaypointRouteHeader"
-                                   HorizontalAlignment="Left"
-                                   FontWeight="SemiBold"
-                                   FontSize="12"/>
-                                </Grid>
-                            </ListView.Header>
+                                                        <ListView.ItemTemplate>
+                                                            <DataTemplate x:DataType="sys:Tuple">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition/>
+                                                                        <ColumnDefinition/>
+                                                                    </Grid.ColumnDefinitions>
 
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="ace:TreatmentInstruction">
-                                    <Grid Background="{ThemeResource SystemChromeMediumLowColor}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="10"/>
-                                            <ColumnDefinition Width="30"/>
-                                            <ColumnDefinition Width="50"/>
-                                            <ColumnDefinition />
-                                            <ColumnDefinition Width="200" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition MinHeight="55"/>
-                                        </Grid.RowDefinitions>
+                                                                    <TextBlock Text="{Binding Item1}"
+                                                                    Grid.Column="0"
+                                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                                    HorizontalAlignment="Left"/>
 
-                                        <Border Grid.ColumnSpan="5"
-                                    BorderBrush="{ThemeResource SystemChromeHighColor}"
-                                    BorderThickness="0,0,0,1"/>
+                                                                    <TextBlock Text="{Binding Item2}"
+                                                                    Grid.Column="1"
+                                                                    Margin="16,0,0,0"
+                                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                                    HorizontalAlignment="Right"/>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ListView.ItemTemplate>
 
-                                        <Border Grid.Column="0"
-                                    BorderBrush="{x:Bind ID, Converter={StaticResource InstructionNumberToColour}, Mode=OneWay}"
-                                    Margin="4,4,0,4"
-                                    BorderThickness="6,0,0,0"/>
+                                                        <i:Interaction.Behaviors>
+                                                            <core:EventTriggerBehavior EventName="SelectionChanged">
+                                                                <core:InvokeCommandAction Command="{x:Bind ViewModel.SearchResultClickedCommand}"
+                                                                                CommandParameter="{x:Bind SearchResultsList}"/>
+                                                            </core:EventTriggerBehavior>
+                                                        </i:Interaction.Behaviors>
 
-                                        <StackPanel Orientation="Vertical"
+                                                    </ListView>
+                                                </Border>
+
+                                                <StackPanel Orientation="Horizontal"
+                                                Grid.Row="2">
+                                                    <Button x:Uid="Config_StartSearchButton"
+                                                IsEnabled="{x:Bind ViewModel.Searching, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                                                Command="{x:Bind ViewModel.StartSearch}"
+                                                Style="{StaticResource ACEButton}"/>
+
+                                                    <muxc:ProgressRing IsActive="{x:Bind ViewModel.Searching, Mode=OneWay}"
+                                                        Margin="8,0,0,0"
+                                                        IsIndeterminate="False"
+                                                        Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+
+                                <muxc:ProgressRing IsActive="{x:Bind ViewModel.Searching, Mode=OneWay}"
+                                    Margin="8,0,0,0"
+                                    IsIndeterminate="False"
+                                    Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <RelativePanel>
+                            <ToggleSwitch x:Name="ConnectOBCSwitch"
+                                            x:Uid="Mission_ConnectOBCSwitch"
+                                            Margin="0,0,0,0">
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Toggled">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectOBCCommand}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </ToggleSwitch>
+
+                            <TextBlock x:Uid="Main_ChaperoneConnectionLabel"
+                                        x:Name="ChaperoneConnectionLabel"
+                                        RelativePanel.Below="ConnectOBCSwitch"
                                         VerticalAlignment="Center"
-                                        Grid.Column="1"
-                                        Margin="0,0,0,0">
+                                        Height="20"
+                                        Margin="0,-6,0,0"
+                                        Style="{StaticResource CaptionTextBlockStyle}"/>
+                            <TextBlock VerticalAlignment="Center"
+                                        RelativePanel.AlignVerticalCenterWith="ChaperoneConnectionLabel"
+                                        RelativePanel.RightOf="ChaperoneConnectionLabel"
+                                        Height="20"
+                                        Margin="4,-6,0,0"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.ChaperoneStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                        Foreground="{x:Bind ViewModel.ChaperoneStatus, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"/>
 
-                                            <Button x:Name="Planner_TreatmentOrderUpButton"
-                                        HorizontalAlignment="Center"
-                                        Padding="1,1,1,1"
-                                        Margin="0,1,0,0"
-                                        IsEnabled="{x:Bind FirstInList, Converter={StaticResource NegateBoolean}, Mode=OneWay}"
-                                        Command="{Binding ElementName=SetupMissionRoutesList, Path=DataContext.ReorderInstructionUpCommand}"
-                                        CommandParameter="{Binding}">
-                                                <Viewbox MaxHeight="12">
-                                                    <SymbolIcon Symbol="Upload"/>
-                                                </Viewbox>
-                                            </Button>
+                            <TextBlock x:Uid="Main_DirectorConnectionLabel"
+                                    x:Name="DirectorConnectionLabel"
+                                    VerticalAlignment="Center"
+                                    RelativePanel.Below="ChaperoneConnectionLabel"
+                                    Height="20"
+                                    Margin="0,-2,0,0"
+                                    Style="{StaticResource CaptionTextBlockStyle}"/>
+                            <TextBlock VerticalAlignment="Center"
+                                        RelativePanel.AlignVerticalCenterWith="DirectorConnectionLabel"
+                                        RelativePanel.RightOf="DirectorConnectionLabel"
+                                        Height="20"
+                                        Margin="4,-2,0,0"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.DirectorStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                        Foreground="{x:Bind ViewModel.DirectorStatus, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"/>
 
-                                            <TextBlock HorizontalAlignment="Center"
-                                           FontSize="12"
-                                           Text="{x:Bind Order, Mode=OneWay}"/>
+                            <ToggleSwitch x:Name="ConnectDroneSwitch"
+                                            x:Uid="Mission_ConnectDroneSwitch"
+                                            RelativePanel.Below="DirectorConnectionLabel"
+                                            Margin="0,-4,0,0"
+                                            IsOn="{x:Bind ViewModel.DroneConnectionOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <i:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Toggled">
+                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectDroneCommand}"
+                                                            CommandParameter="{x:Bind ConnectDroneSwitch}"/>
+                                    </core:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </ToggleSwitch>
 
-                                            <Button x:Name="Planner_TreatmentOrderDownButton"
-                                        HorizontalAlignment="Center"
-                                        Padding="1,1,1,1"
-                                        Margin="0,0,0,2"
-                                        IsEnabled="{x:Bind LastInList, Converter={StaticResource NegateBoolean}, Mode=OneWay}"
-                                        Command="{Binding ElementName=SetupMissionRoutesList, Path=DataContext.ReorderInstructionDownCommand}"
-                                        CommandParameter="{Binding}">
-                                                <Viewbox MaxHeight="12">
-                                                    <SymbolIcon Symbol="Download"
-                                                    Rotation="180"/>
-                                                </Viewbox>
-                                            </Button>
-                                        </StackPanel>
-
-                                        <CheckBox Grid.Column="2"
-                                      Margin="16,0,0,0"
-                                      IsEnabled="{x:Bind CanBeEnabled, Mode=OneWay}"
-                                      IsChecked="{x:Bind Enabled, Mode=TwoWay}">
-                                            <ToolTipService.ToolTip>
-                                                <TextBlock x:Uid="Planner_TreatmentEnabledCheckboxTooltip"/>
-                                            </ToolTipService.ToolTip>
-                                        </CheckBox>
-
-                                        <StackPanel Orientation="Vertical"
+                            <TextBlock x:Uid="Main_DroneConnectionLabel"
+                                        x:Name="DroneConnectionLabel"
                                         VerticalAlignment="Center"
-                                        Grid.Column="3"
-                                        Margin="4,0,0,0">
-                                            <TextBlock Text="{x:Bind Name, Mode=OneWay}"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,-2"/>
+                                        RelativePanel.Below="ConnectDroneSwitch"
+                                        Height="20"
+                                        Margin="0,-6,0,0"
+                                        Style="{StaticResource CaptionTextBlockStyle}"/>
+                            <TextBlock VerticalAlignment="Center"
+                                        RelativePanel.AlignVerticalCenterWith="DroneConnectionLabel"
+                                        RelativePanel.RightOf="DroneConnectionLabel"
+                                        Height="20"
+                                        Margin="4,-6,0,0"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.AttachedDrone.InterfaceState, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                        Foreground="{x:Bind ViewModel.AttachedDrone.InterfaceState, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"/>
+                        </RelativePanel>
+                    </StackPanel>
+                </muxc:Expander.Content>
+            </muxc:Expander>
 
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock x:Uid="Planner_SetupAreaStatusLabel"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               FontWeight="Light"
-                                               FontSize="11"/>
-                                                <TextBlock Margin="2,0,0,0"
-                                               Text="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
-                                               FontWeight="Light"
-                                               FontSize="11"/>
-                                            </StackPanel>
+            <muxc:Expander Style="{ThemeResource ACEExpander}">
+                <muxc:Expander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Uid="Planner_Title"
+                                Style="{ThemeResource ExpanderTitleStyle}"/>
+                        <Border BorderBrush="{x:Bind ViewModel.PlannerStatusColour, Mode=OneWay}"
+                                BorderThickness="4,0,0,0"
+                                CornerRadius="2"
+                                Margin="8,4,0,2">
+                            <TextBlock Text="{x:Bind ViewModel.PlannerStatus, Mode=OneWay}"
+                                        Margin="4,0,0,0"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource SystemControlForegroundBaseMediumHighBrush}"/>
+                        </Border>
+                    </StackPanel>
+                </muxc:Expander.Header>
 
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock x:Uid="Planner_SetupUploadStatusLabel"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               FontWeight="Light"
-                                               FontSize="11"/>
-                                                <TextBlock Margin="2,0,0,0"
-                                               Text="{x:Bind CurrentUploadStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{x:Bind CurrentUploadStatus, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
-                                               FontWeight="Light"
-                                               FontSize="11"/>
-                                            </StackPanel>
-                                        </StackPanel>
+                <muxc:Expander.Content>
+                    <Grid Margin="-18,-18,-18,-18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition MinWidth="440" MaxWidth="502" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-
-                                        <ComboBox x:Name="WaypointRouteComboBox" Grid.Column="4"
-                                      Margin="4,0,8,0"
-                                      HorizontalAlignment="Stretch"
-                                      VerticalAlignment="Center"
-                                      IsEnabled="{x:Bind CanBeEnabled, Mode=OneWay}"
-                                      SelectedItem="{Binding TreatmentRoute, Mode=TwoWay}"
-                                      ItemsSource="{x:Bind ValidTreatmentRoutes, Mode=OneWay}">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate x:DataType="ace:WaypointRoute">
-                                                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-
-                                            <ToolTipService.ToolTip>
-                                                <TextBlock x:Uid="Planner_WaypointRouteComboboxTooltip"/>
-                                            </ToolTipService.ToolTip>
-                                        </ComboBox>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-
-                        </ListView>
-                    </Border>
-
-                    <Grid x:Name="MissionControlsArea"
-                          Margin="8,0,4,8"
-                          Grid.Row="1">
                         <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
+                            <RowDefinition MinHeight="160" Height="*" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Border Grid.ColumnSpan="1"
-                    Grid.RowSpan="2"
-                    Margin="0,0,0,0"
-                    Background="{ThemeResource SystemChromeMediumLowColor}"
-                    BorderBrush="ForestGreen"
-                    BorderThickness="3,0,0,0"/>
+                        <Border Grid.Column="0"
+                                Grid.Row="0"
+                                Margin="8,8,4,8"
+                                Background="{ThemeResource SystemChromeMediumLowColor}">
+                            <ScrollViewer MaxHeight="280">
+                                <ListView x:Name="SetupMissionRoutesList"
+                                          ItemsSource="{x:Bind ViewModel.AttachedDrone.Mission.TreatmentInstructions, Mode=OneWay}"
+                                          DataContext="{x:Bind ViewModel}"
+                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}">
 
-                        <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Grid.Row="0"
-                Margin="10,4,0,8">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
 
-                            <StackPanel Orientation="Vertical"
-                            Margin="8,0,0,0">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListViewItem">
+                                                        <ListViewItemPresenter ContentMargin="0" Padding="0" />
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+
+                                    <ListView.Header>
+                                        <Grid Background="{ThemeResource SystemChromeLowColor}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="30"/>
+                                                <ColumnDefinition Width="50"/>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition Width="200" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.ColumnSpan="5"
+                                        BorderBrush="{ThemeResource SystemChromeHighColor}"
+                                        BorderThickness="0,0,0,1"/>
+                                            <TextBlock Grid.Column="1"
+                                            Margin="0,0,0,2"
+                                            HorizontalAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            FontSize="12"
+                                            Text="#"/>
+                                            <TextBlock Grid.Column="2"
+                                            Margin="4,0,0,2"
+                                            x:Uid="Planner_SetupTreatmentEnabledHeader"
+                                            HorizontalAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            FontSize="12"/>
+                                            <TextBlock Grid.Column="3"
+                                            Margin="4,0,0,2"
+                                            x:Uid="Planner_SetupAreaNameHeader"
+                                            HorizontalAlignment="Left"
+                                            FontWeight="SemiBold"
+                                            FontSize="12"/>
+                                            <TextBlock Grid.Column="4"
+                                            Margin="4,0,0,2"
+                                            x:Uid="Planner_SetupWaypointRouteHeader"
+                                            HorizontalAlignment="Left"
+                                            FontWeight="SemiBold"
+                                            FontSize="12"/>
+                                        </Grid>
+                                    </ListView.Header>
+
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="ace:TreatmentInstruction">
+                                            <Grid Background="{ThemeResource SystemChromeMediumLowColor}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="10"/>
+                                                    <ColumnDefinition Width="30"/>
+                                                    <ColumnDefinition Width="50"/>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition Width="200" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition MinHeight="55"/>
+                                                </Grid.RowDefinitions>
+
+                                                <Border Grid.ColumnSpan="5"
+                                            BorderBrush="{ThemeResource SystemChromeHighColor}"
+                                            BorderThickness="0,0,0,1"/>
+
+                                                <Border Grid.Column="0"
+                                            BorderBrush="{x:Bind ID, Converter={StaticResource InstructionNumberToColour}, Mode=OneWay}"
+                                            Margin="4,4,0,4"
+                                            BorderThickness="6,0,0,0"/>
+
+                                                <StackPanel Orientation="Vertical"
+                                                VerticalAlignment="Center"
+                                                Grid.Column="1"
+                                                Margin="0,0,0,0">
+
+                                                    <Button x:Name="Planner_TreatmentOrderUpButton"
+                                                HorizontalAlignment="Center"
+                                                Padding="1,1,1,1"
+                                                Margin="0,1,0,0"
+                                                IsEnabled="{x:Bind FirstInList, Converter={StaticResource NegateBoolean}, Mode=OneWay}"
+                                                Command="{Binding ElementName=SetupMissionRoutesList, Path=DataContext.ReorderInstructionUpCommand}"
+                                                CommandParameter="{Binding}">
+                                                        <Viewbox MaxHeight="12">
+                                                            <SymbolIcon Symbol="Upload"/>
+                                                        </Viewbox>
+                                                    </Button>
+
+                                                    <TextBlock HorizontalAlignment="Center"
+                                                    FontSize="12"
+                                                    Text="{x:Bind Order, Mode=OneWay}"/>
+
+                                                    <Button x:Name="Planner_TreatmentOrderDownButton"
+                                                HorizontalAlignment="Center"
+                                                Padding="1,1,1,1"
+                                                Margin="0,0,0,2"
+                                                IsEnabled="{x:Bind LastInList, Converter={StaticResource NegateBoolean}, Mode=OneWay}"
+                                                Command="{Binding ElementName=SetupMissionRoutesList, Path=DataContext.ReorderInstructionDownCommand}"
+                                                CommandParameter="{Binding}">
+                                                        <Viewbox MaxHeight="12">
+                                                            <SymbolIcon Symbol="Download"
+                                                            Rotation="180"/>
+                                                        </Viewbox>
+                                                    </Button>
+                                                </StackPanel>
+
+                                                <CheckBox Grid.Column="2"
+                                                Margin="16,0,0,0"
+                                                IsEnabled="{x:Bind CanBeEnabled, Mode=OneWay}"
+                                                IsChecked="{x:Bind Enabled, Mode=TwoWay}">
+                                                    <ToolTipService.ToolTip>
+                                                        <TextBlock x:Uid="Planner_TreatmentEnabledCheckboxTooltip"/>
+                                                    </ToolTipService.ToolTip>
+                                                </CheckBox>
+
+                                                <StackPanel Orientation="Vertical"
+                                                            VerticalAlignment="Center"
+                                                            Grid.Column="3"
+                                                            Margin="4,0,0,0">
+                                                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                                                               FontSize="13"
+                                                               FontWeight="SemiBold"
+                                                               Margin="0,0,0,-2"/>
+
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock x:Uid="Planner_SetupAreaStatusLabel"
+                                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                                        FontWeight="Light"
+                                                        FontSize="11"/>
+                                                        <TextBlock Margin="2,0,0,0"
+                                                        Text="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                                        Foreground="{x:Bind AreaStatus, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
+                                                        FontWeight="Light"
+                                                        FontSize="11"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock x:Uid="Planner_SetupUploadStatusLabel"
+                                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                                        FontWeight="Light"
+                                                        FontSize="11"/>
+                                                        <TextBlock Margin="2,0,0,0"
+                                                        Text="{x:Bind CurrentUploadStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                                        Foreground="{x:Bind CurrentUploadStatus, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
+                                                        FontWeight="Light"
+                                                        FontSize="11"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+
+
+                                                <ComboBox x:Name="WaypointRouteComboBox" Grid.Column="4"
+                                                          Margin="8,0,8,0"
+                                                          HorizontalAlignment="Stretch"
+                                                          VerticalAlignment="Center"
+                                                          IsEnabled="{x:Bind CanBeEnabled, Mode=OneWay}"
+                                                          SelectedItem="{Binding TreatmentRoute, Mode=TwoWay}"
+                                                          ItemsSource="{x:Bind ValidTreatmentRoutes, Mode=OneWay}">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="ace:WaypointRoute">
+                                                            <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+
+                                                    <ToolTipService.ToolTip>
+                                                        <TextBlock x:Uid="Planner_WaypointRouteComboboxTooltip"/>
+                                                    </ToolTipService.ToolTip>
+                                                </ComboBox>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+
+                                </ListView>
+                            </ScrollViewer>
+                        </Border>
+
+                        <Border Margin="10,4,0,8"
+                                Grid.Row="1"
+                                Background="{ThemeResource SystemChromeMediumHighColor}"
+                                BorderBrush="{ThemeResource SystemAccentColorDark1}"
+                                BorderThickness="2,0,0,0">
+
+                            <RelativePanel Grid.Row="1"
+                                            HorizontalAlignment="Stretch">
+
                                 <TextBlock x:Uid="Planner_SetDuration"
-                               Margin="0,0,0,4"/>
+                                            x:Name="SetDurationLabel"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Margin="8,4,0,4"/>
 
-                                <TextBox
-                        IsSpellCheckEnabled="False"
-                        MaxWidth="100"
-                        Style="{ThemeResource ACETextBox}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.AcceptingMissionCommands, Mode=OneWay}"
-                        BorderBrush="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
-                        Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
-                        helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"
-                        Margin="0,0,0,0"/>
+                                <TextBox IsSpellCheckEnabled="False"
+                                            x:Name="SetDurationTextBox"
+                                            RelativePanel.Below="SetDurationLabel"
+                                            RelativePanel.AlignLeftWith="SetDurationLabel"
+                                            MaxWidth="70"
+                                            Style="{ThemeResource ACETextBox}"
+                                            IsEnabled="{x:Bind ViewModel.AttachedDrone.AcceptingMissionCommands, Mode=OneWay}"
+                                            BorderBrush="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
+                                            Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                            helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"
+                                            Margin="8,0,0,4"/>
 
                                 <TextBlock x:Uid="Planner_DurationError"
-                               Visibility="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay}"
-                               Style="{ThemeResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource SystemErrorTextColor}"/>
-                            </StackPanel>
+                                            RelativePanel.Below="SetDurationTextBox"
+                                            Visibility="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay}"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            Foreground="{ThemeResource SystemErrorTextColor}"/>
 
-                            <StackPanel Orientation="Vertical">
                                 <TextBlock x:Uid="Planner_SetStartMode"
-                               Margin="8,0,8,4"/>
+                                            x:Name="SetStartModeLabel"
+                                            Style="{ThemeResource CaptionTextBlockStyle}"
+                                            RelativePanel.RightOf="SetDurationTextBox"
+                                            RelativePanel.AlignVerticalCenterWith="SetDurationLabel"
+                                            Margin="8,4,8,4"/>
 
-                                <StackPanel Orientation="Horizontal">
-                                    <ComboBox x:Name="StartModeComboBox"
-                                  Margin="8,0,8,0"
-                                  Width="160"
-                                  HorizontalAlignment="Stretch"
-                                  IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
-                                  SelectedIndex="{x:Bind ViewModel.SelectedStartMode, Mode=OneWay}"
-                                  BorderBrush="{x:Bind ViewModel.StartModeError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
-                                  Style="{ThemeResource ACEComboBox}">
+                                <ComboBox x:Name="StartModeComboBox"
+                                            RelativePanel.RightOf="SetDurationTextBox"
+                                            RelativePanel.Below="SetStartModeLabel"
+                                            Margin="8,0,4,4"
+                                            Width="160"
+                                            HorizontalAlignment="Stretch"
+                                            IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                                            SelectedIndex="{x:Bind ViewModel.SelectedStartMode, Mode=OneWay}"
+                                            BorderBrush="{x:Bind ViewModel.StartModeError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
+                                            Style="{ThemeResource ACEComboBox}">
 
-                                        <ComboBoxItem x:Name="Planner_StartModeItem_FirstEntry">
-                                            <TextBlock x:Uid="Planner_StartModeItem_FirstEntry"/>
-                                            <ToolTipService.ToolTip>
-                                                <TextBlock x:Uid="Planner_StartModeItem_FirstEntryTooltip"
-                                               TextWrapping="Wrap"/>
-                                            </ToolTipService.ToolTip>
+                                    <ComboBoxItem x:Name="Planner_StartModeItem_FirstEntry">
+                                        <TextBlock x:Uid="Planner_StartModeItem_FirstEntry"/>
+                                        <ToolTipService.ToolTip>
+                                            <TextBlock x:Uid="Planner_StartModeItem_FirstEntryTooltip"
+                                            TextWrapping="Wrap"/>
+                                        </ToolTipService.ToolTip>
 
-                                            <ComboBoxItem.Tag>
-                                                <x:Int32>0</x:Int32>
-                                            </ComboBoxItem.Tag>
+                                        <ComboBoxItem.Tag>
+                                            <x:Int32>0</x:Int32>
+                                        </ComboBoxItem.Tag>
 
-                                            <i:Interaction.Behaviors>
-                                                <core:EventTriggerBehavior EventName="Tapped">
-                                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                                  CommandParameter="{x:Bind Planner_StartModeItem_FirstEntry}"/>
-                                                </core:EventTriggerBehavior>
-                                            </i:Interaction.Behaviors>
-                                        </ComboBoxItem>
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                                <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                CommandParameter="{x:Bind Planner_StartModeItem_FirstEntry}"/>
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+                                    </ComboBoxItem>
 
-                                        <ComboBoxItem x:Name="Planner_StartModeItem_SelectedWaypoint">
-                                            <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypoint"/>
-                                            <ToolTipService.ToolTip>
-                                                <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypointTooltip"
-                                               TextWrapping="Wrap"/>
-                                            </ToolTipService.ToolTip>
+                                    <ComboBoxItem x:Name="Planner_StartModeItem_SelectedWaypoint">
+                                        <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypoint"/>
+                                        <ToolTipService.ToolTip>
+                                            <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypointTooltip"
+                                            TextWrapping="Wrap"/>
+                                        </ToolTipService.ToolTip>
 
-                                            <ComboBoxItem.Tag>
-                                                <x:Int32>1</x:Int32>
-                                            </ComboBoxItem.Tag>
+                                        <ComboBoxItem.Tag>
+                                            <x:Int32>1</x:Int32>
+                                        </ComboBoxItem.Tag>
 
-                                            <i:Interaction.Behaviors>
-                                                <core:EventTriggerBehavior EventName="Tapped">
-                                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                                  CommandParameter="{x:Bind Planner_StartModeItem_SelectedWaypoint}"/>
-                                                </core:EventTriggerBehavior>
-                                            </i:Interaction.Behaviors>
-                                        </ComboBoxItem>
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                                <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                CommandParameter="{x:Bind Planner_StartModeItem_SelectedWaypoint}"/>
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+                                    </ComboBoxItem>
 
-                                        <ComboBoxItem x:Name="Planner_StartModeItem_InsertWaypoint"
-                                          IsEnabled="False">
-                                            <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"/>
-                                            <ToolTipService.ToolTip>
-                                                <TextBlock x:Uid="Planner_StartModeItem_InsertWaypointTooltip"
-                                               TextWrapping="Wrap"/>
-                                            </ToolTipService.ToolTip>
+                                    <ComboBoxItem x:Name="Planner_StartModeItem_InsertWaypoint"
+                                        IsEnabled="False">
+                                        <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"/>
+                                        <ToolTipService.ToolTip>
+                                            <TextBlock x:Uid="Planner_StartModeItem_InsertWaypointTooltip"
+                                            TextWrapping="Wrap"/>
+                                        </ToolTipService.ToolTip>
 
-                                            <ComboBoxItem.Tag>
-                                                <x:Int32>2</x:Int32>
-                                            </ComboBoxItem.Tag>
+                                        <ComboBoxItem.Tag>
+                                            <x:Int32>2</x:Int32>
+                                        </ComboBoxItem.Tag>
 
-                                            <i:Interaction.Behaviors>
-                                                <core:EventTriggerBehavior EventName="Tapped">
-                                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                                  CommandParameter="{x:Bind Planner_StartModeItem_InsertWaypoint}"/>
-                                                </core:EventTriggerBehavior>
-                                            </i:Interaction.Behaviors>
-                                        </ComboBoxItem>
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                                <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                CommandParameter="{x:Bind Planner_StartModeItem_InsertWaypoint}"/>
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+                                    </ComboBoxItem>
 
-                                        <ComboBoxItem x:Name="Planner_StartModeItem_ContinueMission"
-                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
-                                            <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"/>
-                                            <ToolTipService.ToolTip>
-                                                <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
-                                               TextWrapping="Wrap"/>
-                                            </ToolTipService.ToolTip>
+                                    <ComboBoxItem x:Name="Planner_StartModeItem_ContinueMission"
+                                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
+                                        <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"/>
+                                        <ToolTipService.ToolTip>
+                                            <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
+                                            TextWrapping="Wrap"/>
+                                        </ToolTipService.ToolTip>
 
-                                            <ComboBoxItem.Tag>
-                                                <x:Int32>3</x:Int32>
-                                            </ComboBoxItem.Tag>
+                                        <ComboBoxItem.Tag>
+                                            <x:Int32>3</x:Int32>
+                                        </ComboBoxItem.Tag>
 
-                                            <i:Interaction.Behaviors>
-                                                <core:EventTriggerBehavior EventName="Tapped">
-                                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                                  CommandParameter="{x:Bind Planner_StartModeItem_ContinueMission}"/>
-                                                </core:EventTriggerBehavior>
-                                            </i:Interaction.Behaviors>
-                                        </ComboBoxItem>
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                                <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                CommandParameter="{x:Bind Planner_StartModeItem_ContinueMission}"/>
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+                                    </ComboBoxItem>
 
-                                        <ComboBoxItem x:Name="Planner_StartModeItem_Flythrough"
-                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
-                                            <TextBlock x:Uid="Planner_StartModeItem_Flythrough"/>
-                                            <ToolTipService.ToolTip>
-                                                <TextBlock x:Uid="Planner_StartModeItem_FlythroughTooltip"
-                                               TextWrapping="Wrap"/>
-                                            </ToolTipService.ToolTip>
+                                    <ComboBoxItem x:Name="Planner_StartModeItem_Flythrough"
+                                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
+                                        <TextBlock x:Uid="Planner_StartModeItem_Flythrough"/>
+                                        <ToolTipService.ToolTip>
+                                            <TextBlock x:Uid="Planner_StartModeItem_FlythroughTooltip"
+                                            TextWrapping="Wrap"/>
+                                        </ToolTipService.ToolTip>
 
-                                            <ComboBoxItem.Tag>
-                                                <x:Int32>4</x:Int32>
-                                            </ComboBoxItem.Tag>
+                                        <ComboBoxItem.Tag>
+                                            <x:Int32>4</x:Int32>
+                                        </ComboBoxItem.Tag>
 
-                                            <i:Interaction.Behaviors>
-                                                <core:EventTriggerBehavior EventName="Tapped">
-                                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
-                                                                  CommandParameter="{x:Bind Planner_StartModeItem_Flythrough}"/>
-                                                </core:EventTriggerBehavior>
-                                            </i:Interaction.Behaviors>
-                                        </ComboBoxItem>
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                                <core:InvokeCommandAction Command="{x:Bind ViewModel.StartModeSelectionCommand}"
+                                                                CommandParameter="{x:Bind Planner_StartModeItem_Flythrough}"/>
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+                                    </ComboBoxItem>
 
-                                    </ComboBox>
+                                </ComboBox>
 
-                                    <Viewbox MaxHeight="15"
-                                 MaxWidth="15">
-                                        <SymbolIcon Symbol="Help"
-                                        Visibility="{x:Bind ViewModel.StartModeError, Mode=OneWay, Converter={StaticResource NegateBoolean}}">
-                                            <FlyoutBase.AttachedFlyout>
-                                                <Flyout>
-                                                    <StackPanel Orientation="Vertical">
-                                                        <TextBlock x:Uid="Planner_StartModeItem_FirstEntry"
-                                                       FontWeight="Bold"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       Margin="0,0,0,0"/>
-                                                        <TextBlock x:Uid="Planner_StartModeItem_FirstEntryTooltip"
-                                                       TextWrapping="Wrap"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       MaxWidth="350"/>
+                                <Viewbox MaxHeight="15"
+                                            MaxWidth="15"
+                                            RelativePanel.RightOf="StartModeComboBox"
+                                            RelativePanel.AlignVerticalCenterWith="StartModeComboBox">
+                                    <SymbolIcon Symbol="Help"
+                                    Visibility="{x:Bind ViewModel.StartModeError, Mode=OneWay, Converter={StaticResource NegateBoolean}}">
+                                        <FlyoutBase.AttachedFlyout>
+                                            <Flyout>
+                                                <StackPanel Orientation="Vertical">
+                                                    <TextBlock x:Uid="Planner_StartModeItem_FirstEntry"
+                                                    FontWeight="Bold"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Margin="0,0,0,0"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_FirstEntryTooltip"
+                                                    TextWrapping="Wrap"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    MaxWidth="350"/>
 
-                                                        <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypoint"
-                                                       FontWeight="Bold"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       Margin="0,8,0,0"/>
-                                                        <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypointTooltip"
-                                                       TextWrapping="Wrap"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       MaxWidth="350"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypoint"
+                                                    FontWeight="Bold"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Margin="0,8,0,0"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_SelectedWaypointTooltip"
+                                                    TextWrapping="Wrap"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    MaxWidth="350"/>
 
-                                                        <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"
-                                                       FontWeight="Bold"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       Margin="0,8,0,0"/>
-                                                        <TextBlock x:Uid="Planner_StartModeItem_InsertWaypointTooltip"
-                                                       TextWrapping="Wrap"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       MaxWidth="350"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"
+                                                    FontWeight="Bold"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Margin="0,8,0,0"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_InsertWaypointTooltip"
+                                                    TextWrapping="Wrap"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    MaxWidth="350"/>
 
-                                                        <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"
-                                                       FontWeight="Bold"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       Margin="0,8,0,0"/>
-                                                        <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
-                                                       TextWrapping="Wrap"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       MaxWidth="350"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"
+                                                    FontWeight="Bold"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Margin="0,8,0,0"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
+                                                    TextWrapping="Wrap"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    MaxWidth="350"/>
 
-                                                        <TextBlock x:Uid="Planner_StartModeItem_Flythrough"
-                                                       FontWeight="Bold"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       Margin="0,8,0,0"/>
-                                                        <TextBlock x:Uid="Planner_StartModeItem_FlythroughTooltip"
-                                                       TextWrapping="Wrap"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       MaxWidth="350"/>
-                                                    </StackPanel>
-                                                </Flyout>
-                                            </FlyoutBase.AttachedFlyout>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_Flythrough"
+                                                    FontWeight="Bold"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Margin="0,8,0,0"/>
+                                                    <TextBlock x:Uid="Planner_StartModeItem_FlythroughTooltip"
+                                                    TextWrapping="Wrap"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    MaxWidth="350"/>
+                                                </StackPanel>
+                                            </Flyout>
+                                        </FlyoutBase.AttachedFlyout>
 
-                                            <i:Interaction.Behaviors>
-                                                <core:EventTriggerBehavior EventName="Tapped">
-                                                    <behaviors:ToggleFlyoutAction />
-                                                </core:EventTriggerBehavior>
-                                            </i:Interaction.Behaviors>
-                                        </SymbolIcon>
-                                    </Viewbox>
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                                <behaviors:ToggleFlyoutAction />
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+                                    </SymbolIcon>
+                                </Viewbox>
 
-                                    <Viewbox MaxHeight="15"
-                                 MaxWidth="15">
-                                        <SymbolIcon Symbol="Important"
-                                    Visibility="{x:Bind ViewModel.StartModeError, Mode=OneWay}"
-                                    Foreground="{StaticResource SystemErrorTextColor}">
-                                            <FlyoutBase.AttachedFlyout>
-                                                <Flyout>
-                                                    <TextBlock x:Uid="Planner_FlythoughErrorFlyout"
-                                                   MaxWidth="300"
-                                                   TextWrapping="Wrap"/>
-                                                </Flyout>
-                                            </FlyoutBase.AttachedFlyout>
+                                <Viewbox MaxHeight="15"
+                                            MaxWidth="15"
+                                            RelativePanel.RightOf="StartModeComboBox"
+                                            RelativePanel.AlignVerticalCenterWith="StartModeComboBox">
+                                    <SymbolIcon Symbol="Important"
+                                Visibility="{x:Bind ViewModel.StartModeError, Mode=OneWay}"
+                                Foreground="{StaticResource SystemErrorTextColor}">
+                                        <FlyoutBase.AttachedFlyout>
+                                            <Flyout>
+                                                <TextBlock x:Uid="Planner_FlythoughErrorFlyout"
+                                                MaxWidth="300"
+                                                TextWrapping="Wrap"/>
+                                            </Flyout>
+                                        </FlyoutBase.AttachedFlyout>
 
-                                            <i:Interaction.Behaviors>
-                                                <core:EventTriggerBehavior EventName="Tapped">
-                                                    <behaviors:ToggleFlyoutAction />
-                                                </core:EventTriggerBehavior>
-                                            </i:Interaction.Behaviors>
-                                        </SymbolIcon>
-                                    </Viewbox>
+                                        <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                                <behaviors:ToggleFlyoutAction />
+                                            </core:EventTriggerBehavior>
+                                        </i:Interaction.Behaviors>
+                                    </SymbolIcon>
+                                </Viewbox>
 
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                        <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Grid.Row="1"
-                Margin="10,0,0,8">
-                            <Button x:Name="ResetMissionButton"
-                        x:Uid="Planner_ResetButton"
-                        Margin="8,0,0,0"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanBeReset, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.ResetCommand}"/>
-                        </StackPanel>
+                                <Button x:Name="ResetMissionButton"
+                                        x:Uid="Planner_ResetButton"
+                                        RelativePanel.RightOf="StartModeComboBox"
+                                        RelativePanel.AlignVerticalCenterWith="StartModeComboBox"
+                                        Margin="24,0,0,2"
+                                        Style="{ThemeResource ACEButton}"
+                                        MinWidth="70"
+                                        MaxWidth="100"
+                                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.CanBeReset, Mode=OneWay}"
+                                        Command="{x:Bind ViewModel.ResetCommand}"/>
+
+                                <Button x:Name="LockMissionButton"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.RightOf="ResetMissionButton"
+                                        RelativePanel.AlignVerticalCenterWith="ResetMissionButton"
+                                        x:Uid="Planner_ResetButton"
+                                        Margin="8,0,0,2"
+                                        Style="{ThemeResource ACEButton}"
+                                        MinWidth="70"
+                                        MaxWidth="100"
+                                        IsEnabled="False"/>
+                            </RelativePanel>
+                        </Border>
+
+
+                        <maps:MapControl x:Name="EntryMapControl"
+                                            Grid.Column="1"
+                                            Grid.Row="0"
+                                            Grid.RowSpan="2"
+                                            Margin="4,8,8,8"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch"
+                                            TiltInteractionMode="GestureAndControl"
+                                            ZoomInteractionMode="GestureAndControl"
+                                            ZoomLevel="15"
+                                            Layers="{x:Bind ViewModel.MapLayers, Mode=OneWay}"
+                                            Center="{x:Bind ViewModel.MapCentre, Mode=OneWay}"
+                                            Style="AerialWithRoads"
+                                            MapServiceToken="4l0tkAAsXEnnNSOK8679~ik4pAeyowqts0oKyLzbkjg~As5-mUredKyQUQkVkC2zR9xB2hFgDWVfvp_OP7MbrTfQbF4goOfA-Sfa3nSj1EJs">
+                            <i:Interaction.Behaviors>
+                                <core:EventTriggerBehavior EventName="MapElementClick">
+                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.MapElementClickedCommand}"/>
+                                </core:EventTriggerBehavior>
+                            </i:Interaction.Behaviors>
+                        </maps:MapControl>
                     </Grid>
+                </muxc:Expander.Content>
+            </muxc:Expander>
 
-                    <maps:MapControl x:Name="EntryMapControl"
-                                     Grid.Column="1"
-                                     Grid.Row="0"
-                                     Grid.RowSpan="2"
-                                     Margin="4,8,8,8"
-                                     HorizontalAlignment="Stretch"
-                                     VerticalAlignment="Stretch"
-                                     TiltInteractionMode="GestureAndControl"
-                                     ZoomInteractionMode="GestureAndControl"
-                                     ZoomLevel="15"
-                                     Layers="{x:Bind ViewModel.MapLayers, Mode=OneWay}"
-                                     Center="{x:Bind ViewModel.MapCentre, Mode=OneWay}"
-                                     Style="AerialWithRoads"
-                                     MapServiceToken="4l0tkAAsXEnnNSOK8679~ik4pAeyowqts0oKyLzbkjg~As5-mUredKyQUQkVkC2zR9xB2hFgDWVfvp_OP7MbrTfQbF4goOfA-Sfa3nSj1EJs">
-                        <i:Interaction.Behaviors>
-                            <core:EventTriggerBehavior EventName="MapElementClick">
-                                <core:InvokeCommandAction Command="{x:Bind ViewModel.MapElementClickedCommand}"/>
-                            </core:EventTriggerBehavior>
-                        </i:Interaction.Behaviors>
-                    </maps:MapControl>
-                </Grid>
-            </muxc:Expander.Content>
-        </muxc:Expander>
-
-        <muxc:Expander Style="{ThemeResource ACEExpander}">
-            <muxc:Expander.Header>
-                <TextBlock x:Uid="Mission_OBCHeader"
-                           Style="{ThemeResource ExpanderTitleStyle}"/>
-            </muxc:Expander.Header>
-            <muxc:Expander.Content>
-                <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Left"
-                Grid.Row="2"
-                Grid.ColumnSpan="1"
-                Margin="10,0,0,12">
-                    <Button x:Name="RestartOBCButton"
-                        x:Uid="Mission_RestartOBC"
-                        Margin="8,0,0,0"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsChaperoneConnected, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.RestartOBCCommand}"/>
-                    <Button x:Name="TestPayloadButton"
-                        x:Uid="Mission_TestPayload"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.TestPayloadCommand}"
-                        Margin="8,0,0,0"/>
-                    <Button x:Name="TestInterfaceButton"
-                        x:Uid="Mission_TestInterface"
-                        Margin="8,0,0,0"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.TestInterfaceCommand}"/>
-                    <Button x:Uid="Mission_StopPayloadButton"
-                        Margin="8,0,0,0"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsChaperoneConnected, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.StopPayloadCommand}"/>
-                    <Button x:Uid="Mission_SynchronizeButton"
-                        Margin="8,0,8,0"
-                        Style="{ThemeResource ACEButton}"
-                        IsEnabled="{x:Bind ViewModel.AttachedDrone.CanStartSynchronize, Mode=OneWay}"
-                        Command="{x:Bind ViewModel.SynchronizeCommand}"/>
-                </StackPanel>
-            </muxc:Expander.Content>
-        </muxc:Expander>
-    </StackPanel>
+            <muxc:Expander Style="{ThemeResource ACEExpander}">
+                <muxc:Expander.Header>
+                    <TextBlock x:Uid="Mission_OBCHeader"
+                                Style="{ThemeResource ExpanderTitleStyle}"/>
+                </muxc:Expander.Header>
+                <muxc:Expander.Content>
+                    <StackPanel
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    Grid.Row="2"
+                    Grid.ColumnSpan="1"
+                    Margin="-16,-12,-16,-12">
+                        <Button x:Name="RestartOBCButton"
+                            x:Uid="Mission_RestartOBC"
+                            Margin="8,0,0,0"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsChaperoneConnected, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.RestartOBCCommand}"/>
+                        <Button x:Name="TestPayloadButton"
+                            x:Uid="Mission_TestPayload"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.TestPayloadCommand}"
+                            Margin="8,0,0,0"/>
+                        <Button x:Name="TestInterfaceButton"
+                            x:Uid="Mission_TestInterface"
+                            Margin="8,0,0,0"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCCanBeTested, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.TestInterfaceCommand}"/>
+                        <Button x:Uid="Mission_StopPayloadButton"
+                            Margin="8,0,0,0"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.AttachedDrone.OBCClient.IsChaperoneConnected, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.StopPayloadCommand}"/>
+                        <Button x:Uid="Mission_SynchronizeButton"
+                            Margin="8,0,8,0"
+                            Style="{ThemeResource ACEButton}"
+                            IsEnabled="{x:Bind ViewModel.AttachedDrone.CanStartSynchronize, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.SynchronizeCommand}"/>
+                    </StackPanel>
+                </muxc:Expander.Content>
+            </muxc:Expander>
+        </StackPanel>
+    </ScrollViewer>
 </local:DroneBasePage>

@@ -39,32 +39,6 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private GridLength frameHeight;
-        public GridLength FrameHeight
-        {
-            get => frameHeight;
-            set
-            {
-                if (value == frameHeight)
-                    return;
-                frameHeight = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        private GridLength alertGridHeight;
-        public GridLength AlertGridHeight
-        {
-            get => alertGridHeight;
-            set
-            {
-                if (value == alertGridHeight)
-                    return;
-                alertGridHeight = value;
-                RaisePropertyChanged();
-            }
-        }
-
         public MainViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();
@@ -143,36 +117,5 @@ namespace ACE_Mission_Control.ViewModels
             Clipboard.SetContent(dataPackage);
         }
 
-        public RelayCommand<Pivot> PivotSelectionChangedCommand => new RelayCommand<Pivot>((pivot) => pivotSelectionChangedCommand(pivot));
-
-        private void pivotSelectionChangedCommand(Pivot pivot)
-        {
-            var name = (pivot.SelectedItem as PivotItem).Name;
-            var gridHeightChanged = false;
-
-            if (name == "MissionItem")
-            {
-                FrameHeight = new GridLength(1, GridUnitType.Auto);
-                if (AlertGridHeight.Value == 80)
-                    gridHeightChanged = true;
-                AlertGridHeight = new GridLength(1, GridUnitType.Star);
-            }
-            else if (name == "PlannerItem" || name == "ConfigItem" || name == "ConsoleItem")
-            {
-                FrameHeight = new GridLength(1, GridUnitType.Star);
-                if (AlertGridHeight.Value != 80)
-                    gridHeightChanged = true;
-                AlertGridHeight = new GridLength(80);
-            }
-
-            if (gridHeightChanged)
-                Messenger.Default.Send(new AlertDataGridSizeChangeMessage());
-
-            if (Alerts.Count > 0)
-            {
-                var alertScrollMsg = new ScrollAlertDataGridMessage() { newEntry = Alerts[Alerts.Count - 1] };
-                Messenger.Default.Send(alertScrollMsg);
-            }
-        }
     }
 }

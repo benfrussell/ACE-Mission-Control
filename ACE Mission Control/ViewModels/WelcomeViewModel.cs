@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using ACE_Mission_Control.Core.Models;
+using ACE_Mission_Control.Helpers;
 using GalaSoft.MvvmLight;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml.Controls;
@@ -22,10 +23,18 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private string _welcomeTitle;
+        public string WelcomeTitle
+        {
+            get { return _welcomeTitle; }
+            set { Set(ref _welcomeTitle, value); }
+        }
+
         public WelcomeViewModel()
         {
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
             UGCSConnectText = UGCSClient.ConnectionMessage;
+            WelcomeTitle = "Shell_HomeItem".GetLocalized();
         }
 
         private async void UGCSClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)

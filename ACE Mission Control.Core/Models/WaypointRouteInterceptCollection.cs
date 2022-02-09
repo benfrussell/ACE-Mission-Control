@@ -30,19 +30,18 @@ namespace ACE_Mission_Control.Core.Models
     {
         public event EventHandler<InterceptCollectionChangedArgs> AreaInterceptsModified;
 
-        private Dictionary<AreaScanPolygon, List<WaypointRouteIntercept>> collection;
+        private Dictionary<int, List<WaypointRouteIntercept>> collection;
 
         public WaypointRouteInterceptCollection()
         {
-            collection = new Dictionary<AreaScanPolygon, List<WaypointRouteIntercept>>();
+            collection = new Dictionary<int, List<WaypointRouteIntercept>>();
         }
 
         public List<WaypointRouteIntercept> GetIntercepts(int areaScanID)
         {
-            var areaScan = collection.Keys.FirstOrDefault(a => a.Id == areaScanID);
-            if (areaScan == null)
+            if (!collection.ContainsKey(areaScanID))
                 return new List<WaypointRouteIntercept>();
-            return collection[areaScan];
+            return collection[areaScanID];
         }
 
         public void RemoveAreaScansByIDs(List<int> ids)
@@ -51,11 +50,10 @@ namespace ACE_Mission_Control.Core.Models
 
             foreach (int id in ids)
             {
-                var area = collection.Keys.FirstOrDefault(a => a.Id == id);
-                if (area != null)
+                if (collection.ContainsKey(id))
                 {
-                    affectedIntercepts.AddRange(collection[area]);
-                    collection.Remove(area);
+                    affectedIntercepts.AddRange(collection[id]);
+                    collection.Remove(id);
                 }
             }
 
@@ -68,17 +66,17 @@ namespace ACE_Mission_Control.Core.Models
             var modifiedAreaIDs = new List<int>();
             List<WaypointRouteIntercept> affectedIntercepts = new List<WaypointRouteIntercept>();
 
-            foreach (AreaScanPolygon area in collection.Keys)
+            foreach (int areaID in collection.Keys)
             {
-                var interceptsToRemove = collection[area].Where(i => routeIDs.Contains(i.WaypointRoute.Id));
+                var interceptsToRemove = collection[areaID].Where(i => routeIDs.Contains(i.WaypointRoute.Id)).ToList();
 
                 if (interceptsToRemove.Count() > 0)
-                    modifiedAreaIDs.Add(area.Id);
+                    modifiedAreaIDs.Add(areaID);
 
                 foreach (WaypointRouteIntercept interceptToRemove in interceptsToRemove)
                 {
                     affectedIntercepts.Add(interceptToRemove);
-                    collection[area].Remove(interceptToRemove);
+                    collection[areaID].Remove(interceptToRemove);
                 }
             }
 
@@ -93,24 +91,27 @@ namespace ACE_Mission_Control.Core.Models
         {
             var routeIntercepts = DetermineIntersectingRoutes(area, routesToCheck);
 
-            if (!collection.ContainsKey(area))
-                collection[area] = new List<WaypointRouteIntercept>();
+            if (!collection.ContainsKey(area.Id))
+                collection[area.Id] = new List<WaypointRouteIntercept>();
             
-            collection[area].AddRange(routeIntercepts);
+            collection[area.Id].AddRange(routeIntercepts);
 
-            var eventArgs = new InterceptCollectionChangedArgs() { AreaIDsAffected = new List<int> { area.Id }, InterceptsAffected = collection[area] };
+            var eventArgs = new InterceptCollectionChangedArgs() { AreaIDsAffected = new List<int> { area.Id }, InterceptsAffected = collection[area.Id] };
             AreaInterceptsModified?.Invoke(this, eventArgs);
         }
 
-        public void AddWaypointRoutes(List<WaypointRoute> routesToAdd)
+        public void AddWaypointRoutes(List<WaypointRoute> routesToAdd, List<AreaScanPolygon> areasToCheckForIntercepts)
         {
             var modifiedAreaIDs = new List<int>();
             List<WaypointRouteIntercept> affectedIntercepts = new List<WaypointRouteIntercept>();
 
-            foreach (AreaScanPolygon area in collection.Keys)
+            foreach (AreaScanPolygon area in areasToCheckForIntercepts)
             {
+                if (!collection.ContainsKey(area.Id))
+                    continue;
+
                 var routeIntercepts = DetermineIntersectingRoutes(area, routesToAdd);
-                collection[area].AddRange(routeIntercepts);
+                collection[area.Id].AddRange(routeIntercepts);
                 affectedIntercepts.AddRange(routeIntercepts);
 
                 if (routeIntercepts.Count > 0)
@@ -124,11 +125,11 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public void ModifyExistingWaypointRouteIntercepts(List<WaypointRoute> modifiedRoutes)
+        public void ModifyExistingWaypointRouteIntercepts(List<WaypointRoute> modifiedRoutes, List<AreaScanPolygon> areasToCheckForIntercepts)
         {
             List<InterceptCollectionChangedArgs> changesList = new List<InterceptCollectionChangedArgs>();
 
-            foreach (AreaScanPolygon area in collection.Keys)
+            foreach (AreaScanPolygon area in areasToCheckForIntercepts)
             {
                 changesList.Add(ApplyChangesToAreasIntersects(area, modifiedRoutes));
             }
@@ -144,11 +145,13 @@ namespace ACE_Mission_Control.Core.Models
 
             foreach (AreaScanPolygon modifiedArea in modifiedAreas)
             {
-                var matchingArea = collection.Keys.FirstOrDefault(a => a.Id == modifiedArea.Id);
-
                 // This should always find a match, because this method is meant to modify EXISTING area scans
-                if (matchingArea == null)
+                if (!collection.ContainsKey(modifiedArea.Id))
                     continue;
+
+                // Assign the new area without yet calculating the new intercept
+                foreach (WaypointRouteIntercept intercept in collection[modifiedArea.Id])
+                    intercept.AreaScanPolygon = modifiedArea;
 
                 changesList.Add(ApplyChangesToAreasIntersects(modifiedArea, routesToCheck));
             }
@@ -166,7 +169,7 @@ namespace ACE_Mission_Control.Core.Models
             // For each route that was modified, determine if this area has intersects that need to be updated or removed, OR if a new intersect needs to be added
             foreach (WaypointRoute modifiedRoute in routesToCheck)
             {
-                var matchingIntercept = collection[area].FirstOrDefault(i => i.WaypointRoute.Id == modifiedRoute.Id);
+                var matchingIntercept = collection[area.Id].FirstOrDefault(i => i.WaypointRoute.Id == modifiedRoute.Id);
 
                 if (matchingIntercept != null)
                 {
@@ -178,7 +181,7 @@ namespace ACE_Mission_Control.Core.Models
                     }
                     else
                     {
-                        collection[area].Remove(matchingIntercept);
+                        collection[area.Id].Remove(matchingIntercept);
                     }
                     modifiedAreaIDs.Add(area.Id);
                 }
@@ -186,7 +189,7 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     if (modifiedRoute.Intersects(area))
                     {
-                        collection[area].Add(WaypointRouteIntercept.CreateFromIntersectingRoute(modifiedRoute, area));
+                        collection[area.Id].Add(WaypointRouteIntercept.CreateFromIntersectingRoute(modifiedRoute, area));
                         modifiedAreaIDs.Add(area.Id);
                     }
                 }
@@ -207,7 +210,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             var eventArgs = new InterceptCollectionChangedArgs() 
             { 
-                AreaIDsAffected = collection.Keys.Select(a => a.Id).ToList(), 
+                AreaIDsAffected = collection.Keys.ToList(), 
                 InterceptsAffected = collection.Values.SelectMany(v => v).ToList() 
             };
 

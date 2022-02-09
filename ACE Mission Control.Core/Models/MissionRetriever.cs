@@ -232,13 +232,13 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     WaypointRoutes.RemoveAll(a => waypointRouteChanges.ModifiedRoutes.Exists(m => m.Id == a.Id));
                     WaypointRoutes.AddRange(waypointRouteChanges.ModifiedRoutes);
-                    TreatmentInstruction.InterceptCollection.ModifyExistingWaypointRouteIntercepts(waypointRouteChanges.ModifiedRoutes);
+                    TreatmentInstruction.InterceptCollection.ModifyExistingWaypointRouteIntercepts(waypointRouteChanges.ModifiedRoutes, AreaScanPolygons);
                 }
 
                 if (waypointRouteChanges.AddedRoutes.Count > 0)
                 {
                     WaypointRoutes.AddRange(waypointRouteChanges.AddedRoutes);
-                    TreatmentInstruction.InterceptCollection.AddWaypointRoutes(waypointRouteChanges.AddedRoutes);
+                    TreatmentInstruction.InterceptCollection.AddWaypointRoutes(waypointRouteChanges.AddedRoutes, AreaScanPolygons);
                 }
 
                 NotifyStaticPropertyChanged("WaypointRoutes");

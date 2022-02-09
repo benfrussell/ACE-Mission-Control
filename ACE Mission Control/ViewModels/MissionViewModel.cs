@@ -28,7 +28,7 @@ namespace ACE_Mission_Control.ViewModels
         public enum ConnectStatus
         {
             NotConnected,
-            AttemptingConnection,
+            Attempting,
             Connected
         }
         // --- Connection properties
@@ -426,14 +426,14 @@ namespace ACE_Mission_Control.ViewModels
             if (AttachedDrone.OBCClient.IsDirectorConnected)
                 DirectorStatus = ConnectStatus.Connected;
             else if (AttachedDrone.OBCClient.ConnectionInProgress)
-                DirectorStatus = ConnectStatus.AttemptingConnection;
+                DirectorStatus = ConnectStatus.Attempting;
             else
                 DirectorStatus = ConnectStatus.NotConnected;
 
             if (AttachedDrone.OBCClient.IsChaperoneConnected)
                 ChaperoneStatus = ConnectStatus.Connected;
             else if (AttachedDrone.OBCClient.ConnectionInProgress)
-                ChaperoneStatus = ConnectStatus.AttemptingConnection;
+                ChaperoneStatus = ConnectStatus.Attempting;
             else
                 ChaperoneStatus = ConnectStatus.NotConnected;
         }

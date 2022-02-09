@@ -11,7 +11,8 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class WaypointRouteIntercept
     {
-        public AreaScanPolygon AreaScanPolygon { get; protected set; }
+        // Setting this DOES NOT update the intercepts
+        public AreaScanPolygon AreaScanPolygon { get; set; }
         public WaypointRoute WaypointRoute { get; protected set; }
         public Coordinate EntryCoordinate { get; protected set; }
         public Coordinate ExitCoordinate { get; protected set; }

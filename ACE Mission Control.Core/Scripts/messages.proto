@@ -71,10 +71,10 @@ message ACEError {
 }
 
 // Code 7
-message MissionStatus { 
+message MissionStatus {
 	enum Stage {
-		NOT_ACTIVATED = 0;
-		READY = 1; 
+		NOT_READY = 0;
+		READY = 1;
 		// Stage 2 and 3 are the only times that we receive high-rate telemetry
 		ENROUTE = 2;
 		EXECUTING = 3;
@@ -84,8 +84,8 @@ message MissionStatus {
 	}
 
 	Stage mission_stage = 1;
-	bool activated = 2;
-	bool in_progress = 3;
+	// bool activated = 2;
+	// bool in_progress = 3;
 
 	double last_longitude = 4;
 	double last_latitude = 5;
@@ -95,6 +95,8 @@ message MissionStatus {
 	bool errors = 8;
 
 	// repeated AreaResult results = 9;
+	bool locked = 10;
+    float treatment_time = 11;
 }
 
 // Code 8
@@ -131,7 +133,7 @@ message Configuration {
 message ConfigEntry {
 	string section = 1;
 	string option = 2;
-	string value = 3; 
+	string value = 3;
 	int32 id = 4;
 }
 

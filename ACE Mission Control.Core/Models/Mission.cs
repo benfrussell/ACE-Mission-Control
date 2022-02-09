@@ -441,7 +441,7 @@ namespace ACE_Mission_Control.Core.Models
 
         public void ResetStatus()
         {
-            Stage = MissionStatus.Types.Stage.NotActivated;
+            Stage = MissionStatus.Types.Stage.NotReady;
         }
 
         public void ResetProgress()

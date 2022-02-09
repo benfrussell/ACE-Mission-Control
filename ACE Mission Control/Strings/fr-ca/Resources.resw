@@ -349,17 +349,11 @@
   <data name="Stage_Executing" xml:space="preserve">
     <value>Mission en cours</value>
   </data>
-  <data name="Stage_NotActivated" xml:space="preserve">
-    <value>En attente d'activation</value>
-  </data>
   <data name="Stage_Override" xml:space="preserve">
     <value>Contrôle manuel</value>
   </data>
   <data name="Stage_Ready" xml:space="preserve">
     <value>Prêt au décollage</value>
-  </data>
-  <data name="Stage_Returning" xml:space="preserve">
-    <value>Retour au point de décollage (RTH)</value>
   </data>
   <data name="Planner_SetupAreaStatusLabel.Text" xml:space="preserve">
     <value>Progrès : </value>
@@ -397,9 +391,6 @@
   <data name="Planner_SetupUploadStatusLabel.Text" xml:space="preserve">
     <value>Téléchargement:</value>
   </data>
-  <data name="UploadStatus_Changes" xml:space="preserve">
-    <value>Nouveaux changements</value>
-  </data>
   <data name="UploadStatus_NotUploaded" xml:space="preserve">
     <value>Non téléchargé</value>
   </data>
@@ -423,9 +414,6 @@
   </data>
   <data name="SyncState_Synchronizing" xml:space="preserve">
     <value>Synchronisation en cours</value>
-  </data>
-  <data name="UploadStatus_PreviousUpload" xml:space="preserve">
-    <value>Téléchargement précédent</value>
   </data>
   <data name="Shell_HomeItem" xml:space="preserve">
     <value>Accueuil</value>

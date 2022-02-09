@@ -370,9 +370,6 @@
   <data name="Stage_Executing" xml:space="preserve">
     <value>Executing Mission</value>
   </data>
-  <data name="Stage_NotActivated" xml:space="preserve">
-    <value>Waiting for Activation</value>
-  </data>
   <data name="Stage_Override" xml:space="preserve">
     <value>Manual Override</value>
   </data>
@@ -380,7 +377,7 @@
     <value>Ready for Take-off</value>
   </data>
   <data name="Stage_Returning" xml:space="preserve">
-    <value>Returning to Home Point</value>
+    <value>Returning (RTH)</value>
   </data>
   <data name="Planner_SetupAreaStatusLabel.Text" xml:space="preserve">
     <value>Progress: </value>
@@ -418,9 +415,6 @@
   <data name="Planner_SetupUploadStatusLabel.Text" xml:space="preserve">
     <value>Upload Status:</value>
   </data>
-  <data name="UploadStatus_Changes" xml:space="preserve">
-    <value>New Changes</value>
-  </data>
   <data name="UploadStatus_NotUploaded" xml:space="preserve">
     <value>Not Uploaded</value>
   </data>
@@ -444,9 +438,6 @@
   </data>
   <data name="SyncState_Synchronizing" xml:space="preserve">
     <value>Synchronizing</value>
-  </data>
-  <data name="UploadStatus_PreviousUpload" xml:space="preserve">
-    <value>Previous Upload</value>
   </data>
   <data name="Settings_LanguageTitle.Text" xml:space="preserve">
     <value>Language</value>
@@ -531,5 +522,11 @@
   </data>
   <data name="Mission_PlannerMissionNotSet" xml:space="preserve">
     <value>No mission set</value>
+  </data>
+  <data name="Stage_NotReady" xml:space="preserve">
+    <value>Not Ready</value>
+  </data>
+  <data name="UploadStatus_Uploading" xml:space="preserve">
+    <value>Uploading</value>
   </data>
 </root>

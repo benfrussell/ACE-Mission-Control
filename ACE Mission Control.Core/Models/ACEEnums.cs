@@ -33,15 +33,15 @@ namespace ACE_Mission_Control.Core.Models
             FlyThrough = 2
         }
 
-        public enum ConnectionSummary
+        public enum ConnectionSummary : int
         {
-            ConnectionDisabled,
-            TryingACEConnection,
-            ConnectedACELimited,
-            ConnectedACE,
-            TryingDroneConnection,
-            ConnectedACEDroneLimited,
-            ConnectedACEDrone
+            ConnectionDisabled = 0,
+            TryingACEConnection = 1,
+            ConnectedACELimited = 2,
+            ConnectedACE = 3,
+            TryingDroneConnection = 4,
+            ConnectedACEDroneLimited = 5,
+            ConnectedACEDrone = 6
         }
     }
 }

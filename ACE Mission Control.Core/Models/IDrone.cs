@@ -6,7 +6,6 @@ namespace ACE_Mission_Control.Core.Models
 {
     public interface IDrone : INotifyPropertyChanged
     {
-        bool AwayOnMission { get; }
         List<ConfigEntry> ConfigEntries { get; set; }
         FlightStatus.Types.State FlightState { get; set; }
         InterfaceStatus.Types.State InterfaceState { get; set; }
@@ -14,10 +13,13 @@ namespace ACE_Mission_Control.Core.Models
         IMission Mission { get; set; }
         string Name { get; set; }
         Drone.SyncState Synchronization { get; set; }
+        ACEEnums.ConnectionSummary ConnectionStage { get; }
+        bool IsNotConnected { get; }
 
         void AddAlert(AlertEntry entry, bool blockDuplicates = false);
         void SendCommand(Command command);
         void SendCommand(string command, bool autoCommand = false, Command.TriggerType trigger = Command.TriggerType.Normal, object tag = null);
         void Synchronize(bool manualSyncronize = false);
+        void ToggleLock();
     }
 }

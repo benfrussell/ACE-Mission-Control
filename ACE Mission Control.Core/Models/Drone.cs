@@ -150,49 +150,8 @@ namespace ACE_Mission_Control.Core.Models
                     return;
                 _synchronization = value;
                 UpdateCanStartSynchronize();
-                UpdateAcceptingMissionCommands();
                 NotifyPropertyChanged();
             }
-        }
-
-        private bool _awayOnMission;
-        public bool AwayOnMission
-        {
-            get => _awayOnMission;
-            private set
-            {
-                if (_awayOnMission == value)
-                    return;
-                _awayOnMission = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private void UpdateAwayOnMission()
-        {
-            AwayOnMission =
-                Mission.Stage == MissionStatus.Types.Stage.Enroute ||
-                Mission.Stage == MissionStatus.Types.Stage.Executing ||
-                (Mission.Stage == MissionStatus.Types.Stage.Ready && Mission.MissionSet && FlightState == FlightStatus.Types.State.InAir && OBCClient.AutoTryingConnections);
-        }
-
-        private bool _acceptingMissionCommands;
-        public bool AcceptingMissionCommands
-        {
-            get => _acceptingMissionCommands;
-            private set
-            {
-                if (_acceptingMissionCommands == value)
-                    return;
-                _acceptingMissionCommands = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private void UpdateAcceptingMissionCommands()
-        {
-            AcceptingMissionCommands = OBCClient.IsDirectorConnected && !Mission.Locked && 
-                (Synchronization == SyncState.Synchronized || Synchronization == SyncState.SendingUpdate || Synchronization == SyncState.Paused);
         }
 
         private bool _canSynchronize;
@@ -226,6 +185,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private bool _isNotConnected;
+        public bool IsNotConnected
+        {
+            get { return _isNotConnected; }
+            private set
+            {
+                if (_isNotConnected == value)
+                    return;
+                _isNotConnected = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         private void UpdateConnectionStage()
         {
             if (InterfaceState == InterfaceStatus.Types.State.Online && OBCClient.IsDirectorConnected && OBCClient.IsChaperoneConnected)
@@ -242,6 +214,8 @@ namespace ACE_Mission_Control.Core.Models
                 ConnectionStage = ACEEnums.ConnectionSummary.TryingACEConnection;
             else
                 ConnectionStage = ACEEnums.ConnectionSummary.ConnectionDisabled;
+
+            IsNotConnected = (int)ConnectionStage < 2;
         }
 
         private List<ConfigEntry> _configEntries;
@@ -315,6 +289,27 @@ namespace ACE_Mission_Control.Core.Models
 
             InterfaceState = InterfaceStatus.Types.State.Offline;
             Synchronization = SyncState.NotSynchronized;
+
+            UpdateConnectionStage();
+        }
+
+        public void ToggleLock()
+        {
+            // If we're connected we should do this through the director. We'll be locked/unlocked on our side by the response.
+            if (OBCClient.IsDirectorConnected)
+            {
+                if (Mission.Locked)
+                    SendCommand("unlock_mission");
+                else
+                    SendCommand("lock_mission");
+            }
+            else
+            {
+                if (Mission.Locked)
+                    Mission.Unlock();
+                else
+                    Mission.Lock();
+            }
         }
 
         private void ResetSyncProgressFlags()
@@ -439,24 +434,28 @@ namespace ACE_Mission_Control.Core.Models
 
         private void Mission_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "Stage" || e.PropertyName == "MissionSet")
+            if (e.PropertyName == "Locked")
             {
-                UpdateAwayOnMission();
-                // When determined to be away on mission, pause sync so we don't try to send updates while it's working
-                if (AwayOnMission)
-                {
+                if (Mission.Locked)
                     Synchronization = SyncState.Paused;
-                }   
-                else if (Synchronization == SyncState.Paused)
-                {
-                    // If we're no longer away on mission but syncing is still paused, try to resync
-                    // This could happen if the OBC was connected for the entire flight (normally the reconnect triggers the unpause)
-                    Synchronization = SyncState.NotSynchronized;
-                    if (CanStartSynchronize)
-                        Synchronize();
-                }
+                else
+                    CheckIfSyncShouldUnpause();
+
+                NotifyPropertyChanged("OBCCanBeTested");
             }
                 
+        }
+
+        private void CheckIfSyncShouldUnpause()
+        {
+            if (Synchronization != SyncState.Paused)
+                return;
+
+            if (!Mission.Locked)
+                Synchronization = SyncState.NotSynchronized;
+
+            if (CanStartSynchronize)
+                Synchronize();
         }
 
         private void DirectorRequestClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -481,7 +480,6 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         // Check commands update the state of the Onboard Computer with Mission Control
-        // They're sent everytime a connection to the director is re-established
         public void Synchronize(bool manualSyncronize = false)
         {
             ResetSyncProgressFlags();
@@ -495,6 +493,7 @@ namespace ACE_Mission_Control.Core.Models
             if (!configReceived || manualSyncronize)
                 SendCommand("check_ace_config", !manualSyncronize);
         }
+
 
         public void SendCommand(string command, bool autoCommand = false, Command.TriggerType trigger = Command.TriggerType.Normal, object tag = null)
         {
@@ -563,9 +562,6 @@ namespace ACE_Mission_Control.Core.Models
 
             if (sendSuccessful)
             {
-                if (command.Name == "set_route")
-                    System.Diagnostics.Debug.WriteLine("****** " + command.Input);
-
                 lastCommandSent = command;
                 return true;
             }
@@ -707,12 +703,10 @@ namespace ACE_Mission_Control.Core.Models
                 }
 
                 UpdateCanStartSynchronize();
-                UpdateAcceptingMissionCommands();
                 UpdateConnectionStage();
             }
             else if (e.PropertyName == "AutoTryingConnections")
             {
-                UpdateAwayOnMission();
                 UpdateConnectionStage();
             }
             else if (e.PropertyName == "IsChaperoneConnected")

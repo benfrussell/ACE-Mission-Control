@@ -1,98 +1,94 @@
 ACE Bug List
 
---- RIGHT NOW
-
-Scroll down in Mission when opening a new tab
-
-Mission set doesn't account for all missions being disabled
-- Also ignores when the connection is off
-
-Removing area does not remove the instruction
-- No way to remove an area set on the drone right now also?
+--- BREAKING
 
 Onboard computer can get into a state where it is synchronized but not ready
 - Toggling an enabled instruction seems to fix it?
 - Turning connect to drone off also did not change the ready state
 - Seems caused by drone connection/disconnection
+- Test
+
+Payload is not turning off when leaving the preactivate zone
+- It's fine between routes
+- Test
+
+Incorporate locked state! Got a sync error after trying to sync while the drone was on return
+- Test
+
+Thread SQL executions
+- Test
+
+Config response causes waypoint route item to disappear from the combo box in mission control
+
+--- HIGH
 
 Add drone auto connect
 - It should be initiated by mission control
 
-Mission route didn't change on map in next flythrough mode after making a change that didn't affect the entry point
-- Actually not related to entry point. Seems to have just stopped updating for some reason
-
-Payload is not turning off when leaving the preactivate zone
-- It's fine between routes
-
-Incorporate locked state! Got a sync error after trying to sync while the drone was on return
-
-Change to consider: You can only ever fly one route at a time... So should we just select one route in ACE
-- Can we get RouteUpload type from the UgCS server?
-
-If treatment never started we shouldn't put down a last position flag
-
---- CRITICAL
-
-No way to know if the drone has been repowered and the interface has died
-
-Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
-	- Still happens!!
-	- Switched to only allow one drone as a safety workaround
-
 Force stop payload stopped working
-
-UGCS routes don't always grab
-	- Maybe it takes too long and interrupts itself?
-	- Adding blocking until the requests are complete. Added more logging.
-	- Could be fixed now?
-
---- IMPORTANT
-
-TCP "pinging" is not reliable, at least on busy slow networks - create ping script to execute
-	- Not working for Gabe
-	- Should switch to using DNS-SD/mDNS to discover devices on the network 
-
-Flythrough error does not unset?
-
-Doesn't check the chaperone state ever past initial connection connection
-
-Sometimes the map just dies. Usually after doing something too quickly. Reboot button?
-
-Save and restore instruction and connection details
-
-Onboard computer logs aren't good.
-	- Multiple logs are started. Seems to be related to the chaperone because, it causes another log file to start. Maybe check by process ID?
-	- Time and date is wrong because the Pi never knows the time and date. Update it from ACE?
 
 Add hologram modem timeout detection
 	- Attempt recovery by toggling the radio after a failure
 	- Report errors if it failed to activate
 
---- LOWER PRIORITY
+Sometimes the map just dies. Usually after doing something too quickly. Reboot button?
+
+--- MEDIUM
+
+Mission set does not provide great feedback
+
+Mission route didn't change on map in next flythrough mode after making a change that didn't affect the entry point
+- Actually not related to entry point. Seems to have just stopped updating for some reason
+- This will require a lot of testing
+
+If treatment never started we shouldn't put down a last position flag
+
+Flythrough error does not unset?
+
+Doesn't check the chaperone state ever past initial connection connection
+
+Onboard computer logs aren't good.
+	- Multiple logs are started. Seems to be related to the chaperone because, it causes another log file to start. Maybe check by process ID?
+	- Time and date is wrong because the Pi never knows the time and date. Update it from ACE?
+
+--- LOW
+
+Scroll down in Mission when opening a new tab
+
+Disconnection causes three disconnect messages in MissionControl
+	- Fixed?
+
+Unnecessary no connection messages
+
+--- MULTI-DRONE
+
+Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
+	- Still happens!!
+	- Switched to only allow one drone as a safety workaround
+
+Button to exclude emulation drones from the drone list
+
+Save and restore instruction and connection details
+
+--- FUTURE
 
 Mission Control Core text isn't translated
 
 Onboard Computer text isn't translated
 
+Change to consider: You can only ever fly one route at a time... So should we just select one route in ACE
+- Can we get RouteUpload objects from the UgCS server?
+
 Reset Defaults config button(s)
-
-Button to exclude emulation drones from the drone list
-
-Disconnection causes three disconnect messages in MissionControl
-	- Fixed?
-
-Sometimes the treatment areas are not grabbed 
-	- Areas are added to the TreatmentInstructions - it's just the polygon is not drawn on the map
-	- Maybe fixed now? Have not seen this issue for a while!
-
-Unnecessary no connection messages
-
-ConfigEntry response causes the entire list to clone and rebuild, because it's badly done (:
 
 When the route starts within the treatment area it sets the start point as it exits.
 	- This is because it is still the "first intersection"
 	- Should be easy to fix but my first attempt failed.
 	- Easier to work around with different start modes. Leaving it for now.
+
+TCP "pinging" is not reliable, at least on busy slow networks - create ping script to execute
+	- Not working for Gabe
+	- Should switch to using DNS-SD/mDNS to discover devices on the network 
 
 --- DOCUMENTATION
 

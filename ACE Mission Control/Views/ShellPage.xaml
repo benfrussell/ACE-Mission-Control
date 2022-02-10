@@ -38,15 +38,16 @@
                                    Margin="0,-2,0,0"/>
                     <TextBlock x:Name="DroneSynchronization"
                                    RelativePanel.Below="DroneMissionStage"
-                                   Visibility="{x:Bind AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                                   Visibility="{x:Bind IsNotConnected, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
                                    Text="{x:Bind Synchronization, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
                                    Foreground="{x:Bind Synchronization,Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"
                                    Style="{ThemeResource CaptionTextBlockStyle}"
                                    Margin="0,0,0,4" />
-                    <TextBlock x:Uid="Main_AwayOnMissionLabel"
+                    <TextBlock x:Uid="Shell_NotConnectedLabel"
                                    RelativePanel.Below="DroneMissionStage"
-                                   Visibility="{x:Bind AwayOnMission, Mode=OneWay}"
+                                   Visibility="{x:Bind IsNotConnected, Mode=OneWay}"
                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="Yellow"
                                    Margin="0,0,0,4" />
                 </RelativePanel>
             </winui:NavigationViewItem>
@@ -124,11 +125,11 @@
                                 <ResourceDictionary.ThemeDictionaries>
                                     <ResourceDictionary x:Key="Dark">
                                         <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemChromeLowColor}"/>
-                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackMediumLowColor}"/>
+                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackLowColor}"/>
                                     </ResourceDictionary>
                                     <ResourceDictionary x:Key="Light">
                                         <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SystemChromeLowColor}"/>
-                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackMediumLowColor}"/>
+                                        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{ThemeResource SystemChromeBlackLowColor}"/>
                                     </ResourceDictionary>
                                 </ResourceDictionary.ThemeDictionaries>
                             </ResourceDictionary>

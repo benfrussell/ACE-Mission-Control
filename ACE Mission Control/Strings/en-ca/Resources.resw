@@ -235,12 +235,6 @@
   <data name="Mission_TestPayload.Content" xml:space="preserve">
     <value>Test Payload</value>
   </data>
-  <data name="Planner_ActivateButton" xml:space="preserve">
-    <value>Activate</value>
-  </data>
-  <data name="Planner_DeactivateButton" xml:space="preserve">
-    <value>Deactivate</value>
-  </data>
   <data name="Alert_CommandError" xml:space="preserve">
     <value>Command error</value>
   </data>
@@ -355,12 +349,6 @@
   <data name="Status_NotStarted" xml:space="preserve">
     <value>Not Started</value>
   </data>
-  <data name="MissionActivated_False" xml:space="preserve">
-    <value>Deactivated</value>
-  </data>
-  <data name="MissionActivated_True" xml:space="preserve">
-    <value>Activated</value>
-  </data>
   <data name="Stage_Complete" xml:space="preserve">
     <value>Mission Complete</value>
   </data>
@@ -420,9 +408,6 @@
   </data>
   <data name="UploadStatus_Uploaded" xml:space="preserve">
     <value>Uploaded</value>
-  </data>
-  <data name="Main_AwayOnMissionLabel.Text" xml:space="preserve">
-    <value>Away On Mission</value>
   </data>
   <data name="SyncState_NotSynchronized" xml:space="preserve">
     <value>Not Synchronized</value>
@@ -528,5 +513,14 @@
   </data>
   <data name="UploadStatus_Uploading" xml:space="preserve">
     <value>Uploading</value>
+  </data>
+  <data name="Shell_NotConnectedLabel.Text" xml:space="preserve">
+    <value>Not Connected</value>
+  </data>
+  <data name="Planner_LockButton" xml:space="preserve">
+    <value>Lock</value>
+  </data>
+  <data name="Planner_UnlockButton" xml:space="preserve">
+    <value>Unlock</value>
   </data>
 </root>

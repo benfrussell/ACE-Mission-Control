@@ -224,6 +224,19 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private string _lockButtonText;
+        public string LockButtonText
+        {
+            get { return _lockButtonText; }
+            set
+            {
+                if (_lockButtonText == value)
+                    return;
+                _lockButtonText = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private ObservableCollection<MapLayer> mapLayers;
         public ObservableCollection<MapLayer> MapLayers
         {
@@ -299,7 +312,7 @@ namespace ACE_Mission_Control.ViewModels
 
             UpdateConnectionStatuses();
             UpdatePlannerStatus();
-
+            UpdateLockButton();
 
             DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
                 AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
@@ -324,12 +337,9 @@ namespace ACE_Mission_Control.ViewModels
 
                 switch (e.PropertyName)
                 {
-                    //case "Locked":
-                    //    if (AttachedDrone.Mission.Locked)
-                    //        MissionLockText = "Planner_LockButton".GetLocalized();
-                    //    else
-                    //        MissionLockText = "Planner_UnlockButton".GetLocalized();
-                    //    break;
+                    case "Locked":
+                        UpdateLockButton();
+                        break;
                     case "TreatmentDuration":
                         TreatmentDuration = AttachedDrone.Mission.TreatmentDuration.ToString();
                         break;
@@ -419,6 +429,14 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.InstructionAreasUpdated -= Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.InstructionRouteUpdated -= Mission_InstructionRouteUpdated;
             AttachedDrone.Mission.InstructionSyncedPropertyUpdated -= Mission_InstructionSyncedPropertyUpdated;
+        }
+
+        private void UpdateLockButton()
+        {
+            if (AttachedDrone.Mission.Locked)
+                LockButtonText = "Planner_UnlockButton".GetLocalized();
+            else
+                LockButtonText = "Planner_LockButton".GetLocalized();
         }
 
         private void UpdateConnectionStatuses()
@@ -584,6 +602,12 @@ namespace ACE_Mission_Control.ViewModels
         private void resetCommand()
         {
             AttachedDrone.Mission.ResetProgress();
+        }
+
+        public RelayCommand LockCommand => new RelayCommand(() => lockCommand());
+        private void lockCommand()
+        {
+            AttachedDrone.ToggleLock();
         }
 
         // --- Control commands

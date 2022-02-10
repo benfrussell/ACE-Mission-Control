@@ -123,7 +123,7 @@ namespace ACE_Mission_Control.Core.Models
         }
         private void UpdateCanBeReset()
         {
-            CanBeReset = !Locked && MissionHasProgress;
+            CanBeReset = !Locked && (MissionHasProgress || MissionSet);
         }
 
         private bool missionSet;
@@ -141,7 +141,8 @@ namespace ACE_Mission_Control.Core.Models
 
         private void UpdateMissionSet()
         {
-            MissionSet = TreatmentInstructions.Any(i => i.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded);
+            MissionSet = TreatmentInstructions.Any(i => i.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded && i.Enabled);
+            UpdateCanBeReset();
         }
 
         private int treatmentDuration;
@@ -225,7 +226,10 @@ namespace ACE_Mission_Control.Core.Models
 
             Stage = newStatus.MissionStage;
 
-            UpdateCanBeReset();
+            if (newStatus.Locked)
+                Lock();
+            else
+                Unlock();
 
             if (newStatus.LastLongitude != 0 && newStatus.LastLatitude != 0)
                 LastPosition = new Coordinate(
@@ -590,6 +594,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 case "Enabled":
                     UpdateInstructionOrder();
+                    UpdateMissionSet();
                     break;
                 case "TreatmentRoute":
                     if (instruction.FirstInstruction)

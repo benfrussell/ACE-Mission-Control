@@ -22,7 +22,7 @@
         <helper:InstructionNumberToColour x:Key="InstructionNumberToColour"/>
     </Page.Resources>
 
-    <ScrollViewer MaxHeight="530">
+    <ScrollViewer MaxHeight="525">
         <StackPanel Orientation="Vertical"
                     Background="{ThemeResource SystemChromeBlackLowColor}"
                     x:Name="ContentArea"
@@ -251,7 +251,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Grid.RowDefinitions>
-                            <RowDefinition MinHeight="160" Height="*" />
+                            <RowDefinition MinHeight="280" Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
@@ -263,7 +263,7 @@
                                 <ListView x:Name="SetupMissionRoutesList"
                                           ItemsSource="{x:Bind ViewModel.AttachedDrone.Mission.TreatmentInstructions, Mode=OneWay}"
                                           DataContext="{x:Bind ViewModel}"
-                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}">
+                                          IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.Locked, Mode=OneWay, Converter={StaticResource NegateBoolean}}">
 
                                     <ListView.ItemContainerStyle>
                                         <Style TargetType="ListViewItem">
@@ -467,7 +467,7 @@
                                             RelativePanel.AlignLeftWith="SetDurationLabel"
                                             MaxWidth="70"
                                             Style="{ThemeResource ACETextBox}"
-                                            IsEnabled="{x:Bind ViewModel.AttachedDrone.AcceptingMissionCommands, Mode=OneWay}"
+                                            IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.Locked, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
                                             BorderBrush="{x:Bind ViewModel.TreatmentDurationError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
                                             Text="{x:Bind ViewModel.TreatmentDuration, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                                             helper:EnterKeyHelpers.EnterKeyCommand="{x:Bind ViewModel.DurationChangedCommand}"
@@ -492,7 +492,7 @@
                                             Margin="8,0,4,4"
                                             Width="160"
                                             HorizontalAlignment="Stretch"
-                                            IsEnabled="{x:Bind ViewModel.AttachedDrone.AwayOnMission, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                                            IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.Locked, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
                                             SelectedIndex="{x:Bind ViewModel.SelectedStartMode, Mode=OneWay}"
                                             BorderBrush="{x:Bind ViewModel.StartModeError, Mode=OneWay, Converter={StaticResource ErrorBooleanToColour}}"
                                             Style="{ThemeResource ACEComboBox}">
@@ -700,12 +700,12 @@
                                         HorizontalAlignment="Stretch"
                                         RelativePanel.RightOf="ResetMissionButton"
                                         RelativePanel.AlignVerticalCenterWith="ResetMissionButton"
-                                        x:Uid="Planner_ResetButton"
                                         Margin="8,0,0,2"
                                         Style="{ThemeResource ACEButton}"
                                         MinWidth="70"
                                         MaxWidth="100"
-                                        IsEnabled="False"/>
+                                        Content="{x:Bind ViewModel.LockButtonText, Mode=OneWay}"
+                                        Command="{x:Bind ViewModel.LockCommand}"/>
                             </RelativePanel>
                         </Border>
 

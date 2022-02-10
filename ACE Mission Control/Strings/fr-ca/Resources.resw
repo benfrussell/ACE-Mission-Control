@@ -220,12 +220,6 @@
   <data name="Mission_TestPayload.Content" xml:space="preserve">
     <value>Test de la charge utile</value>
   </data>
-  <data name="Planner_ActivateButton" xml:space="preserve">
-    <value>Activer</value>
-  </data>
-  <data name="Planner_DeactivateButton" xml:space="preserve">
-    <value>Déactiver</value>
-  </data>
   <data name="Alert_CommandError" xml:space="preserve">
     <value>Erreur de commande</value>
   </data>
@@ -334,12 +328,6 @@
   <data name="Status_NotStarted" xml:space="preserve">
     <value>Non commencé</value>
   </data>
-  <data name="MissionActivated_False" xml:space="preserve">
-    <value>Déactivé</value>
-  </data>
-  <data name="MissionActivated_True" xml:space="preserve">
-    <value>Activé</value>
-  </data>
   <data name="Stage_Complete" xml:space="preserve">
     <value>Mission Complétée</value>
   </data>
@@ -396,9 +384,6 @@
   </data>
   <data name="UploadStatus_Uploaded" xml:space="preserve">
     <value>Télécharché</value>
-  </data>
-  <data name="Main_AwayOnMissionLabel.Text" xml:space="preserve">
-    <value>En mission</value>
   </data>
   <data name="SyncState_NotSynchronized" xml:space="preserve">
     <value>Non synchronisé</value>

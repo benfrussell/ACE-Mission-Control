@@ -262,7 +262,7 @@ namespace ACE_Mission_Control.Core.Models
         public TreatmentInstruction(AreaScanPolygon treatmentArea)
         {
             TreatmentPolygon = treatmentArea;
-            ID = treatmentArea.SequentialID;
+            ID = treatmentArea.Id;
             AreaStatus = MissionRoute.Types.Status.NotStarted;
 
             // Swath is generally half of the side distance (metres)
@@ -292,7 +292,7 @@ namespace ACE_Mission_Control.Core.Models
             if (TreatmentPolygon != null && e.AreaIDsAffected.Contains(TreatmentPolygon.Id))
             {
                 NotifyPropertyChanged("ValidTreatmentRoutes");
-                if (e.InterceptsAffected.Contains(SelectedInterceptRoute))
+                if (e.InterceptsAffected.Contains(SelectedInterceptRoute) || SelectedInterceptRoute == null)
                 {
                     RevalidateTreatmentRoute();
                 }

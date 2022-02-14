@@ -427,13 +427,21 @@
                                                           HorizontalAlignment="Stretch"
                                                           VerticalAlignment="Center"
                                                           IsEnabled="{x:Bind CanBeEnabled, Mode=OneWay}"
-                                                          SelectedItem="{Binding TreatmentRoute, Mode=TwoWay}"
+                                                          SelectedItem="{x:Bind TreatmentRoute, Mode=TwoWay}"
                                                           ItemsSource="{x:Bind ValidTreatmentRoutes, Mode=OneWay}">
+                                                    
                                                     <ComboBox.ItemTemplate>
                                                         <DataTemplate x:DataType="ace:WaypointRoute">
                                                             <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
                                                         </DataTemplate>
                                                     </ComboBox.ItemTemplate>
+
+                                                    <i:Interaction.Behaviors>
+                                                        <core:EventTriggerBehavior EventName="SelectionChanged">
+                                                            <core:InvokeCommandAction Command="{Binding ElementName=SetupMissionRoutesList, Path=DataContext.WaypointRouteChangedCommand}"
+                                                                                      CommandParameter="{Binding}"/>
+                                                        </core:EventTriggerBehavior>
+                                                    </i:Interaction.Behaviors>
 
                                                     <ToolTipService.ToolTip>
                                                         <TextBlock x:Uid="Planner_WaypointRouteComboboxTooltip"/>

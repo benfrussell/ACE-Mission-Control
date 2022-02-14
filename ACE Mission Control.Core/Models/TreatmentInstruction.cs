@@ -66,8 +66,12 @@ namespace ACE_Mission_Control.Core.Models
             }
             set
             {
-                if (value == null || (SelectedInterceptRoute != null && SelectedInterceptRoute.WaypointRoute == value))
+                if (SelectedInterceptRoute != null && SelectedInterceptRoute.WaypointRoute == value)
                     return;
+
+                if (value == null)
+                    return;
+
                 SelectedInterceptRoute = InterceptCollection.GetIntercepts(TreatmentPolygon.Id).FirstOrDefault(r => r.WaypointRoute == value);
                 AreaEntryExitCoordinates = new Tuple<Coordinate, Coordinate>(
                     SelectedInterceptRoute.EntryCoordinate,
@@ -255,6 +259,8 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        public bool Renotifying { get; private set; }
+
         // Save the last enabled state so we can put enabled back into the user's preffered state if they fix the CanBeEnabled problem
         // Starts as null and will only save the state after being enabled for the first time
         private bool? lastEnabledState;
@@ -276,6 +282,7 @@ namespace ACE_Mission_Control.Core.Models
             FirstInstruction = false;
             FirstInList = false;
             LastInList = false;
+            Renotifying = false;
 
             order = 0;
             enabled = false;
@@ -325,6 +332,13 @@ namespace ACE_Mission_Control.Core.Models
         {
             var interceptingRoutes = InterceptCollection.GetIntercepts(TreatmentPolygon.Id);
             return interceptingRoutes.Any(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
+        }
+
+        public void RenotifyTreatmentRoute()
+        {
+            Renotifying = true;
+            NotifyPropertyChanged("TreatmentRoute");
+            Renotifying = false;
         }
 
         // Check that the current treatment route is still valid (still intercepts the treatment area)

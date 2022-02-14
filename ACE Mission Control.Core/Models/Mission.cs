@@ -263,13 +263,8 @@ namespace ACE_Mission_Control.Core.Models
             if (originalIDs.SequenceEqual(orderedIDs))
                 return;
 
-            // Add any new IDs that exist in the original list to the ordered list, so OrderBy can find every ID somewhere
-            orderedIDs.AddRange(originalIDs.Except(orderedIDs));
-
-            var reorderedInstructions = TreatmentInstructions.OrderBy(i => orderedIDs.IndexOf(i.ID)).ToList();
-            TreatmentInstructions.Clear();
-            foreach (ITreatmentInstruction instruction in reorderedInstructions)
-                TreatmentInstructions.Add(instruction);
+            for (int i = 0; i < orderedIDs.Count; i++)
+                TreatmentInstructions.Move(TreatmentInstructions.IndexOf(GetInstructionByID(orderedIDs[i])), i);
 
             UpdateInstructionOrder();
         }
@@ -278,8 +273,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             var displacedInstruction = TreatmentInstructions.ElementAtOrDefault(newPosition);
 
-            TreatmentInstructions.Remove(instruction);
-            TreatmentInstructions.Insert(newPosition, instruction);
+            TreatmentInstructions.Move(TreatmentInstructions.IndexOf(instruction), newPosition);
 
             UpdateInstructionOrder();
 

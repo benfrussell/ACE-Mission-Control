@@ -578,6 +578,21 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.ReorderInstruction(instruction, AttachedDrone.Mission.TreatmentInstructions.IndexOf(instruction) + change);
         }
 
+        public RelayCommand<TreatmentInstruction> WaypointRouteChangedCommand => new RelayCommand<TreatmentInstruction>((args) => waypointRouteChangedCommand(args));
+        private void waypointRouteChangedCommand(TreatmentInstruction args)
+        {
+            if (args == null)
+                return;
+
+            // When moving items in the ObservableCollection of TreatmentInstructions that is bound to the ListView that holds these Comboboxes....
+            // ... it seems UWP internally adds/readds the TreatmentInstruction item
+            // When doing this readding, it sets the ComboBox's SelectedItem to null for some reason (the SelectionChanged event shows that the selected item gets removed by an internal trigger)
+            // So we need to ask the TreatmentInstruction to resend a NotifyPropertyChanged for it's TreatmentRoute property, thus setting the SelectedItem back
+            // This is all very stupid!
+            if (!args.Renotifying)
+                args.RenotifyTreatmentRoute();
+        }
+
         public RelayCommand DurationChangedCommand => new RelayCommand(() => durationChangedCommand());
         private void durationChangedCommand()
         {

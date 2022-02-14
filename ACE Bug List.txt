@@ -19,11 +19,12 @@ Thread SQL executions
 - Test
 
 Config response causes waypoint route item to disappear from the combo box in mission control
+- Test
 
 --- HIGH
 
 Add drone auto connect
-- It should be initiated by mission control
+- Test
 
 Force stop payload stopped working
 
@@ -34,6 +35,8 @@ Add hologram modem timeout detection
 Sometimes the map just dies. Usually after doing something too quickly. Reboot button?
 
 --- MEDIUM
+
+Route renaming doesn't update
 
 Mission set does not provide great feedback
 

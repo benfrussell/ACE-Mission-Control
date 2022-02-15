@@ -20,14 +20,14 @@
 
     <Grid Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
         </Grid.RowDefinitions>
 
         <TextBlock x:Uid="Config_DiagnosticsLabel"
@@ -70,31 +70,32 @@
                    Style="{ThemeResource SubtitleTextBlockStyle}"/>
 
         <controls:DataGrid ItemsSource="{x:Bind ViewModel.ConfigEntries, Mode=OneWay}"
-                           Grid.Column="1"
-                           Grid.Row="1"
-                           Grid.RowSpan="5"
                            AutoGenerateColumns="False"
                            GridLinesVisibility="Horizontal"
-                           Margin="16,0,8,0">
-            
+                           Margin="16,0,8,0"
+                           Grid.Column="1"
+                           Grid.Row="1"
+                           Grid.RowSpan="4"
+                           VerticalScrollBarVisibility="Visible">
+
             <controls:DataGrid.Columns>
-                
-                <controls:DataGridTextColumn IsReadOnly="True"
-                                             x:Uid="Config_EntriesSection"
-                                             FontSize="12"
-                                             FontStyle="Italic"
-                                             Binding="{Binding Section}"/>
 
                 <controls:DataGridTextColumn IsReadOnly="True"
-                                             x:Uid="Config_EntriesOption"
-                                             FontSize="12"
-                                             Binding="{Binding Option}"/>
+                                                 x:Uid="Config_EntriesSection"
+                                                 FontSize="12"
+                                                 FontStyle="Italic"
+                                                 Binding="{Binding Section}"/>
+
+                <controls:DataGridTextColumn IsReadOnly="True"
+                                                 x:Uid="Config_EntriesOption"
+                                                 FontSize="12"
+                                                 Binding="{Binding Option}"/>
 
                 <controls:DataGridTextColumn IsReadOnly="{x:Bind ViewModel.AttachedDrone.OBCClient.IsDirectorConnected, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
-                                             x:Uid="Config_EntriesValue"
-                                             FontSize="12"
-                                             Width="*"
-                                             Binding="{Binding Value, Mode=OneWay}"/>
+                                                 x:Uid="Config_EntriesValue"
+                                                 FontSize="12"
+                                                 Width="*"
+                                                 Binding="{Binding Value, Mode=OneWay}"/>
             </controls:DataGrid.Columns>
 
             <i:Interaction.Behaviors>

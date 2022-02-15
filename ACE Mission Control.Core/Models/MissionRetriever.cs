@@ -138,7 +138,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (AreaScanPolygons.Count > 0)
             {
-                var allAreaIDs = from area in AreaScanPolygons select area.SequentialID;
+                var allAreaIDs = from area in AreaScanPolygons select area.Id;
                 RouteCollectionUpdates<AreaScanPolygon> removedAreas = new RouteCollectionUpdates<AreaScanPolygon>() { RemovedRouteIDs = allAreaIDs.ToList() };
                 AreaScanPolygonsUpdated?.Invoke(null, new AreaScanPolygonsUpdatedArgs() { Updates = removedAreas });
                 AreaScanPolygons.Clear();

@@ -235,8 +235,6 @@ namespace ACE_Mission_Control.Core.Models
                 LastPosition = new Coordinate(
                   (newStatus.LastLongitude / 180) * Math.PI,
                   (newStatus.LastLatitude / 180) * Math.PI);
-            else if (!MissionHasProgress)
-                LastPosition = null;
 
             startParameters.UpdateParameters(GetNextInstruction(), LastPosition, justReturned);
         }
@@ -571,6 +569,11 @@ namespace ACE_Mission_Control.Core.Models
 
         private void Instruction_SyncedPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            // Entry and Exit coordinates for the first instruction will trigger a sync update via an update to the start parameters
+            // So we shouldn't trigger it here
+            if (e.PropertyName == "AreaEntryExitCoordinates" && (sender as ITreatmentInstruction).FirstInstruction)
+                return;
+
             var propertyList = new List<string>() { e.PropertyName };
             InstructionSyncedPropertyUpdated?.Invoke(this, new InstructionSyncedPropertyUpdatedArgs((sender as ITreatmentInstruction).ID, propertyList ));
         }

@@ -420,7 +420,6 @@ namespace ACE_Mission_Control.Core.Models
                 if (attributes.Any(a => a.GetType() == typeof(SyncedPropertyAttribute)))
                 {
                     LastSyncedPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    System.Diagnostics.Debug.WriteLine($"Updating time in {ID} to {LastSyncedPropertyModification} because of a change to {propertyName}");
                     SyncedPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
                 }
             }

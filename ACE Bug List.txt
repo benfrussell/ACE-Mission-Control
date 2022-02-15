@@ -2,39 +2,35 @@ ACE Bug List
 
 --- BREAKING
 
-Onboard computer can get into a state where it is synchronized but not ready
-- Toggling an enabled instruction seems to fix it?
-- Turning connect to drone off also did not change the ready state
-- Seems caused by drone connection/disconnection
+Drone speed is hugely under-reporting for the M600
+- Either need to include the Z component or switch to TOPIC_GPS_VELOCITY
+
+Last position flag didn't appear?
+- Start parameters knew the last position was available but it didn't appear until changing modes
+- Start params should have changed mode automatically?
 - Test
 
-Payload is not turning off when leaving the preactivate zone
-- It's fine between routes
-- Test
-
-Incorporate locked state! Got a sync error after trying to sync while the drone was on return
-- Test
-
-Thread SQL executions
-- Test
-
-Config response causes waypoint route item to disappear from the combo box in mission control
-- Test
+Configuration grid isn't scrollable
 
 --- HIGH
 
-Add drone auto connect
-- Test
-
-Force stop payload stopped working
-
 Add hologram modem timeout detection
 	- Attempt recovery by toggling the radio after a failure
-	- Report errors if it failed to activate
+		- Test
+
+SQL should update position in the Override, Return, and once during ready/not ready
+
+Force stop payload stopped working
 
 Sometimes the map just dies. Usually after doing something too quickly. Reboot button?
 
 --- MEDIUM
+
+Set last point with set_route
+
+Onboard computer logs aren't good.
+	- Multiple logs are started. Seems to be related to the chaperone because, it causes another log file to start. Maybe check by process ID?
+	- Time and date is wrong because the Pi never knows the time and date. Update it from ACE?
 
 Route renaming doesn't update
 
@@ -49,10 +45,6 @@ If treatment never started we shouldn't put down a last position flag
 Flythrough error does not unset?
 
 Doesn't check the chaperone state ever past initial connection connection
-
-Onboard computer logs aren't good.
-	- Multiple logs are started. Seems to be related to the chaperone because, it causes another log file to start. Maybe check by process ID?
-	- Time and date is wrong because the Pi never knows the time and date. Update it from ACE?
 
 --- LOW
 
@@ -92,6 +84,8 @@ When the route starts within the treatment area it sets the start point as it ex
 TCP "pinging" is not reliable, at least on busy slow networks - create ping script to execute
 	- Not working for Gabe
 	- Should switch to using DNS-SD/mDNS to discover devices on the network 
+
+Retrieve logs from Mission Control
 
 --- DOCUMENTATION
 

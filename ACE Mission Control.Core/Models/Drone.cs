@@ -623,6 +623,12 @@ namespace ACE_Mission_Control.Core.Models
 
         private void HandleDroneMissionConfig(MissionConfig missionConfig)
         {
+            if (Synchronization == SyncState.Paused)
+            {
+                missionConfigHandled = true;
+                return;
+            }
+
             Mission.TreatmentDuration = missionConfig.TreatmentDuration;
 
             UpdateMissionWithDroneRoutes(missionConfig.Routes);
@@ -687,6 +693,8 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     if (Synchronization != SyncState.Paused)
                         Synchronization = SyncState.NotSynchronized;
+                    if (Mission.Locked)
+                        Mission.Unlock();
                     directorCommandQueue.Clear();
                     updateCommandsSent = 0;
                     InterfaceState = InterfaceStatus.Types.State.Offline;

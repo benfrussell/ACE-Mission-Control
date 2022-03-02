@@ -331,7 +331,10 @@ namespace ACE_Mission_Control.Core.Models
         public bool IsTreatmentRouteValid()
         {
             var interceptingRoutes = InterceptCollection.GetIntercepts(TreatmentPolygon.Id);
-            return interceptingRoutes.Any(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
+            if (SelectedInterceptRoute == null)
+                return false;
+            else
+                return interceptingRoutes.Any(i => i.WaypointRoute.Id == SelectedInterceptRoute.WaypointRoute.Id);
         }
 
         public void RenotifyTreatmentRoute()

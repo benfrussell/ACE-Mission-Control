@@ -244,7 +244,7 @@
                 </muxc:Expander.Header>
 
                 <muxc:Expander.Content>
-                    <Grid Margin="-18,-18,-18,-18">
+                    <Grid Margin="-18,-18,-18,-18" Name="PlannerGrid">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition MinWidth="440" MaxWidth="502" />
                             <ColumnDefinition Width="*" />
@@ -714,6 +714,20 @@
                                         MaxWidth="100"
                                         Content="{x:Bind ViewModel.LockButtonText, Mode=OneWay}"
                                         Command="{x:Bind ViewModel.LockCommand}"/>
+
+                                <Button x:Name="ResetMapButton"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.RightOf="LockMissionButton"
+                                        RelativePanel.AlignVerticalCenterWith="LockMissionButton"
+                                        Margin="8,0,0,2"
+                                        Style="{ThemeResource ACEButton}"
+                                        MinWidth="40"
+                                        MaxWidth="40"
+                                        Command="{x:Bind ViewModel.StopMapCommand}">
+                                    <Viewbox>
+                                        <SymbolIcon Symbol="DisableUpdates"/>
+                                    </Viewbox>
+                                </Button>
                             </RelativePanel>
                         </Border>
 
@@ -731,7 +745,8 @@
                                             Layers="{x:Bind ViewModel.MapLayers, Mode=OneWay}"
                                             Center="{x:Bind ViewModel.MapCentre, Mode=OneWay}"
                                             Style="AerialWithRoads"
-                                            MapServiceToken="4l0tkAAsXEnnNSOK8679~ik4pAeyowqts0oKyLzbkjg~As5-mUredKyQUQkVkC2zR9xB2hFgDWVfvp_OP7MbrTfQbF4goOfA-Sfa3nSj1EJs">
+                                            MapServiceToken="4l0tkAAsXEnnNSOK8679~ik4pAeyowqts0oKyLzbkjg~As5-mUredKyQUQkVkC2zR9xB2hFgDWVfvp_OP7MbrTfQbF4goOfA-Sfa3nSj1EJs"
+                                         >
                             <i:Interaction.Behaviors>
                                 <core:EventTriggerBehavior EventName="MapElementClick">
                                     <core:InvokeCommandAction Command="{x:Bind ViewModel.MapElementClickedCommand}"/>

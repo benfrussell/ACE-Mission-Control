@@ -23,6 +23,7 @@ using Windows.UI;
 
 namespace ACE_Mission_Control.ViewModels
 {
+    public class StopMapActionsMessage : MessageBase { }
     public class MissionViewModel : DroneViewModelBase
     {
         public enum ConnectStatus
@@ -623,6 +624,17 @@ namespace ACE_Mission_Control.ViewModels
         private void lockCommand()
         {
             AttachedDrone.ToggleLock();
+        }
+
+        public RelayCommand StopMapCommand => new RelayCommand(() => stopMapCommand());
+        private void stopMapCommand()
+        {
+            var msg = new StopMapActionsMessage();
+            Messenger.Default.Send(msg);
+            //var instruction = AttachedDrone.Mission.GetNextInstruction();
+            //if (instruction == null || instruction.AreaEntryExitCoordinates.Item1 != null)
+            //    return;
+            //MapCentre = CoordToGeopoint(instruction.AreaEntryExitCoordinates.Item1.X, instruction.AreaEntryExitCoordinates.Item1.Y);
         }
 
         // --- Control commands

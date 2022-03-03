@@ -97,9 +97,19 @@ namespace ACE_Mission_Control.Core.Models
             ConnectionInProgress = true;
             ConnectionFailure = false;
             Address = "tcp://" + ip + ":" + port;
-            Socket.Connect(Address);
 
-            ClientRuntimeAsync(cancellationTokenSource.Token);
+            try
+            {
+                Socket.Connect(Address);
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                ConnectionInProgress = false;
+                ConnectionFailure = true;
+            }
+
+            if (!ConnectionFailure)
+                ClientRuntimeAsync(cancellationTokenSource.Token);
         }
 
         protected abstract void ClientRuntimeAsync(CancellationToken cancellationToken);

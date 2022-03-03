@@ -16,6 +16,7 @@ using ACE_Mission_Control.ViewModels;
 using ACE_Mission_Control.Core.Models;
 using GalaSoft.MvvmLight.Messaging;
 using System.Threading.Tasks;
+using Windows.UI.Xaml.Controls.Maps;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -41,6 +42,8 @@ namespace ACE_Mission_Control.Views
             {
             }
             base.OnNavigatedTo(e);
+
+            Messenger.Default.Register<StopMapActionsMessage>(this, (msg) => StopMapActions());
         }
 
         public MissionPage() : base()
@@ -52,6 +55,32 @@ namespace ACE_Mission_Control.Views
 
         private void MissionPage_Loaded(object sender, RoutedEventArgs e)
         {
+            
+        }
+
+        private void StopMapActions()
+        {
+            PlannerGrid.Children.Remove(EntryMapControl);
+            var map = CreateMapControl(ViewModel.MapLayers, ViewModel.MapCentre);
+            
+            PlannerGrid.Children.Add(map);
+        }
+
+        private MapControl CreateMapControl(IList<MapLayer> layers, Windows.Devices.Geolocation.Geopoint point)
+        {
+            var map = new MapControl();
+            map.SetValue(Grid.ColumnProperty, 1);
+            map.SetValue(Grid.RowProperty, 0);
+            map.SetValue(Grid.RowSpanProperty, 2);
+            map.Margin = new Thickness(4, 8, 8, 8);
+            map.HorizontalAlignment = HorizontalAlignment.Stretch;
+            map.VerticalAlignment = VerticalAlignment.Stretch;
+            map.ZoomLevel = 15;
+            //map.Layers = layers;
+            map.Center = point;
+            map.Style = MapStyle.AerialWithRoads;
+            map.MapServiceToken = "4l0tkAAsXEnnNSOK8679~ik4pAeyowqts0oKyLzbkjg~As5-mUredKyQUQkVkC2zR9xB2hFgDWVfvp_OP7MbrTfQbF4goOfA-Sfa3nSj1EJs";
+            return map;
         }
     }
 }

@@ -5,26 +5,40 @@ ACE Bug List
 Drone speed is hugely under-reporting for the M600
 - Either need to include the Z component or switch to TOPIC_GPS_VELOCITY
 
+Sometimes the map just dies. Usually after doing something too quickly. Reboot button?
+
+Need to know the time spent treated
+
+H20 GUIDED mode can be initiated by a hold command while treating. This should stop the payload but doesn't (it's still an auto mode).
+
+--- HIGH
+
+Force stop payload stopped working
+
+Configuration grid isn't scrollable
+
+Mission Control doesn't retrieve the last position after rebooting
+
 Last position flag didn't appear?
 - Start parameters knew the last position was available but it didn't appear until changing modes
 - Start params should have changed mode automatically?
 - Test
+- Seems to be related to being locked
 
-Configuration grid isn't scrollable
+Wrong IP format makes MC crash
 
---- HIGH
+--- MEDIUM-HIGH
 
-Add hologram modem timeout detection
-	- Attempt recovery by toggling the radio after a failure
-		- Test
+Mavlink connection error makes MC think there's an error that's causing a sync failure
+	- Occurs because of an error response to check_interface maybe?
 
 SQL should update position in the Override, Return, and once during ready/not ready
 
-Force stop payload stopped working
-
-Sometimes the map just dies. Usually after doing something too quickly. Reboot button?
+Setting duration changed route
 
 --- MEDIUM
+
+Re-enabling areas on Mission Control reconnect to OBC would be nice
 
 Set last point with set_route
 
@@ -48,12 +62,17 @@ Doesn't check the chaperone state ever past initial connection connection
 
 --- LOW
 
+Map on first load doesn't snap to the right position if you enabled an area that's set as completed
+
 Scroll down in Mission when opening a new tab
 
 Disconnection causes three disconnect messages in MissionControl
 	- Fixed?
 
 Unnecessary no connection messages
+
+At mission complete, sometimes MC still shows that the area is still "in-progress"
+	- Maybe related to locked/sync paused?
 
 --- MULTI-DRONE
 
@@ -66,6 +85,8 @@ Button to exclude emulation drones from the drone list
 Save and restore instruction and connection details
 
 --- FUTURE
+
+Estimate time left in the treatment using flight speed, payload full-empty time, and length of route intersecting with the area
 
 Mission Control Core text isn't translated
 

@@ -23,7 +23,22 @@ using Windows.UI;
 
 namespace ACE_Mission_Control.ViewModels
 {
-    public class StopMapActionsMessage : MessageBase { }
+    public class RemakeMapMessage : MessageBase { }
+
+    public class SetMapPointsMessage : MessageBase
+    {
+        public IEnumerable<ITreatmentInstruction> Instructions;
+        public SetMapPointsMessage(IEnumerable<ITreatmentInstruction> instructions) { Instructions = instructions; }
+        public SetMapPointsMessage(ITreatmentInstruction instruction) { Instructions = new List<ITreatmentInstruction> { instruction }; }
+    }
+
+    public class SetMapPolygonsMessage : MessageBase
+    {
+        public IEnumerable<ITreatmentInstruction> Instructions;
+        public SetMapPolygonsMessage(IEnumerable<ITreatmentInstruction> instructions) { Instructions = instructions; }
+        public SetMapPolygonsMessage(ITreatmentInstruction instruction) { Instructions = new List<ITreatmentInstruction> { instruction }; }
+    }
+
     public class MissionViewModel : DroneViewModelBase
     {
         public enum ConnectStatus
@@ -129,7 +144,7 @@ namespace ACE_Mission_Control.ViewModels
         }
 
         private bool _droneConnectionOn;
-        public bool DroneConnectionOn
+        public bool DroneConnectEnabled
         {
             get { return _droneConnectionOn; }
             set
@@ -137,6 +152,19 @@ namespace ACE_Mission_Control.ViewModels
                 if (_droneConnectionOn == value)
                     return;
                 _droneConnectionOn = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _droneConnectText;
+        public string DroneConnectText
+        {
+            get { return _droneConnectText; }
+            set
+            {
+                if (_droneConnectText == value)
+                    return;
+                _droneConnectText = value;
                 RaisePropertyChanged();
             }
         }
@@ -238,34 +266,7 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private ObservableCollection<MapLayer> mapLayers;
-        public ObservableCollection<MapLayer> MapLayers
-        {
-            get => mapLayers;
-            set
-            {
-                if (mapLayers == value)
-                    return;
-                mapLayers = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        private Geopoint mapCentre;
-        public Geopoint MapCentre
-        {
-            get => mapCentre;
-            set
-            {
-                if (mapCentre == value)
-                    return;
-                mapCentre = value;
-                RaisePropertyChanged();
-            }
-        }
-
         private bool startModeErrorNotificationSent;
-        private bool mapCentred;
 
         public MissionViewModel()
         {
@@ -275,7 +276,6 @@ namespace ACE_Mission_Control.ViewModels
             Progress = IPLookup.Progress;
             TreatmentDurationError = false;
             StartModeError = false;
-            MapLayers = new ObservableCollection<MapLayer>();
         }
 
         private void IPLookup_StaticPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -303,10 +303,8 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
             AttachedDrone.Mission.InstructionSyncedPropertyUpdated += Mission_InstructionSyncedPropertyUpdated;
 
-            mapCentred = false;
-
-            UpdatePlannerMapAreas();
-            UpdatePlannerMapPoints();
+            Messenger.Default.Send(new SetMapPolygonsMessage(AttachedDrone.Mission.TreatmentInstructions));
+            Messenger.Default.Send(new SetMapPointsMessage(AttachedDrone.Mission.TreatmentInstructions));
 
             startModeErrorNotificationSent = false;
             CheckStartModeError();
@@ -314,9 +312,7 @@ namespace ACE_Mission_Control.ViewModels
             UpdateConnectionStatuses();
             UpdatePlannerStatus();
             UpdateLockButton();
-
-            DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
-                AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
+            UpdateDroneConnectButton();
 
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
         }
@@ -362,7 +358,10 @@ namespace ACE_Mission_Control.ViewModels
                 switch (e.PropertyName)
                 {
                     case "InterfaceState":
-                        DroneConnectionOn = AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting || AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online;
+                        UpdateDroneConnectButton();
+                        break;
+                    case "Synchronization":
+                        UpdateDroneConnectButton();
                         break;
                 }
             });
@@ -370,8 +369,8 @@ namespace ACE_Mission_Control.ViewModels
 
         private void Mission_InstructionRouteUpdated(object sender, InstructionRouteUpdatedArgs e)
         {
-            UpdatePlannerMapAreas(e.Instruction);
-            UpdatePlannerMapPoints(e.Instruction);
+            Messenger.Default.Send(new SetMapPolygonsMessage(e.Instruction));
+            Messenger.Default.Send(new SetMapPointsMessage(e.Instruction));
             if (e.Instruction.FirstInstruction)
                 CheckStartModeError();
         }
@@ -386,13 +385,13 @@ namespace ACE_Mission_Control.ViewModels
 
                 if (e.UpdatedParameters.Contains("AreaEntryExitCoordinates"))
                 {
-                    UpdatePlannerMapPoints(instruction);
+                    Messenger.Default.Send(new SetMapPointsMessage(instruction));
                     CheckStartModeError();
                 }
                 else if (e.UpdatedParameters.Contains("Enabled"))
                 {
-                    UpdatePlannerMapAreas(instruction);
-                    UpdatePlannerMapPoints(instruction);
+                    Messenger.Default.Send(new SetMapPolygonsMessage(instruction));
+                    Messenger.Default.Send(new SetMapPointsMessage(instruction));
                     // If there's a new first instruction after this change, which WASN'T this instruction, we need to draw it's route on the map now
                     if (!instruction.FirstInstruction)
                     {
@@ -400,8 +399,8 @@ namespace ACE_Mission_Control.ViewModels
                         if (nextInstruction == null)
                             return;
 
-                        UpdatePlannerMapAreas(nextInstruction);
-                        UpdatePlannerMapPoints(nextInstruction);
+                        Messenger.Default.Send(new SetMapPolygonsMessage(nextInstruction));
+                        Messenger.Default.Send(new SetMapPointsMessage(nextInstruction));
                     }
 
                     // Same deal for the last instruction, we draw it's points differently
@@ -409,7 +408,7 @@ namespace ACE_Mission_Control.ViewModels
                     {
                         var lastInstruction = AttachedDrone.Mission.GetLastInstruction();
                         if (lastInstruction != null)
-                            UpdatePlannerMapPoints(AttachedDrone.Mission.GetLastInstruction());
+                            Messenger.Default.Send(new SetMapPointsMessage(lastInstruction));
                     }
                 }
             });
@@ -417,8 +416,8 @@ namespace ACE_Mission_Control.ViewModels
 
         private void Mission_InstructionAreasUpdated(object sender, InstructionAreasUpdatedArgs e)
         {
-            UpdatePlannerMapAreas(e.Instructions);
-            UpdatePlannerMapPoints(e.Instructions);
+            Messenger.Default.Send(new SetMapPolygonsMessage(e.Instructions));
+            Messenger.Default.Send(new SetMapPointsMessage(e.Instructions));
             CheckStartModeError();
         }
 
@@ -438,6 +437,19 @@ namespace ACE_Mission_Control.ViewModels
                 LockButtonText = "Planner_UnlockButton".GetLocalized();
             else
                 LockButtonText = "Planner_LockButton".GetLocalized();
+        }
+
+        private void UpdateDroneConnectButton()
+        {
+            if (AttachedDrone.Synchronization != Drone.SyncState.Synchronized)
+                DroneConnectEnabled = false;
+            else
+                DroneConnectEnabled = AttachedDrone.InterfaceState != Pbdrone.InterfaceStatus.Types.State.Attempting;
+
+            if (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online)
+                DroneConnectText = "Mission_DisconnectDrone".GetLocalized();
+            else
+                DroneConnectText = "Mission_ConnectDrone".GetLocalized();
         }
 
         private void UpdateConnectionStatuses()
@@ -527,21 +539,16 @@ namespace ACE_Mission_Control.ViewModels
                 
         }
 
-        public RelayCommand<ToggleSwitch> ConnectDroneCommand => new RelayCommand<ToggleSwitch>((toggle) => connectDroneCommand(toggle));
-        private void connectDroneCommand(ToggleSwitch toggle = null)
+        public RelayCommand ConnectDroneCommand => new RelayCommand(() => connectDroneCommand());
+        private void connectDroneCommand()
         {
-            bool connectDrone = toggle == null ? DroneConnectionOn : toggle.IsOn;
-            if (connectDrone)
+            if (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online)
             {
-                if (AttachedDrone.OBCClient.IsDirectorConnected && AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Offline)
-                    AttachedDrone.SendCommand("start_interface");
+                AttachedDrone.SendCommand("stop_interface");                    
             }
             else
             {
-                if (AttachedDrone.OBCClient.IsDirectorConnected &&
-                    (AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Attempting ||
-                    AttachedDrone.InterfaceState == Pbdrone.InterfaceStatus.Types.State.Online))
-                    AttachedDrone.SendCommand("stop_interface");
+                AttachedDrone.SendCommand("start_interface");
             }
         }
 
@@ -626,15 +633,10 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.ToggleLock();
         }
 
-        public RelayCommand StopMapCommand => new RelayCommand(() => stopMapCommand());
-        private void stopMapCommand()
+        public RelayCommand RemakeMapCommand => new RelayCommand(() => remakeMapCommand());
+        private void remakeMapCommand()
         {
-            var msg = new StopMapActionsMessage();
-            Messenger.Default.Send(msg);
-            //var instruction = AttachedDrone.Mission.GetNextInstruction();
-            //if (instruction == null || instruction.AreaEntryExitCoordinates.Item1 != null)
-            //    return;
-            //MapCentre = CoordToGeopoint(instruction.AreaEntryExitCoordinates.Item1.X, instruction.AreaEntryExitCoordinates.Item1.Y);
+            Messenger.Default.Send(new RemakeMapMessage());
         }
 
         // --- Control commands
@@ -667,215 +669,6 @@ namespace ACE_Mission_Control.ViewModels
         private void synchronizeCommand()
         {
             AttachedDrone.Synchronize(true);
-        }
-
-        // -- Map Functions
-
-        private static RandomAccessStreamReference StartImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Start.png"));
-        private static RandomAccessStreamReference StopImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Stop.png"));
-        private static RandomAccessStreamReference NextImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Next.png"));
-        private static RandomAccessStreamReference FlagImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Flag.png"));
-        private static RandomAccessStreamReference PointImage = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Point.png"));
-
-        private Geopath CoordsToGeopath(IEnumerable<Tuple<double, double>> coords)
-        {
-            List<BasicGeoposition> positions = new List<BasicGeoposition>();
-            foreach (Tuple<double, double> coord in coords)
-            {
-                positions.Add(
-                    new BasicGeoposition()
-                    {
-                        Longitude = (coord.Item1 / Math.PI) * 180,
-                        Latitude = (coord.Item2 / Math.PI) * 180
-                    });
-            }
-            return new Geopath(positions);
-        }
-
-        // Input is in radians and output is in degrees
-        private Geopoint CoordToGeopoint(double longitude, double latitude)
-        {
-            return new Geopoint(
-                new BasicGeoposition
-                {
-                    Longitude = (longitude / Math.PI) * 180,
-                    Latitude = (latitude / Math.PI) * 180
-                });
-        }
-
-        private void AddMapLayersUntilIndex(int index)
-        {
-            var lastIndex = MapLayers.Count();
-            var layersToAdd = (index + 1) - MapLayers.Count();
-
-            if (layersToAdd <= 0)
-                return;
-
-            // Add map layers until it reaches the index
-            for (int i = 0; i < layersToAdd; i++)
-                MapLayers.Add(new MapElementsLayer());
-        }
-
-        private void UpdatePlannerMapAreas()
-        {
-            UpdatePlannerMapAreas(AttachedDrone.Mission.TreatmentInstructions);
-        }
-
-        private void UpdatePlannerMapAreas(ITreatmentInstruction instruction)
-        {
-            UpdatePlannerMapAreas(new List<ITreatmentInstruction> { instruction });
-        }
-
-        private void UpdatePlannerMapAreas(IEnumerable<ITreatmentInstruction> instructions)
-        {
-            foreach (ITreatmentInstruction instruction in instructions)
-            {
-                if (instruction == null)
-                    continue;
-
-                var layerIndex = instruction.ID * 2;
-
-                // Add the layer or clear elements at the existing layer
-                if (MapLayers.ElementAtOrDefault(layerIndex) == null)
-                    AddMapLayersUntilIndex(layerIndex);
-                else
-                    ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Clear();
-
-                if (!instruction.Enabled)
-                    continue;
-
-                Color colour = (Color)new InstructionNumberToColour().Convert(instruction.ID, typeof(Color), null, null);
-
-                if (instruction.FirstInstruction && instruction.IsTreatmentRouteValid())
-                {
-                    MapPolyline polyline = new MapPolyline();
-                    polyline.Path = CoordsToGeopath(instruction.TreatmentRoute.GetBasicCoordinates());
-                    polyline.ZIndex = 2;
-                    polyline.StrokeColor = colour;
-                    polyline.StrokeThickness = 2;
-                    polyline.StrokeDashed = true;
-                    ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Add(polyline);
-                }
-
-                MapPolygon polygon = new MapPolygon();
-                polygon.Path = CoordsToGeopath(instruction.TreatmentPolygon.GetBasicCoordinates());
-                polygon.ZIndex = 1;
-                polygon.StrokeColor = colour;
-                polygon.StrokeThickness = 3;
-                polygon.StrokeDashed = false;
-                colour.A = 60;
-                polygon.FillColor = colour;
-                ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Add(polygon);
-            }
-        }
-
-        private void UpdatePlannerMapPoints()
-        {
-            UpdatePlannerMapPoints(AttachedDrone.Mission.TreatmentInstructions);
-        }
-
-        private void UpdatePlannerMapPoints(ITreatmentInstruction instruction)
-        {
-            UpdatePlannerMapPoints(new List<ITreatmentInstruction> { instruction });
-        }
-
-        private void UpdatePlannerMapPoints(IEnumerable<ITreatmentInstruction> instructions)
-        {
-            foreach (ITreatmentInstruction instruction in instructions)
-            {
-                var layerIndex = (instruction.ID * 2) + 1;
-
-                // Add the layer or clear elements at the existing layer
-                if (MapLayers.ElementAtOrDefault(layerIndex) == null)
-                    AddMapLayersUntilIndex(layerIndex);
-                else
-                    ((MapElementsLayer)MapLayers[layerIndex]).MapElements.Clear();
-
-                if (!instruction.Enabled)
-                    continue;
-
-                var layer = (MapElementsLayer)MapLayers[layerIndex];
-
-                MapIcon startIcon = new MapIcon();
-
-                if (instruction.FirstInstruction)
-                {
-                    // Add a MapIcon for the last position if there is a last position
-                    if (AttachedDrone.Mission.LastPosition != null)
-                    {
-                        MapIcon lastPosIcon = new MapIcon();
-                        lastPosIcon.Location = CoordToGeopoint(
-                            AttachedDrone.Mission.LastPosition.X,
-                            AttachedDrone.Mission.LastPosition.Y);
-                        lastPosIcon.Image = FlagImage;
-                        lastPosIcon.NormalizedAnchorPoint = new Windows.Foundation.Point(0.15, 1);
-                        lastPosIcon.Title = "Planner_MapLastPositionLabel".GetLocalized();
-                        lastPosIcon.ZIndex = -1;
-                        layer.MapElements.Add(lastPosIcon);
-                    }
-
-                    // Add a MapIcon for each waypoint in the first instruction's route if in SelectedWaypoint mode
-                    if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.SelectedWaypoint)
-                    {
-                        foreach (Waypoint idCoord in instruction.TreatmentRoute.Waypoints)
-                        {
-                            MapIcon waypointIcon = new MapIcon();
-                            waypointIcon.Location = CoordToGeopoint(idCoord.Coordinate.X, idCoord.Coordinate.Y);
-                            waypointIcon.Image = PointImage;
-                            waypointIcon.Tag = idCoord.ID;
-                            waypointIcon.ZIndex = -2;
-                            layer.MapElements.Add(waypointIcon);
-                        }
-                    }
-
-                    // Add a MapIcon for the starting point and each area entry point that follows
-                    var startCoord = AttachedDrone.Mission.GetStartCoordinate();
-                    if (startCoord != null)
-                    {
-                        var startGeopoint = CoordToGeopoint(startCoord.X, startCoord.Y);
-                        startIcon.Location = startGeopoint;
-
-                        if (!mapCentred)
-                        {
-                            MapCentre = startGeopoint;
-                            mapCentred = true;
-                        }
-                    }
-                }
-                else
-                {
-                    var startCoord = AttachedDrone.Mission.GetStartCoordinate(instruction.ID);
-                    startIcon.Location = CoordToGeopoint(startCoord.X, startCoord.Y);
-                }
-
-                startIcon.Image = StartImage;
-                startIcon.Title = instruction.Name;
-                layer.MapElements.Add(startIcon);
-
-                // Add a MapIcon for the exit point for each area
-                MapIcon stopIcon = new MapIcon();
-                var stopCoord = AttachedDrone.Mission.GetStopCoordinate(instruction.ID);
-                stopIcon.Location = CoordToGeopoint(stopCoord.X, stopCoord.Y);
-                stopIcon.Image = instruction.LastInstruction ? StopImage : NextImage;
-                layer.MapElements.Add(stopIcon);
-            }
-        }
-
-        public RelayCommand<MapElementClickEventArgs> MapElementClickedCommand => new RelayCommand<MapElementClickEventArgs>((args) => mapElementClickedCommand(args));
-        private void mapElementClickedCommand(MapElementClickEventArgs args)
-        {
-            if (AttachedDrone.Mission.StartMode != StartTreatmentParameters.Mode.SelectedWaypoint)
-                return;
-
-            foreach (MapElement element in args.MapElements)
-            {
-                if (args.MapElements[0].Tag == null)
-                    continue;
-
-                AttachedDrone.Mission.SetSelectedStartWaypoint(args.MapElements[0].Tag as string);
-                break;
-            }
-
         }
     }
 }

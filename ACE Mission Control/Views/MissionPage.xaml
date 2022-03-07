@@ -193,31 +193,26 @@
                                         Text="{x:Bind ViewModel.DirectorStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
                                         Foreground="{x:Bind ViewModel.DirectorStatus, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"/>
 
-                            <ToggleSwitch x:Name="ConnectDroneSwitch"
-                                            x:Uid="Mission_ConnectDroneSwitch"
-                                            RelativePanel.Below="DirectorConnectionLabel"
-                                            Margin="0,-4,0,0"
-                                            IsOn="{x:Bind ViewModel.DroneConnectionOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                <i:Interaction.Behaviors>
-                                    <core:EventTriggerBehavior EventName="Toggled">
-                                        <core:InvokeCommandAction Command="{x:Bind ViewModel.ConnectDroneCommand}"
-                                                            CommandParameter="{x:Bind ConnectDroneSwitch}"/>
-                                    </core:EventTriggerBehavior>
-                                </i:Interaction.Behaviors>
-                            </ToggleSwitch>
+                            <Button x:Name="ConnectDroneButton"
+                                    x:Uid="Mission_ConnectDroneButton"
+                                    RelativePanel.Below="DirectorConnectionLabel"
+                                    Margin="0,4,0,0"
+                                    Content="{x:Bind ViewModel.DroneConnectText, Mode=OneWay}"
+                                    IsEnabled="{x:Bind ViewModel.DroneConnectEnabled, Mode=OneWay}"
+                                    Command="{x:Bind ViewModel.ConnectDroneCommand}"/>
 
                             <TextBlock x:Uid="Main_DroneConnectionLabel"
                                         x:Name="DroneConnectionLabel"
                                         VerticalAlignment="Center"
-                                        RelativePanel.Below="ConnectDroneSwitch"
+                                        RelativePanel.Below="ConnectDroneButton"
                                         Height="20"
-                                        Margin="0,-6,0,0"
+                                        Margin="0,4,0,0"
                                         Style="{StaticResource CaptionTextBlockStyle}"/>
                             <TextBlock VerticalAlignment="Center"
                                         RelativePanel.AlignVerticalCenterWith="DroneConnectionLabel"
                                         RelativePanel.RightOf="DroneConnectionLabel"
                                         Height="20"
-                                        Margin="4,-6,0,0"
+                                        Margin="4,4,0,0"
                                         Style="{StaticResource CaptionTextBlockStyle}"
                                         Text="{x:Bind ViewModel.AttachedDrone.InterfaceState, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
                                         Foreground="{x:Bind ViewModel.AttachedDrone.InterfaceState, Mode=OneWay, Converter={StaticResource EnumToRYGColour}}"/>
@@ -714,45 +709,27 @@
                                         MaxWidth="100"
                                         Content="{x:Bind ViewModel.LockButtonText, Mode=OneWay}"
                                         Command="{x:Bind ViewModel.LockCommand}"/>
-
-                                <Button x:Name="ResetMapButton"
-                                        HorizontalAlignment="Stretch"
-                                        RelativePanel.RightOf="LockMissionButton"
-                                        RelativePanel.AlignVerticalCenterWith="LockMissionButton"
-                                        Margin="8,0,0,2"
-                                        Style="{ThemeResource ACEButton}"
-                                        MinWidth="40"
-                                        MaxWidth="40"
-                                        Command="{x:Bind ViewModel.StopMapCommand}">
-                                    <Viewbox>
-                                        <SymbolIcon Symbol="DisableUpdates"/>
-                                    </Viewbox>
-                                </Button>
                             </RelativePanel>
                         </Border>
 
-
-                        <maps:MapControl x:Name="EntryMapControl"
-                                            Grid.Column="1"
-                                            Grid.Row="0"
-                                            Grid.RowSpan="2"
-                                            Margin="4,8,8,8"
-                                            HorizontalAlignment="Stretch"
-                                            VerticalAlignment="Stretch"
-                                            TiltInteractionMode="GestureAndControl"
-                                            ZoomInteractionMode="GestureAndControl"
-                                            ZoomLevel="15"
-                                            Layers="{x:Bind ViewModel.MapLayers, Mode=OneWay}"
-                                            Center="{x:Bind ViewModel.MapCentre, Mode=OneWay}"
-                                            Style="AerialWithRoads"
-                                            MapServiceToken="4l0tkAAsXEnnNSOK8679~ik4pAeyowqts0oKyLzbkjg~As5-mUredKyQUQkVkC2zR9xB2hFgDWVfvp_OP7MbrTfQbF4goOfA-Sfa3nSj1EJs"
-                                         >
-                            <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="MapElementClick">
-                                    <core:InvokeCommandAction Command="{x:Bind ViewModel.MapElementClickedCommand}"/>
-                                </core:EventTriggerBehavior>
-                            </i:Interaction.Behaviors>
-                        </maps:MapControl>
+                        <Button x:Name="ResetMapButton"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                RelativePanel.RightOf="LockMissionButton"
+                                RelativePanel.AlignVerticalCenterWith="LockMissionButton"
+                                Margin="0,12,12,2"
+                                Style="{ThemeResource ACEButton}"
+                                Background="{ThemeResource SystemChromeLowColor}"
+                                MinWidth="40"
+                                MaxWidth="40"
+                                Command="{x:Bind ViewModel.RemakeMapCommand}"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Canvas.ZIndex="1">
+                            <Viewbox>
+                                <SymbolIcon Symbol="DisableUpdates"/>
+                            </Viewbox>
+                        </Button>
                     </Grid>
                 </muxc:Expander.Content>
             </muxc:Expander>

@@ -85,14 +85,16 @@ namespace ACE_Mission_Control.Core.Models
 
             foreach (NetworkInterface i in interfaces)
             {
-                var gateway_ip = i.GetIPProperties().GatewayAddresses
-                    .FirstOrDefault(g => g.Address.AddressFamily == AddressFamily.InterNetwork)
-                    .Address.GetAddressBytes();
+                var gateway_ip = i.GetIPProperties().GatewayAddresses.FirstOrDefault(g => g.Address.AddressFamily == AddressFamily.InterNetwork);
+                if (gateway_ip == null)
+                    continue;
+
+                var gateway_ip_bytes = gateway_ip.Address.GetAddressBytes();
                 byte b = 1;
 
                 while (true)
                 {
-                    var ip = new IPAddress(new byte[] { gateway_ip[0], gateway_ip[1], gateway_ip[2], b });
+                    var ip = new IPAddress(new byte[] { gateway_ip_bytes[0], gateway_ip_bytes[1], gateway_ip_bytes[2], b });
 
                     testSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
@@ -107,11 +109,8 @@ namespace ACE_Mission_Control.Core.Models
                     if (!connectFinished.IsSet)
                         Socket.CancelConnectAsync(socketEvent);
 
-                    System.Diagnostics.Debug.WriteLine($"checked ip {ip}");
-
                     if (testSocket.Connected)
                     {
-                        System.Diagnostics.Debug.WriteLine($"response");
                         try
                         {
                             IPHostEntry entry = Dns.GetHostEntry(ip);

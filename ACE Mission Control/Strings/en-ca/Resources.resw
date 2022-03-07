@@ -238,11 +238,8 @@
   <data name="Alert_CommandError" xml:space="preserve">
     <value>Command error</value>
   </data>
-  <data name="Mission_ConnectDroneSwitch.OffContent" xml:space="preserve">
-    <value>Connect to Drone</value>
-  </data>
-  <data name="Mission_ConnectDroneSwitch.OnContent" xml:space="preserve">
-    <value>Connect to Drone</value>
+  <data name="Mission_ConnectDrone" xml:space="preserve">
+    <value>Connect Drone</value>
   </data>
   <data name="Alert_CommandResponse" xml:space="preserve">
     <value>Command</value>
@@ -522,5 +519,11 @@
   </data>
   <data name="Planner_UnlockButton" xml:space="preserve">
     <value>Unlock</value>
+  </data>
+  <data name="Alert_FinishedExecution" xml:space="preserve">
+    <value>The drone has finished execution. It treated for</value>
+  </data>
+  <data name="Mission_DisconnectDrone" xml:space="preserve">
+    <value>Disconnect Drone</value>
   </data>
 </root>

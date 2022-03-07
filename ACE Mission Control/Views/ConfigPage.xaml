@@ -23,87 +23,90 @@
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
-        </Grid.RowDefinitions>
 
-        <TextBlock x:Uid="Config_DiagnosticsLabel"
-                   Grid.Column="0"
-                   Grid.Row="0"
-                   Margin="8,16,0,4"
-                   Style="{ThemeResource SubtitleTextBlockStyle}"/>
+        <RelativePanel Grid.Column="0">
+            <TextBlock x:Uid="Config_DiagnosticsLabel"
+                       x:Name="DiagnosticsLabel"
+                       Margin="8,16,0,4"
+                       Style="{ThemeResource SubtitleTextBlockStyle}"/>
 
-        <CheckBox x:Name="ManualCommandsCheckbox"
-                  Grid.Column="0"
-                  Grid.Row="1"
-                  x:Uid="Config_ManualCommandsCheckbox"
-                  Margin="8,0,0,0"
-                  VerticalAlignment="Top"
-                  IsChecked="{x:Bind ViewModel.ManualCommandsChecked, Mode=OneWay}"
-                  Command="{x:Bind ViewModel.ManualCommandsCheckedCommand}" />
+            <CheckBox x:Name="ManualCommandsCheckbox"
+                      Grid.Column="0"
+                      RelativePanel.AlignLeftWith="DiagnosticsLabel"
+                      RelativePanel.Below="DiagnosticsLabel"
+                      x:Uid="Config_ManualCommandsCheckbox"
+                      Margin="8,0,0,0"
+                      VerticalAlignment="Top"
+                      IsChecked="{x:Bind ViewModel.ManualCommandsChecked, Mode=OneWay}"
+                      Command="{x:Bind ViewModel.ManualCommandsCheckedCommand}" />
 
-        <TextBlock x:Uid="Config_UGCSConnectionLabel"
-                   Grid.Column="0"
-                   Grid.Row="2"
-                   Margin="8,16,0,4"
-                   Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <TextBlock x:Uid="Config_UGCSConnectionLabel"
+                       x:Name="UGCSConnectionLabel"
+                       RelativePanel.AlignLeftWith="ManualCommandsCheckbox"
+                       RelativePanel.Below="ManualCommandsCheckbox"
+                       Grid.Column="0"
+                       Margin="8,16,0,4"
+                       Style="{ThemeResource SubtitleTextBlockStyle}"
+                       VerticalAlignment="Top"/>
 
-        <ComboBox Grid.Column="0"
-                  Grid.Row="3"
-                  Margin="8,0,0,0"
-                  ItemsSource="{x:Bind ace:MissionRetriever.AvailableMissions, Mode=OneWay}"
-                  SelectedItem="{x:Bind ace:MissionRetriever.SelectedMission, Mode=TwoWay}">
-            <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="ugcs:Mission">
-                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
+            <ComboBox Grid.Column="0"
+                      RelativePanel.AlignLeftWith="UGCSConnectionLabel"
+                      RelativePanel.Below="UGCSConnectionLabel"
+                      Margin="8,0,0,0"
+                      ItemsSource="{x:Bind ace:MissionRetriever.AvailableMissions, Mode=OneWay}"
+                      SelectedItem="{x:Bind ace:MissionRetriever.SelectedMission, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="ugcs:Mission">
+                        <TextBlock Text="{x:Bind Name, Mode=OneWay}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </RelativePanel>
 
-        <TextBlock x:Uid="Config_OptionsLabel"
-                   Grid.Column="1"
-                   Grid.Row="0"
-                   Margin="16,8,8,4"
-                   Style="{ThemeResource SubtitleTextBlockStyle}"/>
+        <RelativePanel Grid.Column="1">
+            <TextBlock x:Uid="Config_OptionsLabel"
+                       x:Name="OptionsLabel"
+                       Grid.Column="1"
+                       Margin="16,8,8,4"
+                       Style="{ThemeResource SubtitleTextBlockStyle}"/>
 
-        <controls:DataGrid ItemsSource="{x:Bind ViewModel.ConfigEntries, Mode=OneWay}"
-                           AutoGenerateColumns="False"
-                           GridLinesVisibility="Horizontal"
-                           Margin="16,0,8,0"
-                           Grid.Column="1"
-                           Grid.Row="1"
-                           Grid.RowSpan="4"
-                           VerticalScrollBarVisibility="Visible">
+            <controls:DataGrid ItemsSource="{x:Bind ViewModel.ConfigEntries, Mode=OneWay}"
+                               AutoGenerateColumns="False"
+                               GridLinesVisibility="Horizontal"
+                               Margin="16,0,8,0"
+                               Grid.Column="1"
+                               RelativePanel.AlignLeftWith="OptionsLabel"
+                               RelativePanel.Below="OptionsLabel"
+                               MaxHeight="478"
+                               VerticalScrollBarVisibility="Visible">
 
-            <controls:DataGrid.Columns>
+                <controls:DataGrid.Columns>
 
-                <controls:DataGridTextColumn IsReadOnly="True"
+                    <controls:DataGridTextColumn IsReadOnly="True"
                                                  x:Uid="Config_EntriesSection"
                                                  FontSize="12"
                                                  FontStyle="Italic"
                                                  Binding="{Binding Section}"/>
 
-                <controls:DataGridTextColumn IsReadOnly="True"
+                    <controls:DataGridTextColumn IsReadOnly="True"
                                                  x:Uid="Config_EntriesOption"
                                                  FontSize="12"
                                                  Binding="{Binding Option}"/>
 
-                <controls:DataGridTextColumn IsReadOnly="{x:Bind ViewModel.AttachedDrone.OBCClient.IsDirectorConnected, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
+                    <controls:DataGridTextColumn IsReadOnly="{x:Bind ViewModel.AttachedDrone.OBCClient.IsDirectorConnected, Mode=OneWay, Converter={StaticResource NegateBoolean}}"
                                                  x:Uid="Config_EntriesValue"
                                                  FontSize="12"
                                                  Width="*"
                                                  Binding="{Binding Value, Mode=OneWay}"/>
-            </controls:DataGrid.Columns>
+                </controls:DataGrid.Columns>
 
-            <i:Interaction.Behaviors>
-                <core:EventTriggerBehavior EventName="CellEditEnded">
-                    <core:InvokeCommandAction Command="{x:Bind ViewModel.ConfigureOptionEdited}"/>
-                </core:EventTriggerBehavior>
-            </i:Interaction.Behaviors>
+                <i:Interaction.Behaviors>
+                    <core:EventTriggerBehavior EventName="CellEditEnded">
+                        <core:InvokeCommandAction Command="{x:Bind ViewModel.ConfigureOptionEdited}"/>
+                    </core:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
 
-        </controls:DataGrid>
+            </controls:DataGrid>
+        </RelativePanel>
     </Grid>
 </local:DroneBasePage>

@@ -135,6 +135,7 @@ namespace ACE_Mission_Control.Core.Models
         protected override void OnDisconnect()
         {
             FailureTimer.Stop();
+            Socket.Close();
             Socket = new RequestSocket();
             ReadyForCommand = false;
         }

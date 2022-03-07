@@ -216,27 +216,17 @@ namespace ACE_Mission_Control.Core.Models
             InstructionSyncedPropertyUpdated?.Invoke(this, new InstructionSyncedPropertyUpdatedArgs(GetNextInstruction().ID, e.ParameterNames));
         }
 
-        public void UpdateMissionStatus(MissionStatus newStatus)
+        public void Returned(double lastLongitudeDeg, double lastLatitudeDeg)
         {
-            bool justReturned =
-                Stage != MissionStatus.Types.Stage.Returning &&
-                Stage != MissionStatus.Types.Stage.Override &&
-                (newStatus.MissionStage == MissionStatus.Types.Stage.Returning ||
-                newStatus.MissionStage == MissionStatus.Types.Stage.Override);
+            if (lastLongitudeDeg != 0 && lastLatitudeDeg != 0)
+                LastPosition = new Coordinate(lastLongitudeDeg / 180 * Math.PI, lastLatitudeDeg / 180 * Math.PI);
 
-            Stage = newStatus.MissionStage;
+            startParameters.UpdateParameters(GetNextInstruction(), LastPosition, true);
+        }
 
-            if (newStatus.Locked)
-                Lock();
-            else
-                Unlock();
-
-            if (newStatus.LastLongitude != 0 && newStatus.LastLatitude != 0)
-                LastPosition = new Coordinate(
-                  (newStatus.LastLongitude / 180) * Math.PI,
-                  (newStatus.LastLatitude / 180) * Math.PI);
-
-            startParameters.UpdateParameters(GetNextInstruction(), LastPosition, justReturned);
+        public void SetStage(MissionStatus.Types.Stage newStage)
+        {
+            Stage = newStage;
         }
 
         public void SetInstructionAreaStatus(int instructionID, MissionRoute.Types.Status status)

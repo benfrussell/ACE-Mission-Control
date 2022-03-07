@@ -51,7 +51,6 @@ namespace ACE_Mission_Control.Views
             else
                 DroneID = 0;
 
-            System.Diagnostics.Debug.WriteLine("Setting Drone ID to " + DroneID + " for " + this.GetType().Name);
             BaseViewModel.SetDroneID(DroneID);
 
             isInit = true;

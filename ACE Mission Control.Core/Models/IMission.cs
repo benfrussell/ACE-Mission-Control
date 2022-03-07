@@ -47,6 +47,7 @@ namespace ACE_Mission_Control.Core.Models
         void SetInstructionUploadStatus(int id, TreatmentInstruction.UploadStatus status);
         void SetSelectedStartWaypoint(string waypointID);
         void Unlock();
-        void UpdateMissionStatus(MissionStatus newStatus);
+        void SetStage(MissionStatus.Types.Stage newStage);
+        void Returned(double lastLongitudeDeg, double lastLatitudeDeg);
     }
 }

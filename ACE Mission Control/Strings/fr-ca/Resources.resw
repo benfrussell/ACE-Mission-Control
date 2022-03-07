@@ -223,10 +223,7 @@
   <data name="Alert_CommandError" xml:space="preserve">
     <value>Erreur de commande</value>
   </data>
-  <data name="Mission_ConnectDroneSwitch.OffContent" xml:space="preserve">
-    <value>Connecter au drone</value>
-  </data>
-  <data name="Mission_ConnectDroneSwitch.OnContent" xml:space="preserve">
+  <data name="Mission_ConnectDrone" xml:space="preserve">
     <value>Connecter au drone</value>
   </data>
   <data name="Alert_CommandResponse" xml:space="preserve">

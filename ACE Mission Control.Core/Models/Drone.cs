@@ -587,8 +587,7 @@ namespace ACE_Mission_Control.Core.Models
                 case ACEEnums.MessageType.MissionStatus:
                     var missionStatus = (MissionStatus)e.Message;
                     missionStatusReceived = true;
-                    Mission.UpdateMissionStatus(missionStatus);
-                    CheckIfSyncComplete();
+                    HandleDroneMissionStatus(missionStatus);
                     AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Status"));
                     break;
                 case ACEEnums.MessageType.MissionConfig:
@@ -612,13 +611,33 @@ namespace ACE_Mission_Control.Core.Models
                     var alert = new AlertEntry(responseLevel, alertType, alertInfo);
                     AddAlert(alert);
                     break;
-                case ACEEnums.MessageType.ACEError:
-                    if (updateCommandsSent > 0 || !AllSyncCommandsSent)
-                        HandleUpdateOrSyncFailure();
-                    break;
                 default:
                     break;
             }
+        }
+
+        private void HandleDroneMissionStatus(MissionStatus newStatus)
+        {
+            bool justReturned =
+                Mission.Stage != MissionStatus.Types.Stage.Returning &&
+                Mission.Stage != MissionStatus.Types.Stage.Override &&
+                (newStatus.MissionStage == MissionStatus.Types.Stage.Returning ||
+                newStatus.MissionStage == MissionStatus.Types.Stage.Override);
+
+            Mission.SetStage(newStatus.MissionStage);
+
+            if (newStatus.Locked)
+                Mission.Lock();
+            else
+                Mission.Unlock();
+
+            if (justReturned)
+            {
+                Mission.Returned(newStatus.LastLongitude, newStatus.LastLatitude);
+                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.FinishedExecution, newStatus.TreatmentTime.ToString() + "s"));
+            }
+
+            CheckIfSyncComplete();
         }
 
         private void HandleDroneMissionConfig(MissionConfig missionConfig)

@@ -314,6 +314,13 @@ namespace ACE_Mission_Control.ViewModels
             UpdateLockButton();
             UpdateDroneConnectButton();
 
+            var settings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            if (settings.Values.Keys.Contains(AttachedDrone.Name + "_IP"))
+            {
+                Hostname_Text = (string)settings.Values[AttachedDrone.Name + "_IP"];
+                applyButtonClicked();
+            }
+
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
         }
 
@@ -556,6 +563,8 @@ namespace ACE_Mission_Control.ViewModels
         private void applyButtonClicked()
         {
             AttachedDrone.OBCClient.Configure(Hostname_Text);
+            var settings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            settings.Values[AttachedDrone.Name + "_IP"] = Hostname_Text;
             UnsavedChanges = false;
         }
 

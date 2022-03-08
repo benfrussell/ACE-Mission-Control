@@ -4,6 +4,7 @@ ACE Bug List
 
 Drone speed is hugely under-reporting for the M600
 - Try switching to TOPIC_GPS_VELOCITY
+- Do in office
 
 Need to know the time spent treated
 - Test
@@ -14,8 +15,10 @@ H20 GUIDED mode can be initiated by a hold command while treating. This should s
 --- HIGH
 
 Force stop payload stopped working
+- Do in office
 
 Mission Control doesn't retrieve the last position after rebooting
+- Do in office
 
 Last position flag didn't appear?
 - Start parameters knew the last position was available but it didn't appear until changing modes
@@ -67,13 +70,13 @@ At mission complete, sometimes MC still shows that the area is still "in-progres
 
 --- MULTI-DRONE
 
+Re-enable import drones from UgCS
+
 Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
 	- Still happens!!
 	- Switched to only allow one drone as a safety workaround
 
 Button to exclude emulation drones from the drone list
-
-Save and restore instruction and connection details
 
 --- FUTURE
 

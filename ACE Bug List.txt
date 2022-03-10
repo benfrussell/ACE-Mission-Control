@@ -2,37 +2,24 @@ ACE Bug List
 
 --- BREAKING
 
-Drone speed is hugely under-reporting for the M600
-- Try switching to TOPIC_GPS_VELOCITY
-- Do in office
-
-Need to know the time spent treated
-- Test
-
 H20 GUIDED mode can be initiated by a hold command while treating. This should stop the payload but doesn't (it's still an auto mode).
 - Test
 
 --- HIGH
 
+Test stop and go on the H20
+
 Force stop payload stopped working
 - Do in office
 
-Mission Control doesn't retrieve the last position after rebooting
-- Do in office
-
-Last position flag didn't appear?
-- Start parameters knew the last position was available but it didn't appear until changing modes
-- Start params should have changed mode automatically?
-- Seems to be related to being locked
-- Test
-
 --- MEDIUM-HIGH
-
-SQL should update position in the Override, Return, and once during ready/not ready
 
 Setting duration changed route
 
 --- MEDIUM
+
+The M600 seems to be starting a resync on take-off
+	- Is the H20 also doing it?
 
 Re-enabling areas on Mission Control on reconnect to OBC would be nice
 

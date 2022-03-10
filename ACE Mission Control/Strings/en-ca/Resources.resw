@@ -455,7 +455,7 @@
     <value>UgCS Status:</value>
   </data>
   <data name="Alert_SynchronizeUpdate" xml:space="preserve">
-    <value>Synchronized the</value>
+    <value>Received the</value>
   </data>
   <data name="Shell_HomeItem" xml:space="preserve">
     <value>Home</value>
@@ -525,5 +525,8 @@
   </data>
   <data name="Mission_DisconnectDrone" xml:space="preserve">
     <value>Disconnect Drone</value>
+  </data>
+  <data name="Alert_ExecutionTimeUpdated" xml:space="preserve">
+    <value>The drone has been treating for</value>
   </data>
 </root>

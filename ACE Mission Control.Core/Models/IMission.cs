@@ -17,6 +17,7 @@ namespace ACE_Mission_Control.Core.Models
         MissionStatus.Types.Stage Stage { get; }
         StartTreatmentParameters.Mode StartMode { get; set; }
         int TreatmentDuration { get; set; }
+        float TreatmentTimeElapsed { get; set; }
         ObservableCollection<ITreatmentInstruction> TreatmentInstructions { get; set; }
 
         event EventHandler<InstructionAreasUpdatedArgs> InstructionAreasUpdated;

@@ -624,6 +624,8 @@ namespace ACE_Mission_Control.Core.Models
                 (newStatus.MissionStage == MissionStatus.Types.Stage.Returning ||
                 newStatus.MissionStage == MissionStatus.Types.Stage.Override);
 
+            bool firstPositionUpdate = Mission.LastPosition == null && newStatus.LastLongitude != 0 && newStatus.LastLatitude != 0;
+
             Mission.SetStage(newStatus.MissionStage);
 
             if (newStatus.Locked)
@@ -631,11 +633,15 @@ namespace ACE_Mission_Control.Core.Models
             else
                 Mission.Unlock();
 
-            if (justReturned)
-            {
-                Mission.Returned(newStatus.LastLongitude, newStatus.LastLatitude);
+            if (newStatus.TreatmentTime > Mission.TreatmentTimeElapsed && (!justReturned || firstPositionUpdate))
+                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ExecutionTimeUpdated, newStatus.TreatmentTime.ToString() + "s"));
+            else if (newStatus.TreatmentTime > 0 && justReturned)
                 AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.FinishedExecution, newStatus.TreatmentTime.ToString() + "s"));
-            }
+
+            Mission.TreatmentTimeElapsed = newStatus.TreatmentTime;
+
+            if (justReturned || firstPositionUpdate)
+                Mission.Returned(newStatus.LastLongitude, newStatus.LastLatitude);
 
             CheckIfSyncComplete();
         }

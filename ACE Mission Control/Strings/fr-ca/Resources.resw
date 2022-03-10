@@ -442,7 +442,4 @@
   <data name="Alert_UGCSStatus" xml:space="preserve">
     <value>Statut UgCS:</value>
   </data>
-  <data name="Alert_SynchronizeUpdate" xml:space="preserve">
-    <value>Synchronisé</value>
-  </data>
 </root>

@@ -158,6 +158,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private float treatmentTimeElapsed;
+        public float TreatmentTimeElapsed
+        {
+            get => treatmentTimeElapsed;
+            set
+            {
+                if (treatmentTimeElapsed == value)
+                    return;
+                treatmentTimeElapsed = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public StartTreatmentParameters.Mode StartMode
         {
             get => startParameters.SelectedMode;
@@ -435,14 +448,22 @@ namespace ACE_Mission_Control.Core.Models
             foreach (ITreatmentInstruction instruction in TreatmentInstructions)
             {
                 if (instruction.AreaStatus != MissionRoute.Types.Status.NotStarted)
-                {
-                    instruction.AreaStatus = MissionRoute.Types.Status.NotStarted;
-                }
+                    SetInstructionAreaStatus(instruction.ID, MissionRoute.Types.Status.NotStarted);
             }
 
             LastPosition = null;
-            startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
-
+            var nextInstruction = GetNextInstruction();
+            if (nextInstruction != null)
+            {
+                var updateTriggered = startParameters.UpdateParameters(GetNextInstruction(), LastPosition, false);
+                // If updating the start parameters didn't trigger an update, we want to send one anyway to make the LastPosition flag reset
+                if (!updateTriggered)
+                {
+                    var updatedParams = new List<string>() { "AreaEntryExitCoordinates" };
+                    InstructionSyncedPropertyUpdated?.Invoke(this, new InstructionSyncedPropertyUpdatedArgs(nextInstruction.ID, updatedParams));
+                }
+            }
+            
             ProgressReset?.Invoke(this, new EventArgs());
         }
 

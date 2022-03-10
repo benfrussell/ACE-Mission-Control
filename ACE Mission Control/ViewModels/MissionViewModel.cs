@@ -494,7 +494,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             var startPosition = AttachedDrone.Mission.GetStartCoordinate();
 
-            if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.Flythrough && startPosition != null)
+            if (AttachedDrone.Mission.StartMode == StartTreatmentParameters.Mode.Flythrough && startPosition != null && !double.IsNaN(startPosition.X) && !double.IsNaN(startPosition.Y))
             {
                 var nextInstruction = AttachedDrone.Mission.GetNextInstruction();
 

@@ -2,32 +2,37 @@ ACE Bug List
 
 --- BREAKING
 
-H20 GUIDED mode can be initiated by a hold command while treating. This should stop the payload but doesn't (it's still an auto mode).
-- Test
+Enable route
+Disable route
+Make area changes
+Enable route
+Does not send the newly updated area
+
+Changing a turn type doesn't mirror the update in ACE
 
 --- HIGH
 
-Test stop and go on the H20
+Test hold mid-treatment on the M600 also!
 
 Force stop payload stopped working
-- Do in office
+- Do in office with the M600
+- May not be possible to have this work over MAVLink. Chaperone doesn't have an instance of the interface.
 
 --- MEDIUM-HIGH
 
 Setting duration changed route
 
+Hold/Continue mission can cause the drone to come back early
+- Not handling executing states correctly?
+
 --- MEDIUM
 
 The M600 seems to be starting a resync on take-off
-	- Is the H20 also doing it?
+- Seems like it's only on the M600
 
 Re-enabling areas on Mission Control on reconnect to OBC would be nice
 
 Set last point with set_route
-
-Onboard computer logs aren't good.
-	- Multiple logs are started. Seems to be related to the chaperone because, it causes another log file to start. Maybe check by process ID?
-	- Time and date is wrong because the Pi never knows the time and date. Update it from ACE?
 
 Route renaming doesn't update
 

@@ -28,7 +28,6 @@ namespace ACE_Mission_Control.Core.Models
             CommandResponse,
             CommandError,
             UGCSStatus,
-            SynchronizeUpdate,
             FinishedExecution,
             ExecutionTimeUpdated
         }

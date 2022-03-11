@@ -454,9 +454,6 @@
   <data name="Alert_UGCSStatus" xml:space="preserve">
     <value>UgCS Status:</value>
   </data>
-  <data name="Alert_SynchronizeUpdate" xml:space="preserve">
-    <value>Received the</value>
-  </data>
   <data name="Shell_HomeItem" xml:space="preserve">
     <value>Home</value>
   </data>

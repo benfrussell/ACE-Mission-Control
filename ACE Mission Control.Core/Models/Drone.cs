@@ -578,7 +578,6 @@ namespace ACE_Mission_Control.Core.Models
                     interfaceStatusReceived = true;
                     InterfaceState = interfaceStatus.InterfaceState;
                     CheckIfSyncComplete();
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Interface State"));
                     break;
                 case ACEEnums.MessageType.FlightStatus:
                     var flightStatus = (FlightStatus)e.Message;
@@ -588,13 +587,11 @@ namespace ACE_Mission_Control.Core.Models
                     var missionStatus = (MissionStatus)e.Message;
                     missionStatusReceived = true;
                     HandleDroneMissionStatus(missionStatus);
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Status"));
                     break;
                 case ACEEnums.MessageType.MissionConfig:
                     var missionConfig = (MissionConfig)e.Message;
                     missionConfigReceived = true;
                     HandleDroneMissionConfig(missionConfig);
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.SynchronizeUpdate, "Mission Config"));
                     break;
                 case ACEEnums.MessageType.Configuration:
                     var configuration = (Configuration)e.Message;

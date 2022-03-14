@@ -57,12 +57,12 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        private ACEEnums.TurnType startingTurnType;
-        public ACEEnums.TurnType StartingTurnType
+        private Waypoint.TurnType startingTurnType;
+        public Waypoint.TurnType StartingTurnType
         {
             get => startingTurnType;
             protected set
-            {
+            {                
                 startingTurnType = value;
             }
         }
@@ -80,7 +80,8 @@ namespace ACE_Mission_Control.Core.Models
         }
 
         // Only store the ID of the coordinate because we should search and confirm it still exists everytime we need to use it
-        public string BoundStartWaypointID;
+        private string BoundWaypointID;
+        private int? BoundRouteID;
 
         public StartTreatmentParameters()
         {
@@ -88,9 +89,39 @@ namespace ACE_Mission_Control.Core.Models
             DefaultProgressMode = Mode.Flythrough;
 
             SelectedMode = DefaultNoProgressMode;
-            StartingTurnType = ACEEnums.TurnType.FlyThrough;
+            StartingTurnType = Waypoint.TurnType.FlyThrough;
 
             LastStartPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
+            MissionRetriever.StaticPropertyChanged += MissionRetriever_StaticPropertyChanged;
+        }
+
+        // If we have a bound start waypoint we need to be checking to see if there have been changes to it
+        // Specifically we need to watch the turn type
+        private void MissionRetriever_StaticPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (BoundRouteID == null || BoundWaypointID == null || SelectedMode != Mode.SelectedWaypoint)
+                return;
+
+            if (e.PropertyName == "WaypointRoutes")
+            {
+                var boundRoute = MissionRetriever.WaypointRoutes.FirstOrDefault(r => r.Id == BoundRouteID);
+                if (boundRoute != null)
+                {
+                    var boundWaypoint = boundRoute.Waypoints.FirstOrDefault(w => w.ID == BoundWaypointID);
+
+                    if (boundWaypoint != null)
+                        System.Diagnostics.Debug.WriteLine($"Bound wp turn changed to {boundWaypoint.Turn}");
+
+                    if (boundWaypoint != null && boundWaypoint.Turn != StartingTurnType)
+                    {
+                        StartingTurnType = boundWaypoint.Turn;
+                        LastStartPropertyModification = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        var changedParametersList = new List<string> { "StartingTurnType" };
+                        StartParametersChanged?.Invoke(this, new StartParametersChangedArgs { ParameterNames = changedParametersList });
+                    }
+                }
+            }
         }
 
         // Returns True for any changes, False for no changes
@@ -112,19 +143,19 @@ namespace ACE_Mission_Control.Core.Models
             {
                 case Mode.FirstEntry:
                     StartCoordinate = nextInstruction.AreaEntryExitCoordinates.Item1;
-                    StartingTurnType = ACEEnums.TurnType.FlyThrough;
+                    StartingTurnType = Waypoint.TurnType.FlyThrough;
                     break;
                 case Mode.SelectedWaypoint:
                     SetStartCoordToBoundWaypoint(nextInstruction);
                     break;
                 case Mode.InsertWaypoint:
-                    if (BoundStartWaypointID == null)
+                    if (BoundWaypointID == null)
                     {
                         CreateWaypointAndSetStartCoord(nextInstruction, lastPosition);
                     }
                     else
                     {
-                        var boundWaypoint = nextInstruction.TreatmentRoute.Waypoints.FirstOrDefault(p => p.ID == BoundStartWaypointID);
+                        var boundWaypoint = nextInstruction.TreatmentRoute.Waypoints.FirstOrDefault(p => p.ID == BoundWaypointID);
                         if (boundWaypoint == null)
                         {
                             CreateWaypointAndSetStartCoord(nextInstruction, lastPosition);
@@ -134,7 +165,7 @@ namespace ACE_Mission_Control.Core.Models
                             if (WaypointRoute.IsCoordinateInArea(boundWaypoint, lastPosition, nextInstruction.Swath))
                             {
                                 StartCoordinate = boundWaypoint.Coordinate;
-                                StartingTurnType = boundWaypoint.TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
+                                StartingTurnType = boundWaypoint.Turn;
                             } 
                             else
                             {
@@ -145,7 +176,7 @@ namespace ACE_Mission_Control.Core.Models
                     break;
                 case Mode.ContinueMission:
                     StartCoordinate = lastPosition;
-                    StartingTurnType = ACEEnums.TurnType.StopAndTurn;
+                    StartingTurnType = Waypoint.TurnType.StopAndTurn;
                     break;
                 case Mode.Flythrough:
                     if (nextInstruction.TreatmentPolygon.IntersectsCoordinate(lastPosition))
@@ -158,7 +189,7 @@ namespace ACE_Mission_Control.Core.Models
                         if (StartCoordinate == null)
                             StartCoordinate = nextInstruction.AreaEntryExitCoordinates.Item1;
                     }
-                    StartingTurnType = ACEEnums.TurnType.FlyThrough;
+                    StartingTurnType = Waypoint.TurnType.FlyThrough;
                     break;
             }
 
@@ -179,10 +210,13 @@ namespace ACE_Mission_Control.Core.Models
             return anyChanges;
         }
 
-        // Returns True for any changes, False for no changes
         public void SetSelectedWaypoint(string waypointID, ITreatmentInstruction nextInstruction)
         {
-            BoundStartWaypointID = waypointID;
+            if (waypointID == BoundWaypointID)
+                return;
+
+            BoundWaypointID = waypointID;
+            BoundRouteID = nextInstruction.TreatmentRoute.Id;
             if (SelectedMode == Mode.SelectedWaypoint)
                 UpdateParameters(nextInstruction, null, false);
         }
@@ -219,27 +253,29 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             var newWaypoint = await UGCSClient.InsertWaypointAlongRoute(instruction.TreatmentRoute.Id, waypointPair.Item1.ID, position.X, position.Y);
 
-            BoundStartWaypointID = newWaypoint.ID;
+            BoundWaypointID = newWaypoint.ID;
+            BoundRouteID = instruction.TreatmentRoute.Id;
 
             StartCoordinate = newWaypoint.Coordinate; 
-            StartingTurnType = newWaypoint.TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
+            StartingTurnType = newWaypoint.Turn;
         }
 
         private void SetStartCoordToBoundWaypoint(ITreatmentInstruction instruction)
         {
             var waypoints = instruction.TreatmentRoute.Waypoints;
-            var boundCoord = waypoints.FirstOrDefault(p => p.ID == BoundStartWaypointID);
+            var boundCoord = waypoints.FirstOrDefault(p => p.ID == BoundWaypointID);
 
             if (boundCoord != null)
             {
                 StartCoordinate = boundCoord.Coordinate;
-                StartingTurnType = boundCoord.TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
+                StartingTurnType = waypoints.First().Turn;
             }
             else
             {
-                BoundStartWaypointID = waypoints.First().ID;
+                BoundRouteID = instruction.TreatmentRoute.Id;
+                BoundWaypointID = waypoints.First().ID;
                 StartCoordinate = waypoints.First().Coordinate;
-                StartingTurnType = waypoints.First().TurnType == "STOP_AND_TURN" ? ACEEnums.TurnType.StopAndTurn : ACEEnums.TurnType.FlyThrough;
+                StartingTurnType = waypoints.First().Turn;
             }
         }
     }

@@ -26,13 +26,6 @@ namespace ACE_Mission_Control.Core.Models
             MissionRoute = 13
         }
 
-        public enum TurnType : int
-        {
-            NotSpecified = 0,
-            StopAndTurn = 1,
-            FlyThrough = 2
-        }
-
         public enum ConnectionSummary : int
         {
             ConnectionDisabled = 0,

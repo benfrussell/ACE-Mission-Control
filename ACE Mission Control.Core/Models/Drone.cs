@@ -355,9 +355,18 @@ namespace ACE_Mission_Control.Core.Models
                 return;
 
             if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.NotUploaded)
+            {
                 SendEntireInstruction(instruction, Command.TriggerType.Update);
+            }
             else
+            {
+                // If the change was that an already uploaded instruction was re-enabled, send the instruction area again
+                // This covers us if there were any changes while it was disabled and not syncing
+                if (instruction.CurrentUploadStatus == TreatmentInstruction.UploadStatus.Uploaded && instruction.Enabled && e.UpdatedParameters.Contains("Enabled"))
+                    SendInstructionArea(instruction, Command.TriggerType.Update);          
                 SendInstructionProperties(instruction, Command.TriggerType.Update, e.UpdatedParameters);
+            }
+                
         }
 
         private void SendEntireInstruction(ITreatmentInstruction instruction, Command.TriggerType trigger)
@@ -377,8 +386,11 @@ namespace ACE_Mission_Control.Core.Models
             else
                 command = command + " -disabled";
 
-            if (Mission.GetStartingTurnType(instruction.ID) == ACEEnums.TurnType.FlyThrough)
-                command = command + " -flythrough";
+            if (Mission.GetStartingTurnType(instruction.ID) == Waypoint.TurnType.FlyThrough)
+                command = command + " -fly_through";
+            else
+                command = command + " -stopandgo";
+
             Mission.SetInstructionUploadStatus(instruction.ID, TreatmentInstruction.UploadStatus.Uploading);
             SendCommand(command, true, trigger, instruction.ID);
         }
@@ -411,8 +423,10 @@ namespace ACE_Mission_Control.Core.Models
 
             if (allProperties || properties.Contains("StartingTurnType"))
             {
-                if (Mission.GetStartingTurnType(instruction.ID) == ACEEnums.TurnType.FlyThrough)
-                    command = command + " -flythrough";
+                if (Mission.GetStartingTurnType(instruction.ID) == Waypoint.TurnType.FlyThrough)
+                    command = command + " -fly_through";
+                else
+                    command = command + " -stopandgo";
             }
 
             if (allProperties || properties.Contains("Enabled"))

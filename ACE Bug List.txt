@@ -7,8 +7,9 @@ Disable route
 Make area changes
 Enable route
 Does not send the newly updated area
+- Now it sends but it also sends a start treatment details twice
 
-Changing a turn type doesn't mirror the update in ACE
+Changing turn type doesn't trigger a start parameters change
 
 --- HIGH
 
@@ -67,6 +68,7 @@ Re-enable import drones from UgCS
 Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
 	- Still happens!!
 	- Switched to only allow one drone as a safety workaround
+	- Make one alert grid for everyone
 
 Button to exclude emulation drones from the drone list
 

@@ -259,7 +259,9 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public bool Renotifying { get; private set; }
+        // Specifies whether this TreatmentInstruction is currently NotifyingPropertyChange for TreatmentRoute due to a call to RenotifyTreatmentRoute
+        // Necessary for stupid UI reasons
+        public bool RenotifyingTreatmentRoute { get; private set; }
 
         // Save the last enabled state so we can put enabled back into the user's preffered state if they fix the CanBeEnabled problem
         // Starts as null and will only save the state after being enabled for the first time
@@ -282,7 +284,7 @@ namespace ACE_Mission_Control.Core.Models
             FirstInstruction = false;
             FirstInList = false;
             LastInList = false;
-            Renotifying = false;
+            RenotifyingTreatmentRoute = false;
 
             order = 0;
             enabled = false;
@@ -339,9 +341,9 @@ namespace ACE_Mission_Control.Core.Models
 
         public void RenotifyTreatmentRoute()
         {
-            Renotifying = true;
+            RenotifyingTreatmentRoute = true;
             NotifyPropertyChanged("TreatmentRoute");
-            Renotifying = false;
+            RenotifyingTreatmentRoute = false;
         }
 
         // Check that the current treatment route is still valid (still intercepts the treatment area)

@@ -294,6 +294,9 @@ namespace ACE_Mission_Control.Core.Models
             if (!Coordinates.SequenceEqual(obj.Coordinates))
                 return false;
 
+            if (!Waypoints.Select(w => w.Turn).SequenceEqual(obj.Waypoints.Select(w => w.Turn)))
+                return false;
+
             return true;
         }
     }

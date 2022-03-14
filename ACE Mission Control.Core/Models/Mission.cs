@@ -364,17 +364,17 @@ namespace ACE_Mission_Control.Core.Models
             return TreatmentInstructions.FirstOrDefault(i => i.ID == instructionID);
         }
 
-        public ACEEnums.TurnType GetStartingTurnType(int instructionID)
+        public Waypoint.TurnType GetStartingTurnType(int instructionID)
         {
             var instruction = TreatmentInstructions.FirstOrDefault(i => i.ID == instructionID);
             if (instruction == null)
-                return ACEEnums.TurnType.NotSpecified;
+                return Waypoint.TurnType.NotSpecified;
 
             // Assuming all area entries that are not the first instruction will be flythrough
             if (instruction.FirstInstruction)
                 return startParameters.StartingTurnType;
             else
-                return ACEEnums.TurnType.FlyThrough;
+                return Waypoint.TurnType.FlyThrough;
         }
 
         public MissionRoute.Types.Status GetAreaStatus(int instructionID)
@@ -469,8 +469,6 @@ namespace ACE_Mission_Control.Core.Models
 
         public void SetSelectedStartWaypoint(string waypointID)
         {
-            if (waypointID == startParameters.BoundStartWaypointID)
-                return;
             startParameters.SetSelectedWaypoint(waypointID, GetNextInstruction());
         }
 
@@ -580,7 +578,8 @@ namespace ACE_Mission_Control.Core.Models
 
         private void Instruction_SyncedPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Entry and Exit coordinates for the first instruction will trigger a sync update via an update to the start parameters
+            // Entry and Exit coordinates for the first instruction will fire InstructionSyncedPropertyUpdated via an update to StartParameters
+            // An update is propagated to the StartParameters by changes to Enabled or TreatmentRoute
             // So we shouldn't trigger it here
             if (e.PropertyName == "AreaEntryExitCoordinates" && (sender as ITreatmentInstruction).FirstInstruction)
                 return;

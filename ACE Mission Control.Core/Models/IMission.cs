@@ -36,7 +36,7 @@ namespace ACE_Mission_Control.Core.Models
         long GetLastPropertyModificationTime(int instructionID);
         long GetLastAreaModificationTime(int instructionID);
         ITreatmentInstruction GetInstructionByID(int instructionID);
-        ACEEnums.TurnType GetStartingTurnType(int instructionID);
+        Waypoint.TurnType GetStartingTurnType(int instructionID);
         MissionRoute.Types.Status GetAreaStatus(int instructionID);
         void Lock();
         void SetInstructionAreaStatus(int instructionID, MissionRoute.Types.Status status);

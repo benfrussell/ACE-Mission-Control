@@ -606,7 +606,7 @@ namespace ACE_Mission_Control.ViewModels
             // When doing this readding, it sets the ComboBox's SelectedItem to null for some reason (the SelectionChanged event shows that the selected item gets removed by an internal trigger)
             // So we need to ask the TreatmentInstruction to resend a NotifyPropertyChanged for it's TreatmentRoute property, thus setting the SelectedItem back
             // This is all very stupid!
-            if (!args.Renotifying)
+            if (!args.RenotifyingTreatmentRoute)
                 args.RenotifyTreatmentRoute();
         }
 

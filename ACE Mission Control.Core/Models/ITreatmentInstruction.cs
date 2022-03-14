@@ -25,7 +25,7 @@ namespace ACE_Mission_Control.Core.Models
         WaypointRoute TreatmentRoute { get; set; }
         IEnumerable<WaypointRoute> ValidTreatmentRoutes { get; }
         long LastSyncedPropertyModification { get; }
-        bool Renotifying { get; }
+        bool RenotifyingTreatmentRoute { get; }
 
         event PropertyChangedEventHandler PropertyChanged;
         event PropertyChangedEventHandler SyncedPropertyChanged;

@@ -7,27 +7,31 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class Waypoint
     {
-        private string id;
-        public string ID { get => id; private set => id = value; }
+        public enum TurnType : int
+        {
+            NotSpecified = 0,
+            StopAndTurn = 1,
+            FlyThrough = 2
+        }
 
-        private Coordinate coordinate;
-        public Coordinate Coordinate { get => coordinate; private set => coordinate = value; }
+        public string ID { get; private set; }
 
-        private string turnType;
-        public string TurnType { get => turnType; private set => turnType = value; }
+        public Coordinate Coordinate { get; private set; }
+
+        public TurnType Turn { get; private set; }
 
         public Waypoint(string id, string turnType, Coordinate _coordinate)
         {
             ID = id;
             Coordinate = _coordinate;
-            TurnType = turnType;
+            Turn = turnType == "STOP_AND_TURN" ? TurnType.StopAndTurn : TurnType.FlyThrough;
         }
 
-        public Waypoint(string _id, string turnType, double longitude, double latitude)
+        public Waypoint(string id, string turnType, double longitude, double latitude)
         {
             ID = id;
             Coordinate = new Coordinate(longitude, latitude);
-            TurnType = turnType;
+            Turn = turnType == "STOP_AND_TURN" ? TurnType.StopAndTurn : TurnType.FlyThrough;
         }
 
         public bool IntersectsArea(AreaScanPolygon area)

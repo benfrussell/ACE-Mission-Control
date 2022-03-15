@@ -105,6 +105,9 @@ namespace ACE_Mission_Control.Core.Models
             if (Coordinates.Length != obj.Coordinates.Length)
                 return false;
 
+            if (Name != obj.Name)
+                return false;
+
             if (!Coordinates.SequenceEqual(obj.Coordinates))
                 return false;
 

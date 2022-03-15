@@ -105,7 +105,7 @@ namespace ACE_Mission_Control_Tests
             sut.Synchronization = Drone.SyncState.Synchronized;
 
             // Act
-            mockMission.Raise(m => m.InstructionSyncedPropertyUpdated += null, new InstructionSyncedPropertyUpdatedArgs(0, new List<string> { "StartingTurnType" }));
+            mockMission.Raise(m => m.InstructionSyncedPropertyUpdated += null, mockMission.Object, new InstructionSyncedPropertyUpdatedArgs(0, new List<string> { "StartingTurnType" }));
 
             // Assert
             Assert.Contains(expectedCommandContains, sentCommand);

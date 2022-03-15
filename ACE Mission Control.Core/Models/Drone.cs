@@ -391,6 +391,9 @@ namespace ACE_Mission_Control.Core.Models
             else
                 command = command + " -stopandgo";
 
+            if (instruction.FirstInstruction && Mission.LastPosition != null && Mission.LastPosition.X != 0 && Mission.LastPosition.Y != 0)
+                command = command + $" -lastpos {Mission.LastPosition.Y},{Mission.LastPosition.X}";
+
             Mission.SetInstructionUploadStatus(instruction.ID, TreatmentInstruction.UploadStatus.Uploading);
             SendCommand(command, true, trigger, instruction.ID);
         }

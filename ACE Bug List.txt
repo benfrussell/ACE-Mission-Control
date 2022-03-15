@@ -2,38 +2,18 @@ ACE Bug List
 
 --- BREAKING
 
-Enable route
-Disable route
-Make area changes
-Enable route
-Does not send the newly updated area
-- Now it sends but it also sends a start treatment details twice
-
-Changing turn type doesn't trigger a start parameters change
-
 --- HIGH
-
-Test hold mid-treatment on the M600 also!
-
-Force stop payload stopped working
-- Do in office with the M600
-- May not be possible to have this work over MAVLink. Chaperone doesn't have an instance of the interface.
 
 --- MEDIUM-HIGH
 
-Setting duration changed route
-
-Hold/Continue mission can cause the drone to come back early
-- Not handling executing states correctly?
-
 --- MEDIUM
 
-The M600 seems to be starting a resync on take-off
-- Seems like it's only on the M600
+Setting duration changed route
+- Only sometimes
+
+On instruction activation, 3 set route commands are sent. Can it be simplified?
 
 Re-enabling areas on Mission Control on reconnect to OBC would be nice
-
-Set last point with set_route
 
 Route renaming doesn't update
 

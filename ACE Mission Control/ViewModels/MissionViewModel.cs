@@ -679,5 +679,12 @@ namespace ACE_Mission_Control.ViewModels
         {
             AttachedDrone.Synchronize(true);
         }
+
+        public RelayCommand ReturnCommand => new RelayCommand(() => returnCommand());
+        private void returnCommand()
+        {
+            AttachedDrone.Mission.SetInstructionAreaStatus(AttachedDrone.Mission.GetNextInstruction().ID, Pbdrone.MissionRoute.Types.Status.InProgress);
+            AttachedDrone.Mission.Returned(-75.9245119, 45.3305718);
+        }
     }
 }

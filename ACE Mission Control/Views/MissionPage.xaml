@@ -774,6 +774,10 @@
                             Style="{ThemeResource ACEButton}"
                             IsEnabled="{x:Bind ViewModel.AttachedDrone.CanStartSynchronize, Mode=OneWay}"
                             Command="{x:Bind ViewModel.SynchronizeCommand}"/>
+                        <Button
+                            Margin="8,0,8,0"
+                            Style="{ThemeResource ACEButton}"
+                            Command="{x:Bind ViewModel.ReturnCommand}"/>
                     </StackPanel>
                 </muxc:Expander.Content>
             </muxc:Expander>

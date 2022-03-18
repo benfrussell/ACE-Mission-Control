@@ -220,7 +220,7 @@ namespace ACE_Mission_Control.Core.Models
             if (preceedingSegment == null)
                 return null;
 
-            // Then add the waypoint
+            // Insert a new segment at the specified longitude latitude
             SegmentDefinition newSegment = new SegmentDefinition
             {
                 Uuid = Guid.NewGuid().ToString(),
@@ -234,20 +234,36 @@ namespace ACE_Mission_Control.Core.Models
             newPoint.Latitude = latitude;
 
             newSegment.Figure.Points.Add(newPoint);
-
+            
             route.Segments.Insert(route.Segments.IndexOf(preceedingSegment) + 1, newSegment);
 
-            // Then send an update request
+            // Specify that the route is modified
+            route.ModificationUuid = Guid.NewGuid().ToString();
+            route.LastModificationTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            route.SetRouteModified();
+
+            // Process the route
+            //ProcessRouteRequest procRequest = new ProcessRouteRequest
+            //{
+            //    ClientId = clientID,
+            //    Route = route
+            //};
+            //var procResponse = await Task.Run(() => RequestAndWait<ProcessRouteResponse>(procRequest));
+
+            //route.ProcessedRoute = procResponse.ProcessedRoute;
+
+            // Put the updated route on the server
             CreateOrUpdateObjectRequest request = new CreateOrUpdateObjectRequest()
             {
                 ClientId = clientID,
                 Object = new DomainObjectWrapper().Put(route, "Route"),
                 WithComposites = true,
                 ObjectType = "Route",
-                AcquireLock = true
+                AcquireLock = false
             };
             var response = await Task.Run(() => RequestAndWait<CreateOrUpdateObjectResponse>(request));
 
+            // Return my own Waypoint type based on the new segment
             var turnType = newSegment.ParameterValues.FirstOrDefault(p => p.Name == "wpTurnType")?.Value;
             return new Waypoint(newSegment.Uuid, turnType, longitude, latitude);
         }

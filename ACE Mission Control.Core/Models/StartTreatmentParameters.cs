@@ -86,7 +86,7 @@ namespace ACE_Mission_Control.Core.Models
         public StartTreatmentParameters()
         {
             DefaultNoProgressMode = Mode.FirstEntry;
-            DefaultProgressMode = Mode.Flythrough;
+            DefaultProgressMode = Mode.InsertWaypoint;
 
             SelectedMode = DefaultNoProgressMode;
             StartingTurnType = Waypoint.TurnType.FlyThrough;

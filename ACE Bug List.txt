@@ -15,8 +15,6 @@ On instruction activation, 3 set route commands are sent. Can it be simplified?
 
 Re-enabling areas on Mission Control on reconnect to OBC would be nice
 
-Route renaming doesn't update
-
 Mission set does not provide great feedback
 
 Mission route didn't change on map in next flythrough mode after making a change that didn't affect the entry point

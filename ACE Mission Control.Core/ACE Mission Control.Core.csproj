@@ -16,7 +16,7 @@
      <PackageReference Include="NetMQ" Version="4.0.1.6" />
      <PackageReference Include="NetTopologySuite" Version="2.2.0" />
      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-     <PackageReference Include="ugcs-dotnet-sdk" Version="4.2.3" />
+     <PackageReference Include="ugcs-dotnet-sdk" Version="4.4.0" />
    </ItemGroup>
 
    <ItemGroup>

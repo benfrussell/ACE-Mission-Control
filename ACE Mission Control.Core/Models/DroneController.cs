@@ -22,39 +22,48 @@ namespace ACE_Mission_Control.Core.Models
         {
             droneIDs = new List<int>();
             drones = new ObservableCollection<Drone>();
-            UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
+            UGCSClient.ReceivedMissionEvent += UGCSClient_ReceivedMissionEvent;
             UGCSClient.ReceivedVehicleListEvent += UGCSClient_ReceivedVehicleListEvent;
         }
 
-        public static void LoadDroneConfig()
+        private static void UGCSClient_ReceivedVehicleListEvent(object sender, ReceivedVehicleListEventArgs e)
         {
-            throw new NotImplementedException();
-        }
-
-        public static void LoadUGCSDrones()
-        {
-            if (!UGCSClient.IsConnected && !UGCSClient.TryingConnections)
+            foreach (Vehicle v in e.Vehicles)
             {
-                UGCSClient.StartTryingConnections();
-            }
-            else if (UGCSClient.IsConnected)
-            {
-                UGCSClient.RequestVehicleList();
+                foreach (Drone d in Drones)
+                {
+                    if (v.Id == d.ID && v.NameSpecified)
+                        d.Name = v.Name;
+                }
             }
         }
 
-        private static void UGCSClient_StaticPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private static void UGCSClient_ReceivedMissionEvent(object sender, ReceivedMissionEventArgs e)
         {
-            if (e.PropertyName == "IsConnected" && UGCSClient.IsConnected)
+            foreach (MissionVehicle mv in e.Mission.Vehicles)
             {
-                // Disabled for loading the static drone
-                //UGCSClient.RequestVehicleList();
+                var v = mv.Vehicle;
+                var matchedDrone = Drones.Where(drone => drone.ID == v.Id).FirstOrDefault();
+                if (matchedDrone == null)
+                {
+                    AddDrone(v.Id, FindDroneName(v.Id));
+                }
             }
         }
 
-        public static void LoadStaticDrone()
+        private static string FindDroneName(int droneID)
         {
-            AddDrone(0, "Drone");
+            var matchedVehicle = UGCSClient.Vehicles.Where(v => v.Id == droneID).FirstOrDefault();
+            if (matchedVehicle == null)
+            {
+                if (!UGCSClient.RequestingVehicles)
+                    UGCSClient.RequestVehicleList();
+            }
+            else if (matchedVehicle.NameSpecified)
+            {
+                return matchedVehicle.Name;
+            }
+            return "Drone " + droneID.ToString();
         }
 
         public static void AlertDroneByID(int id, AlertEntry entry, bool blockDuplicates = false)
@@ -72,30 +81,12 @@ namespace ACE_Mission_Control.Core.Models
                 d.AddAlert(entry, blockDuplicates);
         }
 
-        private static void UGCSClient_ReceivedVehicleListEvent(object sender, ReceivedVehicleListEventArgs e)
-        {
-            foreach (Vehicle v in e.Vehicles)
-            {
-                var matchedDrone = Drones.Where(drone => drone.ID == v.Id).FirstOrDefault();
-                if (matchedDrone == null)
-                {
-                    if (v.NameSpecified)
-                        AddDrone(v.Id, v.Name);
-                    else
-                        AddDrone(v.Id, "Drone " + v.Id.ToString());
-                }
-                else
-                {
-                    // Update all properties of the ACE Drone which are related to the UGCS Vehicle
-                    matchedDrone.Name = v.Name;
-                }
-            }
-        }
-
-        private static void AddDrone(int id, string name)
+        private static Drone AddDrone(int id, string name)
         {
             var obc = new OnboardComputerClient(id, "");
-            Drones.Add(new Drone(id, name, obc, new Mission()));
+            var drone = new Drone(id, name, obc, new Mission());
+            Drones.Add(drone);
+            return drone;
         }
     }
 }

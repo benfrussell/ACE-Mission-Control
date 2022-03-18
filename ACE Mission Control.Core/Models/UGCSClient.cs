@@ -29,6 +29,11 @@ namespace ACE_Mission_Control.Core.Models
         public List<UGCS.Sdk.Protocol.Encoding.Mission> Missions { get; set; }
     }
 
+    public class ReceivedMissionEventArgs : EventArgs
+    {
+        public UGCS.Sdk.Protocol.Encoding.Mission Mission { get; set; }
+    }
+
     public class UGCSClient : INotifyPropertyChanged
     {
         public struct ConnectionResult
@@ -43,6 +48,7 @@ namespace ACE_Mission_Control.Core.Models
         public static event EventHandler<ReceivedVehicleListEventArgs> ReceivedVehicleListEvent;
         public static event EventHandler<ReceivedRoutesEventArgs> ReceivedRoutesEvent;
         public static event EventHandler<ReceivedMissionsEventArgs> ReceivedMissionsEvent;
+        public static event EventHandler<ReceivedMissionEventArgs> ReceivedMissionEvent;
 
         public delegate void ProcessObject(DomainObjectWrapper obj, out object result);
 
@@ -119,6 +125,45 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private static bool _requestingMission;
+        public static bool RequestingMission
+        {
+            get { return _requestingMission; }
+            private set
+            {
+                if (value == _requestingMission)
+                    return;
+                _requestingMission = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
+        private static bool _requestingVehicles;
+        public static bool RequestingVehicles
+        {
+            get { return _requestingVehicles; }
+            private set
+            {
+                if (value == _requestingVehicles)
+                    return;
+                _requestingVehicles = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
+        private static List<Vehicle> vehicles;
+        public static List<Vehicle> Vehicles
+        {
+            get { return vehicles; }
+            private set
+            {
+                if (value == vehicles)
+                    return;
+                vehicles = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
         static UGCSClient()
         {
             IsConnected = false;
@@ -127,6 +172,7 @@ namespace ACE_Mission_Control.Core.Models
             RequestingMissions = false;
             ConnectionMessage = "Not connected to UGCS";
             syncContext = SynchronizationContext.Current;
+            Vehicles = new List<Vehicle>();
         }
 
         public static void StartTryingConnections()
@@ -254,10 +300,16 @@ namespace ACE_Mission_Control.Core.Models
 
         public static void RequestVehicleList()
         {
-            RetrieveAndProcessObjectList("Vehicle", (objects) => ReceivedVehicleListEvent(
-                    null,
-                    new ReceivedVehicleListEventArgs() { Vehicles = new List<Vehicle>(from obj in objects select obj.Vehicle) }
-                )
+            if (RequestingVehicles)
+                return;
+            RequestingVehicles = true; 
+
+            RetrieveAndProcessObjectList("Vehicle", (objects) =>
+                {
+                    Vehicles = new List<Vehicle>(from obj in objects select obj.Vehicle);
+                    ReceivedVehicleListEvent(null, new ReceivedVehicleListEventArgs() { Vehicles = Vehicles });
+                    RequestingVehicles = false;
+                }
             );
         }
 
@@ -342,6 +394,24 @@ namespace ACE_Mission_Control.Core.Models
                         null,
                         new ReceivedRoutesEventArgs() { Routes = missionObj.Mission.Routes });
                     RequestingRoutes = false;
+                });
+        }
+
+        public static void RequestMission(int missionID)
+        {
+            if (RequestingMission)
+                return;
+            RequestingMission = true;
+
+            RetrieveAndProcessObject(
+                "Mission",
+                missionID,
+                (missionObj) =>
+                {
+                    ReceivedMissionEvent(
+                        null,
+                        new ReceivedMissionEventArgs() { Mission = missionObj.Mission });
+                    RequestingMission = false;
                 });
         }
 

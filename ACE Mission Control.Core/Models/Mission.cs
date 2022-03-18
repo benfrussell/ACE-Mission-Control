@@ -196,7 +196,11 @@ namespace ACE_Mission_Control.Core.Models
         {
             TreatmentInstructions = new ObservableCollection<ITreatmentInstruction>();
 
+            foreach (AreaScanPolygon area in MissionRetriever.AreaScanPolygons)
+                AddTreatmentInstruction(area);
+
             MissionRetriever.AreaScanPolygonsUpdated += MissionRetriever_AreaScanPolygonsUpdated;
+
             startParameters = new StartTreatmentParameters();
             startParameters.SelectedModeChangedEvent += StartParameters_SelectedModeChangedEvent;
             startParameters.StartParametersChanged += StartParameters_StartParametersChanged;
@@ -526,6 +530,15 @@ namespace ACE_Mission_Control.Core.Models
             UpdateMissionSet();
         }
 
+        private ITreatmentInstruction AddTreatmentInstruction(AreaScanPolygon sourceArea)
+        {
+            var newInstruction = new TreatmentInstruction(sourceArea);
+            newInstruction.PropertyChanged += Instruction_PropertyChanged;
+            newInstruction.SyncedPropertyChanged += Instruction_SyncedPropertyChanged;
+            TreatmentInstructions.Add(newInstruction);
+            return newInstruction;
+        }
+
         private void MissionRetriever_AreaScanPolygonsUpdated(object sender, AreaScanPolygonsUpdatedArgs e)
         {
             updatingInstructions = true;
@@ -560,13 +573,7 @@ namespace ACE_Mission_Control.Core.Models
 
             // Add new treatment areas as instructions
             foreach (AreaScanPolygon addedArea in e.Updates.AddedRoutes)
-            {
-                var newInstruction = new TreatmentInstruction(addedArea);
-                newInstruction.PropertyChanged += Instruction_PropertyChanged;
-                newInstruction.SyncedPropertyChanged += Instruction_SyncedPropertyChanged;
-                updatedInstructions.Instructions.Add(newInstruction);
-                TreatmentInstructions.Add(newInstruction);
-            }
+                updatedInstructions.Instructions.Add(AddTreatmentInstruction(addedArea));
 
             UpdateInstructionOrder();
 

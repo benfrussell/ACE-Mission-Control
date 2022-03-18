@@ -102,7 +102,7 @@ namespace ACE_Mission_Control.Core.Models
             AreaScanPolygons = new List<AreaScanPolygon>();
             AvailableMissions = new List<UGCS.Sdk.Protocol.Encoding.Mission>();
             UGCSClient.ReceivedMissionsEvent += UGCSClient_ReceivedMissionsEvent;
-            UGCSClient.ReceivedRoutesEvent += UGCSClient_ReceivedRoutesEvent;
+            UGCSClient.ReceivedMissionEvent += UGCSClient_ReceivedMissionEvent;
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
         }
 
@@ -110,21 +110,20 @@ namespace ACE_Mission_Control.Core.Models
         {
             // Prepare the poller but start one request attempt right away if we're connected
             ugcsPoller = new Timer(3000);
-            ugcsPoller.Elapsed += RequestUGCSRoutes;
+            ugcsPoller.Elapsed += RequestUGCSMission;
             ugcsPoller.AutoReset = false;
             IsUGCSPollerRunning = true;
 
             if (UGCSClient.IsConnected)
             {
-                RequestUGCSRoutes();
+                RequestUGCSMission();
             }
             else
             {
-                if (UGCSClient.TryingConnections)
-                    ugcsPoller.Start();
-                else
+                if (!UGCSClient.TryingConnections)
                     UGCSClient.StartTryingConnections();
             }
+            ugcsPoller.Start();
         }
 
         private static void UGCSClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -148,7 +147,7 @@ namespace ACE_Mission_Control.Core.Models
             TreatmentInstruction.InterceptCollection.Clear();
         }
 
-        private static void RequestUGCSRoutes(Object source = null, ElapsedEventArgs args = null)
+        private static void RequestUGCSMission(Object source = null, ElapsedEventArgs args = null)
         {
             if (UGCSClient.IsConnected)
             {
@@ -159,8 +158,8 @@ namespace ACE_Mission_Control.Core.Models
                 }
                 else
                 {
-                    if (!UGCSClient.RequestingRoutes)
-                        UGCSClient.RequestRoutes(SelectedMission.Id);
+                    if (!UGCSClient.RequestingMission)
+                        UGCSClient.RequestMission(SelectedMission.Id);
                 }
             } 
             else if (IsUGCSPollerRunning)
@@ -184,7 +183,7 @@ namespace ACE_Mission_Control.Core.Models
                     $"Selecting mission '{SelectedMission.Name}' with ID {SelectedMission.Id}"));
 
                 if (!UGCSClient.RequestingRoutes)
-                    UGCSClient.RequestRoutes(SelectedMission.Id);
+                    UGCSClient.RequestMission(SelectedMission.Id);
             }
             else
             {
@@ -197,12 +196,12 @@ namespace ACE_Mission_Control.Core.Models
             AvailableMissions = e.Missions;
         }
 
-        private static void UGCSClient_ReceivedRoutesEvent(object sender, ReceivedRoutesEventArgs e)
+        private static void UGCSClient_ReceivedMissionEvent(object sender, ReceivedMissionEventArgs e)
         {
             List<AreaScanPolygon> newAreaRoutes = new List<AreaScanPolygon>();
             List<WaypointRoute> newWaypointRoutes = new List<WaypointRoute>();
 
-            foreach (Route r in e.Routes)
+            foreach (Route r in e.Mission.Routes)
             {
                 if (AreaScanPolygon.IsUGCSRouteAreaScanPolygon(r))
                     newAreaRoutes.Add(AreaScanPolygon.CreateFromUGCSRoute(r));
@@ -213,6 +212,14 @@ namespace ACE_Mission_Control.Core.Models
             var areaChanges = DetermineExisitngRouteUpdates(AreaScanPolygons, newAreaRoutes);
             var waypointRouteChanges = DetermineExisitngRouteUpdates(WaypointRoutes, newWaypointRoutes);
 
+            UpdateRouteCollections(areaChanges, waypointRouteChanges);
+
+            if (IsUGCSPollerRunning)
+                ugcsPoller.Start();
+        }
+
+        private static void UpdateRouteCollections(RouteCollectionUpdates<AreaScanPolygon> areaChanges, RouteCollectionUpdates<WaypointRoute> waypointRouteChanges)
+        {
             // First remove areas. When we add routes to the intercept collection further down we don't want to bother recalculating intercepts for these anway.
             if (areaChanges.AnyChanges && areaChanges.RemovedRouteIDs.Count > 0)
             {
@@ -277,12 +284,7 @@ namespace ACE_Mission_Control.Core.Models
                     AlertEntry.AlertType.UGCSStatus,
                     $"Updated areas. ({areaChanges.RemovedRouteIDs.Count}) areas removed, ({areaChanges.ModifiedRoutes.Count}) areas modified, ({areaChanges.AddedRoutes.Count}) areas added."));
             }
-
-            if (IsUGCSPollerRunning)
-                ugcsPoller.Start();
         }
-
-        // TODO: New AreaScan name change and route to waypoints didn't sync!
 
         // Finds and returns all of the updates to match an exisiting route list to a new route list
         private static RouteCollectionUpdates<T> DetermineExisitngRouteUpdates<T>(IEnumerable<T> existingRouteList, IEnumerable<T> newRouteList) where T : IComparableRoute<T>

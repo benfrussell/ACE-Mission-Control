@@ -44,14 +44,14 @@ namespace ACE_Mission_Control.Views
         {
             if (isInit)
             {
-                // Things to do on every navigation
+                
             }
             else
             {
+                RemakeMapControl();
             }
             base.OnNavigatedTo(e);
 
-            RemakeMapControl();
             Messenger.Default.Register<RemakeMapMessage>(this, (msg) => RemakeMapControl());
             Messenger.Default.Register<SetMapPointsMessage>(this, (msg) => UpdatePlannerMapPoints(msg.Instructions));
             Messenger.Default.Register<SetMapPolygonsMessage>(this, (msg) => UpdatePlannerMapAreas(msg.Instructions));

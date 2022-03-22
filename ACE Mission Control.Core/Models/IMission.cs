@@ -17,7 +17,9 @@ namespace ACE_Mission_Control.Core.Models
         MissionStatus.Types.Stage Stage { get; }
         StartTreatmentParameters.Mode StartMode { get; set; }
         int TreatmentDuration { get; set; }
-        float TreatmentTimeElapsed { get; set; }
+        float TreatmentTimeElapsed { get; }
+        float TotalMissionTime { get; }
+        float TotalMissionFlights { get; }
         ObservableCollection<ITreatmentInstruction> TreatmentInstructions { get; set; }
 
         event EventHandler<InstructionAreasUpdatedArgs> InstructionAreasUpdated;
@@ -49,6 +51,6 @@ namespace ACE_Mission_Control.Core.Models
         void SetSelectedStartWaypoint(string waypointID);
         void Unlock();
         void SetStage(MissionStatus.Types.Stage newStage);
-        void Returned(double lastLongitudeDeg, double lastLatitudeDeg);
+        void Returned(double lastLongitudeDeg, double lastLatitudeDeg, float treatmentTime);
     }
 }

@@ -518,7 +518,7 @@
     <value>Unlock</value>
   </data>
   <data name="Alert_FinishedExecution" xml:space="preserve">
-    <value>The drone has finished execution. It treated for</value>
+    <value>The drone has finished execution. Flight number</value>
   </data>
   <data name="Mission_DisconnectDrone" xml:space="preserve">
     <value>Disconnect Drone</value>

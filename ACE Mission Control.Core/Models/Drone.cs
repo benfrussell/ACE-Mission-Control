@@ -647,15 +647,15 @@ namespace ACE_Mission_Control.Core.Models
             else
                 Mission.Unlock();
 
+            if (firstPositionUpdate && !justReturned)
+                Mission.Returned(newStatus.LastLongitude, newStatus.LastLatitude, 0);
+            else if (justReturned)
+                Mission.Returned(newStatus.LastLongitude, newStatus.LastLatitude, newStatus.TreatmentTime);
+
             if (newStatus.TreatmentTime > Mission.TreatmentTimeElapsed && (!justReturned || firstPositionUpdate))
                 AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ExecutionTimeUpdated, newStatus.TreatmentTime.ToString() + "s"));
             else if (newStatus.TreatmentTime > 0 && justReturned)
-                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.FinishedExecution, newStatus.TreatmentTime.ToString() + "s"));
-
-            Mission.TreatmentTimeElapsed = newStatus.TreatmentTime;
-
-            if (justReturned || firstPositionUpdate)
-                Mission.Returned(newStatus.LastLongitude, newStatus.LastLatitude);
+                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ExecutionTimeUpdated, $"#{Mission.TotalMissionFlights}: {newStatus.TreatmentTime}s ({Mission.TotalMissionTime}s)"));
 
             CheckIfSyncComplete();
         }

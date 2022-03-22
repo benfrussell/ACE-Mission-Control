@@ -162,11 +162,37 @@ namespace ACE_Mission_Control.Core.Models
         public float TreatmentTimeElapsed
         {
             get => treatmentTimeElapsed;
-            set
+            private set
             {
                 if (treatmentTimeElapsed == value)
                     return;
                 treatmentTimeElapsed = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private float totalMissionTime;
+        public float TotalMissionTime
+        {
+            get => totalMissionTime;
+            private set
+            {
+                if (totalMissionTime == value)
+                    return;
+                totalMissionTime = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private float totalMissionFlights;
+        public float TotalMissionFlights
+        {
+            get => totalMissionFlights;
+            private set
+            {
+                if (totalMissionFlights == value)
+                    return;
+                totalMissionFlights = value;
                 NotifyPropertyChanged();
             }
         }
@@ -229,10 +255,15 @@ namespace ACE_Mission_Control.Core.Models
             InstructionSyncedPropertyUpdated?.Invoke(this, new InstructionSyncedPropertyUpdatedArgs(GetNextInstruction().ID, e.ParameterNames));
         }
 
-        public void Returned(double lastLongitudeDeg, double lastLatitudeDeg)
+        public void Returned(double lastLongitudeDeg, double lastLatitudeDeg, float timeTreating)
         {
             if (lastLongitudeDeg != 0 && lastLatitudeDeg != 0)
+            {
                 LastPosition = new Coordinate(lastLongitudeDeg / 180 * Math.PI, lastLatitudeDeg / 180 * Math.PI);
+                TotalMissionFlights++;
+                TreatmentTimeElapsed = timeTreating;
+                TotalMissionTime += timeTreating;
+            }
 
             startParameters.UpdateParameters(GetNextInstruction(), LastPosition, true);
         }
@@ -452,6 +483,9 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             LastPosition = null;
+            TotalMissionTime = 0;
+            TotalMissionFlights = 0;
+
             var nextInstruction = GetNextInstruction();
             if (nextInstruction != null)
             {
@@ -536,6 +570,10 @@ namespace ACE_Mission_Control.Core.Models
                 if (removedInstruction != null)
                     TreatmentInstructions.Remove(removedInstruction);
             }
+
+            // If all instructions were removed, do a reset mission (we're probably changing missions)
+            if (TreatmentInstructions.Count == 0)
+                ResetProgress();
 
             InstructionAreasUpdatedArgs updatedInstructions = new InstructionAreasUpdatedArgs();
 

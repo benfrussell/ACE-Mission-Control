@@ -235,6 +235,11 @@ namespace ACE_Mission_Control.Core.Models
                     DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
                     alertedDirectorFailure = false;
                 }
+                else
+                {
+                    if (ChaperoneRequestClient.Connected)
+                        ChaperoneRequestClient.SendCommand("ping");
+                }
                     
                 CheckIfAllAttemptsFinished();
             }

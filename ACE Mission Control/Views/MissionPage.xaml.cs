@@ -22,6 +22,8 @@ using Windows.UI;
 using Windows.Devices.Geolocation;
 using ACE_Mission_Control.Helpers;
 using System.Collections.ObjectModel;
+using Windows.Media.SpeechSynthesis;
+using Windows.Globalization;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -34,6 +36,8 @@ namespace ACE_Mission_Control.Views
     {
         private MapControl mapControl;
         private bool mapCentred;
+        private SpeechSynthesizer synth;
+        private Queue<string> speechQueue;
 
         private MissionViewModel ViewModel
         {
@@ -55,6 +59,7 @@ namespace ACE_Mission_Control.Views
             Messenger.Default.Register<RemakeMapMessage>(this, (msg) => RemakeMapControl());
             Messenger.Default.Register<SetMapPointsMessage>(this, (msg) => UpdatePlannerMapPoints(msg.Instructions));
             Messenger.Default.Register<SetMapPolygonsMessage>(this, (msg) => UpdatePlannerMapAreas(msg.Instructions));
+            Messenger.Default.Register<SpeakMessage>(this, (msg) => Speak(msg.Message));
         }
 
         public MissionPage() : base()
@@ -62,11 +67,43 @@ namespace ACE_Mission_Control.Views
             this.InitializeComponent();
 
             Loaded += MissionPage_Loaded;
+            speechQueue = new Queue<string>();
+
+            synth = new SpeechSynthesizer();
+            synth.Options.SpeakingRate = 1.05;
+            var setVoice = SpeechSynthesizer.AllVoices.FirstOrDefault(v => v.Language == ApplicationLanguages.PrimaryLanguageOverride);
+            if (setVoice != null)
+                synth.Voice = setVoice;
         }
 
         private void MissionPage_Loaded(object sender, RoutedEventArgs e)
         {
             mapCentred = false;
+            SpeechMediaElement.MediaEnded += SpeechMediaElement_MediaEnded;
+        }
+
+        private void SpeechMediaElement_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            if (speechQueue.Count > 0)
+                Speak(speechQueue.Dequeue());
+        }
+
+        private async void Speak(string text)
+        {
+            var settings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            if (settings.Values.Keys.Contains("UseVoice") && !(bool)settings.Values["UseVoice"])
+                return;
+
+            if (SpeechMediaElement.CurrentState == MediaElementState.Playing)
+            {
+                speechQueue.Enqueue(text);
+                return;
+            }
+
+            SpeechSynthesisStream stream = await synth.SynthesizeTextToStreamAsync(text);
+            // Send the stream to the media object.
+            SpeechMediaElement.SetSource(stream, stream.ContentType);
+            SpeechMediaElement.Play();
         }
 
         private void RemakeMapControl()

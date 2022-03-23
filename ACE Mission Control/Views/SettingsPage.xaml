@@ -14,7 +14,8 @@
     <Grid Margin="{StaticResource MediumLeftRightMargin}">
         <StackPanel x:Name="ContentArea">
             <TextBlock x:Uid="Settings_LanguageTitle"
-                       Style="{StaticResource SubtitleTextBlockStyle}"/>
+                       Style="{StaticResource SubtitleTextBlockStyle}"
+                       Margin="0,16,0,0"/>
 
             <ComboBox SelectedIndex="{x:Bind ViewModel.CurrentLanguageIndex, Mode=OneWay}"
                       Margin="0,8,0,16">
@@ -38,6 +39,14 @@
                     </i:Interaction.Behaviors>
                 </ComboBoxItem>
             </ComboBox>
+
+            <TextBlock x:Uid="Settings_VoiceTitle"
+                       Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+            <CheckBox x:Name="UseVoiceCheckbox"
+                      IsChecked="{x:Bind ViewModel.UseVoiceChecked, Mode=TwoWay}"
+                      Command="{x:Bind ViewModel.UseVoiceCheckedCommand}"
+                      Margin="0,0,0,16"/>
 
             <TextBlock x:Uid="Settings_About" Style="{ThemeResource SubtitleTextBlockStyle}" />
 

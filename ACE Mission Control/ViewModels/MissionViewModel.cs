@@ -39,6 +39,12 @@ namespace ACE_Mission_Control.ViewModels
         public SetMapPolygonsMessage(ITreatmentInstruction instruction) { Instructions = new List<ITreatmentInstruction> { instruction }; }
     }
 
+    public class SpeakMessage : MessageBase
+    {
+        public string Message { get; set; }
+        public SpeakMessage(string msg) { Message = msg; }
+    }
+
     public class MissionViewModel : DroneViewModelBase
     {
         public enum ConnectStatus
@@ -278,7 +284,7 @@ namespace ACE_Mission_Control.ViewModels
             StartModeError = false;
         }
 
-        private void IPLookup_StaticPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void IPLookup_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
@@ -298,6 +304,7 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.OBCClient.PropertyChanged += OBCClient_PropertyChanged;
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
+            AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
 
             AttachedDrone.Mission.InstructionAreasUpdated += Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.InstructionRouteUpdated += Mission_InstructionRouteUpdated;
@@ -322,6 +329,18 @@ namespace ACE_Mission_Control.ViewModels
             }
 
             SelectedStartMode = (int)AttachedDrone.Mission.StartMode;
+        }
+
+        private void AlertLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            foreach (AlertEntry newAlert in e.NewItems)
+            {
+                if (newAlert.Level == AlertEntry.AlertLevel.High)
+                {
+                    Messenger.Default.Send(new SpeakMessage("Voice_Warning".GetLocalized()));
+                    break;
+                }
+            }
         }
 
         private async void OBCClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -354,6 +373,12 @@ namespace ACE_Mission_Control.ViewModels
                     case "MissionSet":
                         UpdatePlannerStatus();
                         break;
+                    case "Stage":
+                        if (!AttachedDrone.IsNotConnected && AttachedDrone.Mission.Stage == Pbdrone.MissionStatus.Types.Stage.Ready)
+                            Messenger.Default.Send(new SpeakMessage("Voice_Ready".GetLocalized()));
+                        else if (!AttachedDrone.IsNotConnected && AttachedDrone.Mission.Stage == Pbdrone.MissionStatus.Types.Stage.NotReady)
+                            Messenger.Default.Send(new SpeakMessage("Voice_NotReady".GetLocalized()));
+                        break;
                 }
             });
         }
@@ -369,6 +394,12 @@ namespace ACE_Mission_Control.ViewModels
                         break;
                     case "Synchronization":
                         UpdateDroneConnectButton();
+                        break;
+                    case "IsNotConnected":
+                        if (AttachedDrone.IsNotConnected)
+                            Messenger.Default.Send(new SpeakMessage("Voice_Disconnected".GetLocalized()));
+                        else
+                            Messenger.Default.Send(new SpeakMessage("Voice_Connected".GetLocalized()));
                         break;
                 }
             });
@@ -436,6 +467,7 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.Mission.InstructionAreasUpdated -= Mission_InstructionAreasUpdated;
             AttachedDrone.Mission.InstructionRouteUpdated -= Mission_InstructionRouteUpdated;
             AttachedDrone.Mission.InstructionSyncedPropertyUpdated -= Mission_InstructionSyncedPropertyUpdated;
+            AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
         }
 
         private void UpdateLockButton()

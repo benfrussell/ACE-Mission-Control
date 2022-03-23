@@ -526,4 +526,22 @@
   <data name="Alert_ExecutionTimeUpdated" xml:space="preserve">
     <value>The drone has been treating for</value>
   </data>
+  <data name="Voice_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Voice_NotReady" xml:space="preserve">
+    <value>Not Ready</value>
+  </data>
+  <data name="Voice_Connected" xml:space="preserve">
+    <value>ACE Connected</value>
+  </data>
+  <data name="Voice_Disconnected" xml:space="preserve">
+    <value>ACE Disconnected</value>
+  </data>
+  <data name="Voice_Warning" xml:space="preserve">
+    <value>ACE Warning</value>
+  </data>
+  <data name="Settings_VoiceTitle.Text" xml:space="preserve">
+    <value>Use Voice Alerts</value>
+  </data>
 </root>

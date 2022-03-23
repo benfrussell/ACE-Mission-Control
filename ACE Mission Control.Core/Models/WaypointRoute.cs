@@ -149,6 +149,8 @@ namespace ACE_Mission_Control.Core.Models
         {
             var index = Waypoints.FindIndex(w => w.ID == waypoint.ID);
             var slicedWaypoints = Waypoints.GetRange(index, Waypoints.Count - index - 1);
+            if (slicedWaypoints.Count < 2)
+                return null;
             WaypointRoute subRoute = new WaypointRoute(0, "", 0, slicedWaypoints);
 
             return subRoute.CalcIntersectWithArea(area);

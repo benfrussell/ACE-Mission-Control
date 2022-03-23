@@ -2,11 +2,27 @@ ACE Bug List
 
 --- BREAKING
 
+A flythrough was interpreted as stop and turn in simulation
+- It happened on the second flight, so it was either next flythrough or selected waypoint
+- Manually locking was occuring at the time
+- Temporarily disabled stop and turn on the Pi
+
 --- HIGH
+
+When the route ends in the middle of the treatment polygon the exit point isn't placed correctly.
 
 --- MEDIUM-HIGH
 
+If angle between the route and the exit edge on the area scan is very sharp it seems it can miss the exit point
+- Occured in actual flight with the M600
+- Just means that the drone comes to a stop and doesn't know it's done treating
+
+Verify that stop and return still works when stopping outside the treatment polygon.
+- Would have been nice for dealing with the above issue (it stopped and didn't return!)
+
 --- MEDIUM
+
+When the Pi starts up it sometimes misses one or two heartbeats
 
 Setting duration changed route
 - Only sometimes
@@ -15,21 +31,15 @@ On instruction activation, 3 set route commands are sent. Can it be simplified?
 
 Re-enabling areas on Mission Control on reconnect to OBC would be nice
 
-Route renaming doesn't update
-
-Mission set does not provide great feedback
-
 Mission route didn't change on map in next flythrough mode after making a change that didn't affect the entry point
 - Actually not related to entry point. Seems to have just stopped updating for some reason
 - This will require a lot of testing
 
-If treatment never started we shouldn't put down a last position flag
-
 Flythrough error does not unset?
 
-Doesn't check the chaperone state ever past initial connection connection
-
 --- LOW
+
+Mission set does not provide great feedback
 
 Map on first load doesn't snap to the right position if you enabled an area that's set as completed
 
@@ -42,8 +52,6 @@ At mission complete, sometimes MC still shows that the area is still "in-progres
 	- Maybe related to locked/sync paused?
 
 --- MULTI-DRONE
-
-Re-enable import drones from UgCS
 
 Alert grid stops receiving alerts after switching between drones. CollectionChanged event sub/unsub fires properly
 	- Still happens!!
@@ -86,3 +94,7 @@ Better area scan algorithm.
 --- DOCUMENTATION
 
 Prepare manual with stage transition map
+
+Config breakdown
+
+Guide for updating the Pi, changing wifi, retrieving logs

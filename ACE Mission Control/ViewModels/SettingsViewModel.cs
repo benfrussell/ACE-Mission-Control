@@ -36,6 +36,8 @@ namespace ACE_Mission_Control.ViewModels
 
         private Dictionary<string, int> languageIndexes = new Dictionary<string, int>() { ["en-CA"] = 0, ["fr-CA"] = 1 };
 
+        public bool UseVoiceChecked { get; set; }
+
         public SettingsViewModel()
         {
             
@@ -74,6 +76,13 @@ namespace ACE_Mission_Control.ViewModels
             ResourceContext.GetForViewIndependentUse().Reset();
             ShellViewModel.NavigationService.Navigate(typeof(SettingsViewModel).FullName, new SuppressNavigationTransitionInfo());
             LanguageChangedEvent?.Invoke(this, new EventArgs());
+        }
+
+        public RelayCommand UseVoiceCheckedCommand => new RelayCommand(() => UpdateUseVoice());
+        private void UpdateUseVoice()
+        {
+            var settings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            settings.Values["UseVoice"] = UseVoiceChecked;
         }
     }
 }

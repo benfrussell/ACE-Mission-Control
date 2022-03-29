@@ -9,19 +9,18 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class DroneController
     {
-        public const int MAX_DRONES = 10;
-        private static List<int> droneIDs;
+        private static List<int> DroneIDs;
 
-        private static ObservableCollection<Drone> drones;
-        public static ObservableCollection<Drone> Drones
+        private static ObservableCollection<IDrone> drones;
+        public static ObservableCollection<IDrone> Drones
         {
             get { return drones; }
         }
 
         static DroneController()
         {
-            droneIDs = new List<int>();
-            drones = new ObservableCollection<Drone>();
+            DroneIDs = new List<int>();
+            drones = new ObservableCollection<IDrone>();
             UGCSClient.ReceivedMissionEvent += UGCSClient_ReceivedMissionEvent;
             UGCSClient.ReceivedVehicleListEvent += UGCSClient_ReceivedVehicleListEvent;
         }
@@ -30,7 +29,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (Vehicle v in e.Vehicles)
             {
-                foreach (Drone d in Drones)
+                foreach (IDrone d in Drones)
                 {
                     if (v.Id == d.ID && v.NameSpecified)
                         d.Name = v.Name;
@@ -43,17 +42,17 @@ namespace ACE_Mission_Control.Core.Models
             foreach (MissionVehicle mv in e.Mission.Vehicles)
             {
                 var v = mv.Vehicle;
-                var matchedDrone = Drones.Where(drone => drone.ID == v.Id).FirstOrDefault();
-                if (matchedDrone == null)
+                var matchedIDrone = Drones.Where(IDrone => IDrone.ID == v.Id).FirstOrDefault();
+                if (matchedIDrone == null)
                 {
                     AddDrone(v.Id, FindDroneName(v.Id));
                 }
             }
         }
 
-        private static string FindDroneName(int droneID)
+        private static string FindDroneName(int IDroneID)
         {
-            var matchedVehicle = UGCSClient.Vehicles.Where(v => v.Id == droneID).FirstOrDefault();
+            var matchedVehicle = UGCSClient.Vehicles.Where(v => v.Id == IDroneID).FirstOrDefault();
             if (matchedVehicle == null)
             {
                 if (!UGCSClient.RequestingVehicles)
@@ -63,30 +62,15 @@ namespace ACE_Mission_Control.Core.Models
             {
                 return matchedVehicle.Name;
             }
-            return "Drone " + droneID.ToString();
+            return "IDrone " + IDroneID.ToString();
         }
 
-        public static void AlertDroneByID(int id, AlertEntry entry, bool blockDuplicates = false)
+        private static IDrone AddDrone(int id, string name)
         {
-            Drone drone = Drones.FirstOrDefault(d => d.ID == id);
-            if (drone == null)
-                throw new ArgumentException($"Tried to alert drone with ID {id} but that drone does not exist.");
-            else
-                drone.AddAlert(entry, blockDuplicates);
-        }
-
-        public static void AlertAllDrones(AlertEntry entry, bool blockDuplicates = false)
-        {
-            foreach (Drone d in Drones)
-                d.AddAlert(entry, blockDuplicates);
-        }
-
-        private static Drone AddDrone(int id, string name)
-        {
-            var obc = new OnboardComputerClient(id, "");
-            var drone = new Drone(id, name, obc, new Mission());
-            Drones.Add(drone);
-            return drone;
+            var obc = new OnboardComputerClient("");
+            var IDrone = new Drone(id, name, obc, new Mission());
+            Drones.Add(IDrone);
+            return IDrone;
         }
     }
 }

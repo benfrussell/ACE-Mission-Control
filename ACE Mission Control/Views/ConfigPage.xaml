@@ -12,13 +12,12 @@
     xmlns:c="using:Microsoft.UI.Xaml.Controls"
     xmlns:ugcs="using:UGCS.Sdk.Protocol.Encoding"
     xmlns:ace="using:ACE_Mission_Control.Core.Models"
-    mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    mc:Ignorable="d">
     <Page.Resources>
         <helper:NegateBoolean x:Key="NegateBoolean" />
     </Page.Resources>
 
-    <Grid Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="2*"/>

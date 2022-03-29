@@ -177,20 +177,20 @@ namespace ACE_Mission_Control.Core.Models
             if (SelectedMission == null || SelectedMission.Id != mostRecentMission.Id)
             {
                 SelectedMission = e.Missions.FirstOrDefault(m => m.Id == mostRecentRoute.Mission.Id);
-                DroneController.AlertAllDrones(new AlertEntry(
+                Alerts.AddAlert(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
-                    $"Selecting mission '{SelectedMission.Name}' with ID {SelectedMission.Id}"));
+                    $"Selecting mission '{SelectedMission.Name}' with ID {SelectedMission.Id}");
 
                 if (!UGCSClient.RequestingRoutes)
                     UGCSClient.RequestMission(SelectedMission.Id);
             }
             else
             {
-                DroneController.AlertAllDrones(new AlertEntry(
+                Alerts.AddAlert(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
-                    $"Mission '{SelectedMission.Name}' with ID {SelectedMission.Id} is still the most recent"));
+                    $"Mission '{SelectedMission.Name}' with ID {SelectedMission.Id} is still the most recent");
             }
             
             AvailableMissions = e.Missions;
@@ -251,10 +251,10 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyStaticPropertyChanged("WaypointRoutes");
                 WaypointRoutesUpdated?.Invoke(null, new WaypointRoutesUpdatedArgs { Updates = waypointRouteChanges, AreaScanPolygonsUpdateFollowing = areaChanges.AnyChanges });
 
-                DroneController.AlertAllDrones(new AlertEntry(
+                Alerts.AddAlert(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
-                    $"Updated routes. ({waypointRouteChanges.RemovedRouteIDs.Count}) routes removed, ({waypointRouteChanges.ModifiedRoutes.Count}) routes modified, ({waypointRouteChanges.AddedRoutes.Count}) routes added."));
+                    $"Updated routes. ({waypointRouteChanges.RemovedRouteIDs.Count}) routes removed, ({waypointRouteChanges.ModifiedRoutes.Count}) routes modified, ({waypointRouteChanges.AddedRoutes.Count}) routes added.");
             }
 
             // Adding or modifying any areas should be done only after we have the updated WaypointRoutes collection
@@ -279,10 +279,10 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyStaticPropertyChanged("AreaScanPolygons");
                 AreaScanPolygonsUpdated?.Invoke(null, new AreaScanPolygonsUpdatedArgs() { Updates = areaChanges });
 
-                DroneController.AlertAllDrones(new AlertEntry(
+                Alerts.AddAlert(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
-                    $"Updated areas. ({areaChanges.RemovedRouteIDs.Count}) areas removed, ({areaChanges.ModifiedRoutes.Count}) areas modified, ({areaChanges.AddedRoutes.Count}) areas added."));
+                    $"Updated areas. ({areaChanges.RemovedRouteIDs.Count}) areas removed, ({areaChanges.ModifiedRoutes.Count}) areas modified, ({areaChanges.AddedRoutes.Count}) areas added.");
             }
         }
 

@@ -16,9 +16,6 @@ using Windows.UI.Xaml;
 
 namespace ACE_Mission_Control.ViewModels
 {
-    public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
-    public class AlertDataGridSizeChangeMessage : MessageBase { }
-
     public class MainViewModel : DroneViewModelBase
     {
         public string DroneName
@@ -46,27 +43,9 @@ namespace ACE_Mission_Control.ViewModels
 
         protected override void DroneAttached(bool firstTime)
         {
-            _alerts = new ObservableCollection<AlertEntry>(AttachedDrone.AlertLog);
-
             AttachedDrone.PropertyChanged += AttachedDrone_PropertyChanged;
             AttachedDrone.Mission.PropertyChanged += Mission_PropertyChanged;
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
-            AttachedDrone.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
-        }
-
-        private async void AlertLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-                {
-                    foreach (AlertEntry entry in e.NewItems)
-                        Alerts.Add(entry);
-                }
-
-                var msg = new ScrollAlertDataGridMessage() { newEntry = Alerts[Alerts.Count - 1] };
-                Messenger.Default.Send(msg);
-            });
         }
 
         private async void AttachedDrone_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -98,24 +77,6 @@ namespace ACE_Mission_Control.ViewModels
             AttachedDrone.PropertyChanged -= AttachedDrone_PropertyChanged;
             AttachedDrone.Mission.PropertyChanged -= Mission_PropertyChanged;
             UGCSClient.StaticPropertyChanged -= UGCSClient_StaticPropertyChanged;
-            AttachedDrone.AlertLog.CollectionChanged -= AlertLog_CollectionChanged;
         }
-
-        public RelayCommand<DataGrid> AlertCopyCommand => new RelayCommand<DataGrid>((grid) => alertCopyCommand(grid));
-        private void alertCopyCommand(DataGrid grid)
-        {
-            string copiedText = "";
-            AlertToString alertConverter = new AlertToString();
-            foreach (object item in grid.SelectedItems)
-            {
-                var entry = (AlertEntry)item;
-                copiedText += entry.Timestamp.ToLongTimeString() + " " + alertConverter.Convert(entry, typeof(string), null, null) + "\n";
-            }
-            DataPackage dataPackage = new DataPackage();
-            dataPackage.RequestedOperation = DataPackageOperation.Copy;
-            dataPackage.SetText(copiedText);
-            Clipboard.SetContent(dataPackage);
-        }
-
     }
 }

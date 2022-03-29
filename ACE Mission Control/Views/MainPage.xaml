@@ -7,7 +7,6 @@
     xmlns:helper="using:ACE_Mission_Control.Helpers"
     xmlns:ace="using:ACE_Mission_Control.Core.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -22,8 +21,7 @@
 
     <Grid 
         x:Name="ContentArea"
-        Margin="0,0,0,12"
-        Background="{ThemeResource SystemChromeBlackLowColor}">
+        Margin="0,0,0,12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition MinHeight="100"/>
@@ -75,65 +73,5 @@
                 </Grid>
             </PivotItem>
         </Pivot>
-
-        <Border Grid.ColumnSpan="3"
-                Grid.Row="1"
-                Margin="12,8,12,0"
-                Background="{ThemeResource SystemChromeMediumLowColor}"/>
-
-        <controls:DataGrid ItemsSource="{x:Bind ViewModel.Alerts, Mode=OneWay}"
-                           IsReadOnly="True"
-                           ColumnHeaderHeight="9"
-                           Margin="12,8,12,0"
-                           Grid.ColumnSpan="3"
-                           Grid.Row="1"
-                           ClipboardCopyMode="ExcludeHeader"
-                           x:Name="AlertDataGrid">
-
-            <controls:DataGrid.Columns>
-                <controls:DataGridTemplateColumn MinWidth="70">
-                    <controls:DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="ace:AlertEntry">
-                            <Border
-                                Background="{x:Bind Level, Converter={StaticResource AlertLevelToColour}}">
-                                <TextBlock Text="{x:Bind Timestamp.ToLongTimeString()}"
-                                           Style="{ThemeResource CaptionTextBlockStyle}"
-                                           VerticalAlignment="Center"
-                                           HorizontalAlignment="Center"/>
-                            </Border>
-                        </DataTemplate>
-                    </controls:DataGridTemplateColumn.CellTemplate>
-                </controls:DataGridTemplateColumn>
-
-                <controls:DataGridTemplateColumn Width="*">
-                    <controls:DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="ace:AlertEntry">
-                            <Border Background="{x:Bind Level, Converter={StaticResource AlertLevelToColour}}">
-                                <TextBlock Text="{x:Bind Mode=OneWay, Converter={StaticResource AlertToString}}"
-                                           Style="{ThemeResource CaptionTextBlockStyle}"
-                                           VerticalAlignment="Center"
-                                           HorizontalAlignment="Left"
-                                           Margin="4,0,0,0"/>
-                            </Border>
-                        </DataTemplate>
-                    </controls:DataGridTemplateColumn.CellTemplate>
-                </controls:DataGridTemplateColumn>
-            </controls:DataGrid.Columns>
-            
-            <controls:DataGrid.RowStyle>
-                <Style TargetType="controls:DataGridRow">
-                    <Setter Property="ContextFlyout">
-                        <Setter.Value>
-                            <MenuFlyout>
-                                <MenuFlyoutItem x:Uid="Mission_AlertGridCopy"
-                                                Command="{x:Bind ViewModel.AlertCopyCommand}"
-                                                CommandParameter="{x:Bind AlertDataGrid}"/>
-                            </MenuFlyout>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </controls:DataGrid.RowStyle>
-            
-        </controls:DataGrid>
     </Grid>
 </local:DroneBasePage>

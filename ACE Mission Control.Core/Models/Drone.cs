@@ -59,16 +59,6 @@ namespace ACE_Mission_Control.Core.Models
         public static List<string> ChaperoneCommandList = new List<string> { "get_error", "check_director", "start_director", "force_stop_payload" };
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private AlertEntry.AlertType LastAlertType
-        {
-            get
-            {
-                if (AlertLog.Count == 0)
-                    return AlertEntry.AlertType.None;
-                return AlertLog[AlertLog.Count - 1].Type;
-            }
-        }
-
         private InterfaceStatus.Types.State _interfaceState;
         public InterfaceStatus.Types.State InterfaceState
         {
@@ -110,6 +100,19 @@ namespace ACE_Mission_Control.Core.Models
                 if (_mission == value)
                     return;
                 _mission = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private IOnboardComputerClient obcClient;
+        public IOnboardComputerClient OBCClient
+        {
+            get { return obcClient; }
+            set
+            {
+                if (obcClient == value)
+                    return;
+                obcClient = value;
                 NotifyPropertyChanged();
             }
         }
@@ -241,10 +244,18 @@ namespace ACE_Mission_Control.Core.Models
             get => OBCClient.IsDirectorConnected && (Synchronization == SyncState.Synchronized || Synchronization == SyncState.SendingUpdate);
         }
 
-        public int ID;
-
-        public IOnboardComputerClient OBCClient;
-        public ObservableCollection<AlertEntry> AlertLog;
+        private int id;
+        public int ID 
+        { 
+            get => id; 
+            private set
+            {
+                if (id == value)
+                    return;
+                id = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private Queue<Command> directorCommandQueue;
         private Queue<Command> chaperoneCommandQueue;
@@ -267,7 +278,6 @@ namespace ACE_Mission_Control.Core.Models
 
             ID = id;
             Name = name;
-            AlertLog = new ObservableCollection<AlertEntry>();
             ConfigEntries = new List<ConfigEntry>();
             ManualCommandsOnly = false;
 
@@ -522,7 +532,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (command.IsAutoCommand && ManualCommandsOnly)
             {
-                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommandError, $": command '{command}' was not sent in manual mode because it was an automatic command."));
+                Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Info, AlertEntry.AlertType.CommandError, $": command '{command}' was not sent in manual mode because it was an automatic command.");
                 return;
             }
 
@@ -538,7 +548,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 if (!OBCClient.IsChaperoneConnected)
                 {
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.CommandError, $": command '{command}' could not be sent because the chaperone isn't connected."));
+                    Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.High, AlertEntry.AlertType.CommandError, $": command '{command}' could not be sent because the chaperone isn't connected.");
                     return;
                 }
 
@@ -549,7 +559,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 if (!OBCClient.IsDirectorConnected)
                 {
-                    AddAlert(new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.CommandError, $": command '{command}' could not be sent because the director isn't connected. Resend the command when connected!"));
+                    Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.High, AlertEntry.AlertType.CommandError, $": command '{command}' could not be sent because the director isn't connected. Resend the command when connected!");
                     return;
                 }
 
@@ -622,8 +632,7 @@ namespace ACE_Mission_Control.Core.Models
                     var responseLevel = commandResponse.Successful ? AlertEntry.AlertLevel.Info : AlertEntry.AlertLevel.Medium;
                     var alertType = commandResponse.Successful ? AlertEntry.AlertType.CommandResponse : AlertEntry.AlertType.CommandError;
                     string alertInfo = "'" + commandResponse.Command + "': " + commandResponse.Response;
-                    var alert = new AlertEntry(responseLevel, alertType, alertInfo);
-                    AddAlert(alert);
+                    Alerts.AddDroneAlert(this, responseLevel, alertType, alertInfo);
                     break;
                 default:
                     break;
@@ -648,9 +657,9 @@ namespace ACE_Mission_Control.Core.Models
                 Mission.Unlock();
 
             if (newStatus.TreatmentTime > Mission.TreatmentTimeElapsed && (!justReturned || firstPositionUpdate))
-                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ExecutionTimeUpdated, newStatus.TreatmentTime.ToString() + "s"));
+                Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ExecutionTimeUpdated, newStatus.TreatmentTime.ToString() + "s");
             else if (newStatus.TreatmentTime > 0 && justReturned)
-                AddAlert(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.FinishedExecution, newStatus.TreatmentTime.ToString() + "s"));
+                Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Info, AlertEntry.AlertType.FinishedExecution, newStatus.TreatmentTime.ToString() + "s");
 
             Mission.TreatmentTimeElapsed = newStatus.TreatmentTime;
 
@@ -842,13 +851,6 @@ namespace ACE_Mission_Control.Core.Models
             directorCommandQueue.Clear();
             ResetSyncProgressFlags();
             Synchronization = SyncState.SynchronizeFailed;
-        }
-
-        public void AddAlert(AlertEntry entry, bool blockDuplicates = false)
-        {
-            if (blockDuplicates && entry.Type == LastAlertType)
-                return;
-            AlertLog.Add(entry);
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

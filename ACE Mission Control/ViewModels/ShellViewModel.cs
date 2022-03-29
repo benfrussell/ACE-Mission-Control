@@ -24,9 +24,15 @@ using Windows.UI.Xaml.Media.Animation;
 using Windows.ApplicationModel.Resources.Core;
 using Windows.ApplicationModel.Core;
 using System.ComponentModel;
+using Microsoft.Toolkit.Uwp.UI.Controls;
+using Windows.ApplicationModel.DataTransfer;
+using GalaSoft.MvvmLight.Messaging;
 
 namespace ACE_Mission_Control.ViewModels
 {
+    public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
+    public class AlertDataGridSizeChangeMessage : MessageBase { }
+
     public class ShellViewModel : ViewModelBase
     {
         private List<object> _menuItems;
@@ -55,6 +61,11 @@ namespace ACE_Mission_Control.ViewModels
         {
             get { return _isUgCSRefreshEnabled; }
             set { Set(ref _isUgCSRefreshEnabled, value); }
+        }
+
+        public ObservableCollection<AlertEntry> AlertEntries
+        {
+            get { return Alerts.AlertLog; }
         }
 
         // Generated Code
@@ -103,6 +114,7 @@ namespace ACE_Mission_Control.ViewModels
 
             DroneController.Drones.CollectionChanged += Drones_CollectionChanged;
             SettingsViewModel.LanguageChangedEvent += SettingsViewModel_LanguageChangedEvent;
+            Alerts.AlertLog.CollectionChanged += AlertLog_CollectionChanged;
 
             IsUgCSRefreshEnabled = UGCSClient.IsConnected;
             UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
@@ -123,6 +135,16 @@ namespace ACE_Mission_Control.ViewModels
             {
                 d.PropertyChanged += Drone_PropertyChanged;
             }
+        }
+
+        private async void AlertLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                RaisePropertyChanged("AlertEntries");
+                var msg = new ScrollAlertDataGridMessage() { newEntry = Alerts.AlertLog[Alerts.AlertLog.Count - 1] };
+                Messenger.Default.Send(msg);
+            });
         }
 
         private async void UGCSClient_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -246,6 +268,22 @@ namespace ACE_Mission_Control.ViewModels
         {
             var result = NavigationService.GoBack();
             args.Handled = result;
+        }
+
+        public RelayCommand<DataGrid> AlertCopyCommand => new RelayCommand<DataGrid>((grid) => alertCopyCommand(grid));
+        private void alertCopyCommand(DataGrid grid)
+        {
+            string copiedText = "";
+            AlertToString alertConverter = new AlertToString();
+            foreach (object item in grid.SelectedItems)
+            {
+                var entry = (AlertEntry)item;
+                copiedText += entry.Timestamp.ToLongTimeString() + " " + alertConverter.Convert(entry, typeof(string), null, null) + "\n";
+            }
+            DataPackage dataPackage = new DataPackage();
+            dataPackage.RequestedOperation = DataPackageOperation.Copy;
+            dataPackage.SetText(copiedText);
+            Clipboard.SetContent(dataPackage);
         }
     }
 }

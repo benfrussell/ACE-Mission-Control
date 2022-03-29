@@ -28,6 +28,7 @@ namespace ACE_Mission_Control
 
         protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
+            Alerts.Initialize();
             // Do pre-load here.. I think
             MissionRetriever.StartUGCSPoller();
 

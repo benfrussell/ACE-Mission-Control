@@ -57,21 +57,6 @@ namespace ACE_Mission_Control.Views
                 ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, e.NavigationTransitionInfo);
             }
-
-            Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
-            Messenger.Default.Register<AlertDataGridSizeChangeMessage>(this, (msg) => AlertDataGridSizeChange());
-        }
-
-        private void AlertGridScrollToBottom(object newItem)
-        {
-            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
-        }
-
-        private void AlertDataGridSizeChange()
-        {
-            AlertDataGrid.UpdateLayout();
-            
-            //scroller.ChangeView
         }
 
         private ScrollViewer GetScrollViewer(DependencyObject element)

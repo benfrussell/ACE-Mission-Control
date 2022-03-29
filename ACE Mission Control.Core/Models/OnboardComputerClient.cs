@@ -78,9 +78,8 @@ namespace ACE_Mission_Control.Core.Models
         public IRequestClient DirectorRequestClient { get; private set; }
         public IRequestClient ChaperoneRequestClient { get; private set; }
 
-        public OnboardComputerClient(int associatedDroneID, string hostname)
+        public OnboardComputerClient(string hostname)
         {
-            AssociatedDroneID = associatedDroneID;
             Hostname = hostname;
             AutoTryingConnections = false;
 
@@ -149,13 +148,13 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (IsDirectorConnected && IsChaperoneConnected)
             {
-                DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
+                Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady);
                 return;
             }
 
             if (!IsConfigured)
             {
-                DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionNotConfigured), true);
+                Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.NoConnectionNotConfigured, blockDuplicates: true);
                 return;
             }
 
@@ -189,7 +188,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 if (!alertedChaperoneFailure)
                 {
-                    DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.ChaperoneConnectionFailed));
+                    Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.ChaperoneConnectionFailed);
                     alertedChaperoneFailure = true;
                 }
                 CheckIfAllAttemptsFinished();
@@ -205,12 +204,12 @@ namespace ACE_Mission_Control.Core.Models
                 {
                     if (!DirectorMonitorClient.Connected)
                     {
-                        DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionStarting));
+                        Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Info, AlertEntry.AlertType.ConnectionStarting);
                         DirectorMonitorClient.TryConnection(Hostname, "5535");
                     }
                     else
                     {
-                        DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
+                        Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady);
                         alertedDirectorFailure = false;
                     }
                 }
@@ -232,7 +231,7 @@ namespace ACE_Mission_Control.Core.Models
                 NotifyPropertyChanged("IsDirectorConnected");
                 if (IsDirectorConnected)
                 {
-                    DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady));
+                    Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Info, AlertEntry.AlertType.OBCReady);
                     alertedDirectorFailure = false;
                 }
                     
@@ -254,7 +253,7 @@ namespace ACE_Mission_Control.Core.Models
             // Don't do the director ready alert here in case it was just the chaperone that was making an attempt to connect
             if (!IsDirectorConnected && !alertedDirectorFailure)
             {
-                DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.DirectorConnectionFailed));
+                Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.DirectorConnectionFailed);
                 alertedDirectorFailure = true;
             }
                 
@@ -269,12 +268,12 @@ namespace ACE_Mission_Control.Core.Models
             {
                 Heartbeat heartbeat = (Heartbeat)e.Message;
                 if (heartbeat.Arrhythmia > 0.4)
-                    DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCSlow, heartbeat.Arrhythmia.ToString()));
+                    Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.Medium, AlertEntry.AlertType.OBCSlow, heartbeat.Arrhythmia.ToString());
             }
             else if (e.MessageType == MessageType.ACEError)
             {
                 ACEError error = (ACEError)e.Message;
-                DroneController.AlertDroneByID(AssociatedDroneID, new AlertEntry(AlertEntry.AlertLevel.High, AlertEntry.AlertType.OBCError, error.Timestamp + ": " + error.Error));
+                Alerts.AddDroneAlert(this, AlertEntry.AlertLevel.High, AlertEntry.AlertType.OBCError, error.Timestamp + ": " + error.Error);
             }
         }
 

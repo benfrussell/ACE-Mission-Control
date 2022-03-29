@@ -1,7 +1,7 @@
 ﻿using System;
 
 using ACE_Mission_Control.ViewModels;
-
+using GalaSoft.MvvmLight.Messaging;
 using Windows.UI.Xaml.Controls;
 
 namespace ACE_Mission_Control.Views
@@ -19,6 +19,21 @@ namespace ACE_Mission_Control.Views
             InitializeComponent();
             DataContext = ViewModel;
             ViewModel.Initialize(ContentFrame, navigationView, KeyboardAccelerators);
+
+            Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
+            Messenger.Default.Register<AlertDataGridSizeChangeMessage>(this, (msg) => AlertDataGridSizeChange());
+        }
+
+        private void AlertGridScrollToBottom(object newItem)
+        {
+            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
+        }
+
+        private void AlertDataGridSizeChange()
+        {
+            AlertDataGrid.UpdateLayout();
+
+            //scroller.ChangeView
         }
     }
 }

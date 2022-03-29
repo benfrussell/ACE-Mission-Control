@@ -24,7 +24,6 @@
 
     <ScrollViewer MaxHeight="525">
         <StackPanel Orientation="Vertical"
-                    Background="{ThemeResource SystemChromeBlackLowColor}"
                     x:Name="ContentArea"
                     Grid.Row="0">
 

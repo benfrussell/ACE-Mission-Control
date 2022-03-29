@@ -248,7 +248,7 @@ namespace ACE_Mission_Control.Core.Models
                 return new ConnectionResult() { Success = false, Message = "Incorrect UGCS username or password" };
             }
 
-            DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Connected with Client ID ({clientID})"));
+            Alerts.AddAlert(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Connected with Client ID ({clientID})");
 
             return new ConnectionResult() { Success = true, Message = "Connected to UGCS" };
         }
@@ -355,7 +355,7 @@ namespace ACE_Mission_Control.Core.Models
                     if (requestTask.Result != null)
                     {
                         allMissions.Add(requestTask.Result.Object.Mission);
-                        DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Retrieved mission {missionID}"));
+                        Alerts.AddAlert(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Retrieved mission {missionID}");
                         missionID++;
                     }
                     else
@@ -365,7 +365,7 @@ namespace ACE_Mission_Control.Core.Models
                 }
                 else
                 {
-                    DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Timed out retrieving mission {missionID}, continuing..."));
+                    Alerts.AddAlert(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Timed out retrieving mission {missionID}, continuing...");
                     missionID++;
                 }
 

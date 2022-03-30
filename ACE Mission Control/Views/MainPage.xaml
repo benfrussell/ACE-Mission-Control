@@ -4,74 +4,46 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:ACE_Mission_Control.Views"
-    xmlns:helper="using:ACE_Mission_Control.Helpers"
-    xmlns:ace="using:ACE_Mission_Control.Core.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
-    <Page.Resources>
-        <helper:EnumToResourceString x:Key="EnumToResourceString" />
-        <helper:EnumToRYGColour x:Key="EnumToRYGColour"/>
-        <helper:MissionActivatedToString x:Key="MissionActivatedToString" />
-        <helper:MissionActivatedToColour x:Key="MissionActivatedToColour" />
-        <helper:AlertToString x:Key="AlertToString" />
-        <helper:AlertLevelToColour x:Key="AlertLevelToColour" />
-        <helper:NegateBoolean x:Key="NegateBoolean" />
-    </Page.Resources>
-
-    <Grid 
-        x:Name="ContentArea"
-        Margin="0,0,0,12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition MinHeight="100"/>
-        </Grid.RowDefinitions>
-
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
-
-        <Grid.Resources>
+    <Pivot x:Name="Items"
+           Margin="0,-4,0,0"
+           SelectedItem="">
+        
+        <Pivot.Resources>
             <Storyboard x:Name="FadeInStoryboard">
                 <DoubleAnimation From="0.6" To="1" Duration="00:00:0.6"
-                                     Storyboard.TargetName="ContentArea"
+                                     Storyboard.TargetName="Items"
                                      Storyboard.TargetProperty="Opacity">
                     <DoubleAnimation.EasingFunction>
                         <QuadraticEase EasingMode="EaseOut"/>
                     </DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
             </Storyboard>
-        </Grid.Resources>
+        </Pivot.Resources>
+        
+        <Pivot.HeaderTemplate>
+            <DataTemplate>
+                <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{Binding}" />
+            </DataTemplate>
+        </Pivot.HeaderTemplate>
 
+        <PivotItem x:Uid="Main_MissionPivotItem" x:Name="MissionItem">
+            <Grid x:Name="MissionGrid">
+                <Frame x:Name="MissionFrame" Style="{ThemeResource ACEFrame}" />
+            </Grid>
+        </PivotItem>
 
-        <Pivot x:Name="Items"
-               Margin="0,-4,0,0"
-               Grid.Row="0"
-               Grid.ColumnSpan="3">
-            <Pivot.HeaderTemplate>
-                <DataTemplate>
-                    <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{Binding}" />
-                </DataTemplate>
-            </Pivot.HeaderTemplate>
+        <PivotItem x:Uid="Main_ConfigPivotItem" x:Name="ConfigItem">
+            <Grid>
+                <Frame x:Name="ConfigFrame" Style="{ThemeResource ACEFrame}"/>
+            </Grid>
+        </PivotItem>
 
-            <PivotItem x:Uid="Main_MissionPivotItem" x:Name="MissionItem">
-                <Grid x:Name="MissionGrid">
-                    <Frame x:Name="MissionFrame" Style="{ThemeResource ACEFrame}" />
-                </Grid>
-            </PivotItem>
-
-            <PivotItem x:Uid="Main_ConfigPivotItem" x:Name="ConfigItem">
-                <Grid>
-                    <Frame x:Name="ConfigFrame" Style="{ThemeResource ACEFrame}"/>
-                </Grid>
-            </PivotItem>
-
-            <PivotItem x:Uid="Main_ConsolePivotItem" x:Name="ConsoleItem">
-                <Grid>
-                    <Frame x:Name="ConsoleFrame" Style="{ThemeResource ACEFrame}"/>
-                </Grid>
-            </PivotItem>
-        </Pivot>
-    </Grid>
+        <PivotItem x:Uid="Main_ConsolePivotItem" x:Name="ConsoleItem">
+            <Grid>
+                <Frame x:Name="ConsoleFrame" Style="{ThemeResource ACEFrame}"/>
+            </Grid>
+        </PivotItem>
+    </Pivot>
 </local:DroneBasePage>

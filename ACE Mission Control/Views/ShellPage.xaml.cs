@@ -21,19 +21,11 @@ namespace ACE_Mission_Control.Views
             ViewModel.Initialize(ContentFrame, navigationView, KeyboardAccelerators);
 
             Messenger.Default.Register<ScrollAlertDataGridMessage>(this, (msg) => AlertGridScrollToBottom(msg.newEntry));
-            Messenger.Default.Register<AlertDataGridSizeChangeMessage>(this, (msg) => AlertDataGridSizeChange());
         }
 
         private void AlertGridScrollToBottom(object newItem)
         {
             AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
-        }
-
-        private void AlertDataGridSizeChange()
-        {
-            AlertDataGrid.UpdateLayout();
-
-            //scroller.ChangeView
         }
     }
 }

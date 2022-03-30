@@ -29,19 +29,13 @@ namespace ACE_Mission_Control.Views
         {
             base.OnNavigatedTo(e);
 
-            var storyboard = ContentArea.Resources["FadeInStoryboard"] as Storyboard;
+            var storyboard = Items.Resources["FadeInStoryboard"] as Storyboard;
             storyboard.Begin();
 
             // Suppress navigation transitions for any page that type other than the one that we just switched from
             if (Items.SelectedItem == null || (Items.SelectedItem as PivotItem).Name == "MissionItem")
             {
                 MissionFrame.Navigate(typeof(MissionPage), DroneID, e.NavigationTransitionInfo);
-                ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
-                ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, new SuppressNavigationTransitionInfo());
-            }
-            else if ((Items.SelectedItem as PivotItem).Name == "PlannerItem")
-            {
-                MissionFrame.Navigate(typeof(MissionPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, new SuppressNavigationTransitionInfo());
             }
@@ -57,31 +51,6 @@ namespace ACE_Mission_Control.Views
                 ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
                 ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, e.NavigationTransitionInfo);
             }
-        }
-
-        private ScrollViewer GetScrollViewer(DependencyObject element)
-        {
-            if (element is ScrollViewer)
-            {
-                return (ScrollViewer)element;
-            }
-
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
-            {
-                var child = VisualTreeHelper.GetChild(element, i);
-
-                var result = GetScrollViewer(child);
-                if (result == null)
-                {
-                    continue;
-                }
-                else
-                {
-                    return result;
-                }
-            }
-
-            return null;
         }
     }
 }

@@ -158,11 +158,17 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition/>
+                <RowDefinition />
             </Grid.RowDefinitions>
 
             <Frame x:Name="ContentFrame"
-                   Grid.Row="0"/>
+                   Grid.Row="0">
+                <i:Interaction.Behaviors>
+                    <ic:EventTriggerBehavior EventName="SizeChanged">
+                        <ic:InvokeCommandAction Command="{x:Bind ViewModel.ContentSizeChangedCommand}" />
+                    </ic:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
+            </Frame>
 
             <controls:DataGrid ItemsSource="{x:Bind ViewModel.AlertEntries, Mode=OneWay}"
                                IsReadOnly="True"

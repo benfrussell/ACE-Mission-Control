@@ -30,11 +30,35 @@ using GalaSoft.MvvmLight.Messaging;
 
 namespace ACE_Mission_Control.ViewModels
 {
+    public class DronePageParams
+    {
+        public int DroneID;
+        public string PivotItem;
+        public bool ConnectionOpen;
+        public bool MissionOpen;
+        public bool ControlsOpen;
+
+        public DronePageParams(int droneID)
+        {
+            DroneID = droneID;
+            PivotItem = "MissionItem";
+            ConnectionOpen = true;
+            MissionOpen = false;
+            ControlsOpen = false;
+        }
+    }
+
     public class ScrollAlertDataGridMessage : MessageBase { public AlertEntry newEntry { get; set; } }
-    public class AlertDataGridSizeChangeMessage : MessageBase { }
 
     public class ShellViewModel : ViewModelBase
     {
+        struct DronePageState
+        {
+            public bool connectionOpen;
+            public bool missionOpen;
+            public bool controlsOpen;
+        }
+
         private List<object> _menuItems;
         public List<object> MenuItems
         {
@@ -284,6 +308,16 @@ namespace ACE_Mission_Control.ViewModels
             dataPackage.RequestedOperation = DataPackageOperation.Copy;
             dataPackage.SetText(copiedText);
             Clipboard.SetContent(dataPackage);
+        }
+
+        public RelayCommand ContentSizeChangedCommand => new RelayCommand(() => contentSizeChanged());
+        private void contentSizeChanged()
+        {
+            if (Alerts.AlertLog.Count > 0)
+            {
+                var msg = new ScrollAlertDataGridMessage() { newEntry = Alerts.AlertLog[Alerts.AlertLog.Count - 1] };
+                Messenger.Default.Send(msg);
+            }
         }
     }
 }

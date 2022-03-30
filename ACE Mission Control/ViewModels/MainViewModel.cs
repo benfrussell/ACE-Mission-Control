@@ -36,6 +36,19 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private PivotItem selectedItem;
+        public PivotItem SelectedItem
+        {
+            get => selectedItem;
+            set
+            {
+                if (selectedItem == value)
+                    return;
+                selectedItem = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public MainViewModel()
         {
             _alerts = new ObservableCollection<AlertEntry>();

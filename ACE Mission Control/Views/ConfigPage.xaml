@@ -51,7 +51,7 @@
             <ComboBox Grid.Column="0"
                       RelativePanel.AlignLeftWith="UGCSConnectionLabel"
                       RelativePanel.Below="UGCSConnectionLabel"
-                      Margin="8,0,0,0"
+                      Margin="8,0,0,4"
                       ItemsSource="{x:Bind ace:MissionRetriever.AvailableMissions, Mode=OneWay}"
                       SelectedItem="{x:Bind ace:MissionRetriever.SelectedMission, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>

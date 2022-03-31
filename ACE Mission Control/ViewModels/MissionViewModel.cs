@@ -47,6 +47,46 @@ namespace ACE_Mission_Control.ViewModels
             Attempting,
             Connected
         }
+
+        private bool connectionExpanded;
+        public bool ConnectionExpanded
+        {
+            get { return connectionExpanded; }
+            set
+            {
+                if (connectionExpanded == value)
+                    return;
+                connectionExpanded = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool plannerExpanded;
+        public bool PlannerExpanded
+        {
+            get { return plannerExpanded; }
+            set
+            {
+                if (plannerExpanded == value)
+                    return;
+                plannerExpanded = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool controlsExpanded;
+        public bool ControlsExpanded
+        {
+            get { return controlsExpanded; }
+            set
+            {
+                if (controlsExpanded == value)
+                    return;
+                controlsExpanded = value;
+                RaisePropertyChanged();
+            }
+        }
+
         // --- Connection properties
 
         private ConnectStatus _chaperoneStatus;

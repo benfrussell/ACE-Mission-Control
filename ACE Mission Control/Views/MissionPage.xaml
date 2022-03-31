@@ -21,12 +21,15 @@
         <helper:InstructionNumberToColour x:Key="InstructionNumberToColour"/>
     </Page.Resources>
 
-    <ScrollViewer MaxHeight="525">
+    <ScrollViewer MaxHeight="525"
+                  x:Name="MissionScroller"
+                  SizeChanged="MissionScroller_SizeChanged">
         <StackPanel Orientation="Vertical"
                     x:Name="ContentArea"
                     Grid.Row="0">
 
-            <muxc:Expander Style="{ThemeResource ACEExpander}" IsExpanded="True">
+            <muxc:Expander Style="{ThemeResource ACEExpander}"
+                           IsExpanded="{x:Bind ViewModel.ConnectionExpanded, Mode=TwoWay}">
                 <muxc:Expander.Header>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Uid="Config_OBCConnectionLabel"
@@ -219,7 +222,8 @@
                 </muxc:Expander.Content>
             </muxc:Expander>
 
-            <muxc:Expander Style="{ThemeResource ACEExpander}">
+            <muxc:Expander Style="{ThemeResource ACEExpander}"
+                           IsExpanded="{x:Bind ViewModel.PlannerExpanded, Mode=TwoWay}">
                 <muxc:Expander.Header>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Uid="Planner_Title"
@@ -732,7 +736,8 @@
                 </muxc:Expander.Content>
             </muxc:Expander>
 
-            <muxc:Expander Style="{ThemeResource ACEExpander}">
+            <muxc:Expander Style="{ThemeResource ACEExpander}"
+                           IsExpanded="{x:Bind ViewModel.ControlsExpanded, Mode=TwoWay}">
                 <muxc:Expander.Header>
                     <TextBlock x:Uid="Mission_OBCHeader"
                                 Style="{ThemeResource ExpanderTitleStyle}"/>

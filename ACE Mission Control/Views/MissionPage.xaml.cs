@@ -289,5 +289,10 @@ namespace ACE_Mission_Control.Views
                 layer.MapElements.Add(stopIcon);
             }
         }
+
+        private void MissionScroller_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            MissionScroller.ChangeView(null, MissionScroller.ScrollableHeight, null);
+        }
     }
 }

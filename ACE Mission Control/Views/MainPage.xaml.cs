@@ -32,24 +32,33 @@ namespace ACE_Mission_Control.Views
             var storyboard = Items.Resources["FadeInStoryboard"] as Storyboard;
             storyboard.Begin();
 
+            var pageParams = (DronePageParams)e.Parameter;
+
+            Items.SelectedIndex = pageParams.PivotItem;
+
+            var missionVM = ViewModelLocator.Current.MissionViewModel;
+            missionVM.ConnectionExpanded = pageParams.ConnectionOpen;
+            missionVM.PlannerExpanded = pageParams.PlannerOpen;
+            missionVM.ControlsExpanded = pageParams.ControlsOpen;
+
             // Suppress navigation transitions for any page that type other than the one that we just switched from
             if (Items.SelectedItem == null || (Items.SelectedItem as PivotItem).Name == "MissionItem")
             {
-                MissionFrame.Navigate(typeof(MissionPage), DroneID, e.NavigationTransitionInfo);
-                ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
-                ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, new SuppressNavigationTransitionInfo());
+                MissionFrame.Navigate(typeof(MissionPage), pageParams, e.NavigationTransitionInfo);
+                ConfigFrame.Navigate(typeof(ConfigPage), pageParams, new SuppressNavigationTransitionInfo());
+                ConsoleFrame.Navigate(typeof(ConsolePage), pageParams, new SuppressNavigationTransitionInfo());
             }
             else if ((Items.SelectedItem as PivotItem).Name == "ConfigItem")
             {
-                MissionFrame.Navigate(typeof(MissionPage), DroneID, new SuppressNavigationTransitionInfo());
-                ConfigFrame.Navigate(typeof(ConfigPage), DroneID, e.NavigationTransitionInfo);
-                ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, new SuppressNavigationTransitionInfo());
+                MissionFrame.Navigate(typeof(MissionPage), pageParams, new SuppressNavigationTransitionInfo());
+                ConfigFrame.Navigate(typeof(ConfigPage), pageParams, e.NavigationTransitionInfo);
+                ConsoleFrame.Navigate(typeof(ConsolePage), pageParams, new SuppressNavigationTransitionInfo());
             }
             else if ((Items.SelectedItem as PivotItem).Name == "ConsoleItem")
             {
-                MissionFrame.Navigate(typeof(MissionPage), DroneID, new SuppressNavigationTransitionInfo());
-                ConfigFrame.Navigate(typeof(ConfigPage), DroneID, new SuppressNavigationTransitionInfo());
-                ConsoleFrame.Navigate(typeof(ConsolePage), DroneID, e.NavigationTransitionInfo);
+                MissionFrame.Navigate(typeof(MissionPage), pageParams, new SuppressNavigationTransitionInfo());
+                ConfigFrame.Navigate(typeof(ConfigPage), pageParams, new SuppressNavigationTransitionInfo());
+                ConsoleFrame.Navigate(typeof(ConsolePage), pageParams, e.NavigationTransitionInfo);
             }
         }
     }

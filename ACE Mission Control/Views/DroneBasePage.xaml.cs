@@ -46,11 +46,8 @@ namespace ACE_Mission_Control.Views
         {
             base.OnNavigatedTo(e);
 
-            if (e.Parameter.GetType() == typeof(int))
-                DroneID = (int)e.Parameter;
-            else
-                DroneID = 0;
-
+            DronePageParams pageParams = (DronePageParams)e.Parameter;
+            DroneID = pageParams.DroneID;
             BaseViewModel.SetDroneID(DroneID);
 
             isInit = true;

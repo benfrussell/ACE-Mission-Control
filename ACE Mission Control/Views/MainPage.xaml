@@ -8,11 +8,11 @@
     mc:Ignorable="d">
     <Pivot x:Name="Items"
            Margin="0,-4,0,0"
-           SelectedItem="">
+           SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=TwoWay}">
         
         <Pivot.Resources>
             <Storyboard x:Name="FadeInStoryboard">
-                <DoubleAnimation From="0.6" To="1" Duration="00:00:0.6"
+                <DoubleAnimation From="0" To="1" Duration="00:00:0.4"
                                      Storyboard.TargetName="Items"
                                      Storyboard.TargetProperty="Opacity">
                     <DoubleAnimation.EasingFunction>

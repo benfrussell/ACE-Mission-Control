@@ -36,15 +36,15 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
-        private PivotItem selectedItem;
-        public PivotItem SelectedItem
+        private int selectedIndex;
+        public int SelectedIndex
         {
-            get => selectedItem;
+            get => selectedIndex;
             set
             {
-                if (selectedItem == value)
+                if (selectedIndex == value)
                     return;
-                selectedItem = value;
+                selectedIndex = value;
                 RaisePropertyChanged();
             }
         }

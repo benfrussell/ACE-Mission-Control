@@ -33,17 +33,17 @@ namespace ACE_Mission_Control.ViewModels
     public class DronePageParams
     {
         public int DroneID;
-        public string PivotItem;
+        public int PivotItem;
         public bool ConnectionOpen;
-        public bool MissionOpen;
+        public bool PlannerOpen;
         public bool ControlsOpen;
 
         public DronePageParams(int droneID)
         {
             DroneID = droneID;
-            PivotItem = "MissionItem";
+            PivotItem = 0;
             ConnectionOpen = true;
-            MissionOpen = false;
+            PlannerOpen = false;
             ControlsOpen = false;
         }
     }
@@ -52,13 +52,6 @@ namespace ACE_Mission_Control.ViewModels
 
     public class ShellViewModel : ViewModelBase
     {
-        struct DronePageState
-        {
-            public bool connectionOpen;
-            public bool missionOpen;
-            public bool controlsOpen;
-        }
-
         private List<object> _menuItems;
         public List<object> MenuItems
         {
@@ -103,6 +96,7 @@ namespace ACE_Mission_Control.ViewModels
         private object _selected;
         private ICommand _loadedCommand;
         private ICommand _itemInvokedCommand;
+        private Dictionary<int, DronePageParams> dronePageParams;
 
         public bool IsBackEnabled
         {
@@ -145,6 +139,7 @@ namespace ACE_Mission_Control.ViewModels
             UGCSConnectText = UGCSClient.ConnectionMessage;
 
             MenuItems = GetMenuItems().ToList();
+            dronePageParams = new Dictionary<int, DronePageParams>();
         }
 
         private void SettingsViewModel_LanguageChangedEvent(object sender, EventArgs e)
@@ -218,20 +213,47 @@ namespace ACE_Mission_Control.ViewModels
                 return;
             }
 
+            if (NavigationService.Frame.CurrentSourcePageType == typeof(MainPage))
+                SaveDronePageParams();
+
             object itemTag = (args.InvokedItemContainer as WinUI.NavigationViewItem).Tag;
             if (itemTag.GetType() == typeof(int))
             {
+                var pageParams = GetDronePageParams((int)itemTag);
+                    
                 // Suppress the transition if navigating from the same type of page
                 if (NavigationService.Frame.CurrentSourcePageType == typeof(MainPage))
-                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (int)itemTag, new SuppressNavigationTransitionInfo());
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", pageParams, new SuppressNavigationTransitionInfo());
                 else
-                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", (int)itemTag);
+                    NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", pageParams);
             }
             else
             {
                 NavigationService.Navigate(itemTag as string);
             }
         }
+
+        private DronePageParams GetDronePageParams(int droneID)
+        {
+            if (!dronePageParams.ContainsKey(droneID))
+                dronePageParams[droneID] = new DronePageParams(droneID);
+            return dronePageParams[droneID];
+        }
+
+        private void SaveDronePageParams()
+        {
+            var mainVM = ViewModelLocator.Current.MainViewModel;
+            var id = mainVM.AttachedDrone.ID;
+            if (!dronePageParams.ContainsKey(id))
+                return;
+
+            dronePageParams[id].PivotItem = mainVM.SelectedIndex;
+            var missionVM = ViewModelLocator.Current.MissionViewModel;
+            dronePageParams[id].ConnectionOpen = missionVM.ConnectionExpanded;
+            dronePageParams[id].PlannerOpen = missionVM.PlannerExpanded;
+            dronePageParams[id].ControlsOpen = missionVM.ControlsExpanded;
+        }
+
         public RelayCommand RefreshUGCSMissionsCommand => new RelayCommand(() => refreshUGCSMissionsCommand());
         private void refreshUGCSMissionsCommand()
         {

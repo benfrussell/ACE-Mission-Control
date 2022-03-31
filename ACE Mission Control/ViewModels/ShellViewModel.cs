@@ -85,6 +85,19 @@ namespace ACE_Mission_Control.ViewModels
             get { return Alerts.AlertLog; }
         }
 
+        private GridLength alertRowHeight;
+        public GridLength AlertRowHeight
+        {
+            get { return alertRowHeight; }
+            set
+            {
+                if (alertRowHeight == value)
+                    return;
+                alertRowHeight = value;
+                RaisePropertyChanged();
+            }
+        }
+
         // Generated Code
 
         private readonly KeyboardAccelerator _altLeftKeyboardAccelerator = BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu);
@@ -140,6 +153,7 @@ namespace ACE_Mission_Control.ViewModels
 
             MenuItems = GetMenuItems().ToList();
             dronePageParams = new Dictionary<int, DronePageParams>();
+            AlertRowHeight = new GridLength(0);
         }
 
         private void SettingsViewModel_LanguageChangedEvent(object sender, EventArgs e)
@@ -220,7 +234,8 @@ namespace ACE_Mission_Control.ViewModels
             if (itemTag.GetType() == typeof(int))
             {
                 var pageParams = GetDronePageParams((int)itemTag);
-                    
+                AlertRowHeight = new GridLength(1, GridUnitType.Star);
+
                 // Suppress the transition if navigating from the same type of page
                 if (NavigationService.Frame.CurrentSourcePageType == typeof(MainPage))
                     NavigationService.Navigate("ACE_Mission_Control.ViewModels.MainViewModel", pageParams, new SuppressNavigationTransitionInfo());
@@ -229,6 +244,7 @@ namespace ACE_Mission_Control.ViewModels
             }
             else
             {
+                AlertRowHeight = new GridLength(0);
                 NavigationService.Navigate(itemTag as string);
             }
         }

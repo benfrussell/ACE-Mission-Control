@@ -25,7 +25,12 @@ namespace ACE_Mission_Control.Views
 
         private void AlertGridScrollToBottom(object newItem)
         {
-            AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
+            try
+            {
+                AlertDataGrid.ScrollIntoView(newItem, AlertDataGrid.Columns[0]);
+            }
+            catch (InvalidOperationException) { }
         }
     }
 }
+

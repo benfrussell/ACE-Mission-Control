@@ -14,7 +14,8 @@
         <TextBlock
             x:Uid="Welcome_FirstText"
             HorizontalAlignment="Center"
-            Style="{ThemeResource HeaderTextBlockStyle}"/>
+            Style="{ThemeResource HeaderTextBlockStyle}"
+            Margin="0,172,0,0"/>
         <TextBlock
             x:Uid="Welcome_SecondText"
             HorizontalAlignment="Center"

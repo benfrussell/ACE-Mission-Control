@@ -11,8 +11,8 @@
 
   <Identity
     Name="5F8736BE-4C03-49F7-974D-7CE6A963E3E2"
-    Publisher="CN=Benjamin Russell"
-    Version="1.0.9.0" />
+    Publisher="CN=Benjamin Russell, C=CA"
+    Version="1.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="5F8736BE-4C03-49F7-974D-7CE6A963E3E2" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -40,7 +40,7 @@
         Square44x44Logo="Assets\Square44x44Logo.png"
         Description="ms-resource:AppDescription"
         BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
 

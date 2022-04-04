@@ -442,4 +442,106 @@
   <data name="Alert_UGCSStatus" xml:space="preserve">
     <value>Statut UgCS:</value>
   </data>
+  <data name="Config_OBCConnectionLabel.Text" xml:space="preserve">
+    <value>Ordinateur à bord et connexion au drone</value>
+  </data>
+  <data name="Mission_OBCHeader.Text" xml:space="preserve">
+    <value>Commandes de l'ordinateur à bord</value>
+  </data>
+  <data name="Mission_ConnectOBCSwitch.OffContent" xml:space="preserve">
+    <value>Connexion à l'ordinateur à bord ACE</value>
+  </data>
+  <data name="Mission_ConnectOBCSwitch.OnContent" xml:space="preserve">
+    <value>Connexion à l'ordinateur à bord ACE</value>
+  </data>
+  <data name="Stage_Returning" xml:space="preserve">
+    <value>Retour à la maison (RTH)</value>
+  </data>
+  <data name="ConnectionSummary_ConnectionDisabled" xml:space="preserve">
+    <value>Connexion désactivée</value>
+  </data>
+  <data name="ConnectionSummary_TryingACEConnection" xml:space="preserve">
+    <value>Tentative de connexion à ACE</value>
+  </data>
+  <data name="ConnectionSummary_ConnectedACELimited" xml:space="preserve">
+    <value>Connecté à ACE seulement*</value>
+  </data>
+  <data name="ConnectionSummary_ConnectedACE" xml:space="preserve">
+    <value>Connecté à ACE seulement</value>
+  </data>
+  <data name="ConnectionSummary_TryingDroneConnection" xml:space="preserve">
+    <value>Tentative de connexion au drone</value>
+  </data>
+  <data name="ConnectionSummary_ConnectedACEDroneLimited" xml:space="preserve">
+    <value>Connecté à ACE et au drone*</value>
+  </data>
+  <data name="ConnectionSummary_ConnectedACEDrone" xml:space="preserve">
+    <value>Connecté à ACE et au drone</value>
+  </data>
+  <data name="ConnectStatus_NotConnected" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="ConnectStatus_Attempting" xml:space="preserve">
+    <value>Tentative de connexion</value>
+  </data>
+  <data name="ConnectStatus_Connected" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="State_Offline" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="State_Attempting" xml:space="preserve">
+    <value>Tentative de connexion</value>
+  </data>
+  <data name="State_Online" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="Mission_PlannerMissionSet" xml:space="preserve">
+    <value>Mission établie</value>
+  </data>
+  <data name="Mission_PlannerMissionNotSet" xml:space="preserve">
+    <value>Aucune mission établie</value>
+  </data>
+  <data name="Stage_NotReady" xml:space="preserve">
+    <value>Pas prêt</value>
+  </data>
+  <data name="UploadStatus_Uploading" xml:space="preserve">
+    <value>Téléversement</value>
+  </data>
+  <data name="Shell_NotConnectedLabel.Text" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="Planner_LockButton" xml:space="preserve">
+    <value>Verrouillé</value>
+  </data>
+  <data name="Planner_UnlockButton" xml:space="preserve">
+    <value>Déverrouillé</value>
+  </data>
+  <data name="Alert_FinishedExecution" xml:space="preserve">
+    <value>Le drone a terminé son exécution. Il a traité pour</value>
+  </data>
+  <data name="Mission_DisconnectDrone" xml:space="preserve">
+    <value>Déconnexion du drone</value>
+  </data>
+  <data name="Alert_ExecutionTimeUpdated" xml:space="preserve">
+    <value>Le drone a traité pour</value>
+  </data>
+  <data name="Voice_Ready" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="Voice_NotReady" xml:space="preserve">
+    <value>Pas prêt</value>
+  </data>
+  <data name="Voice_Connected" xml:space="preserve">
+    <value>ACE Connecté</value>
+  </data>
+  <data name="Voice_Disconnected" xml:space="preserve">
+    <value>ACE Déconnecté</value>
+  </data>
+  <data name="Voice_Warning" xml:space="preserve">
+    <value>ACE Avertissement</value>
+  </data>
+  <data name="Settings_VoiceTitle.Text" xml:space="preserve">
+    <value>Utiliser Alertes Vocales</value>
+  </data>
 </root>

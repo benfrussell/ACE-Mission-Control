@@ -209,7 +209,8 @@ namespace ACE_Mission_Control.Views
                 if (instruction == null)
                     continue;
 
-                var layerIndex = instruction.ID * 2;
+                // Use the polygon's sequential ID because the instruction IDs can be very high and the map uses a stack of layers
+                var layerIndex = instruction.TreatmentPolygon.SequentialID * 2;
 
                 // Add the layer or clear elements at the existing layer
                 if (mapControl.Layers.ElementAtOrDefault(layerIndex) == null)
@@ -249,7 +250,8 @@ namespace ACE_Mission_Control.Views
         {
             foreach (ITreatmentInstruction instruction in instructions)
             {
-                var layerIndex = (instruction.ID * 2) + 1;
+                // Use the polygon's sequential ID because the instruction IDs can be very high and the map uses a stack of layers
+                var layerIndex = (instruction.TreatmentPolygon.SequentialID * 2) + 1;
 
                 // Add the layer or clear elements at the existing layer
                 if (mapControl.Layers.ElementAtOrDefault(layerIndex) == null)

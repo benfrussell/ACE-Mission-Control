@@ -120,6 +120,10 @@
                             Height="38"
                             CornerRadius="4"
                             BorderThickness="0">
+                        <ToolTipService.ToolTip>
+                            <ToolTip x:Uid="Shell_RefreshUGCSMissionsTip"/>
+                        </ToolTipService.ToolTip>
+
                         <Button.Resources>
                             <ResourceDictionary>
                                 <ResourceDictionary.ThemeDictionaries>

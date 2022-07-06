@@ -171,27 +171,37 @@ namespace ACE_Mission_Control.Core.Models
 
         private static void UGCSClient_ReceivedMissionsEvent(object sender, ReceivedMissionsEventArgs e)
         {
-            var allRoutes = from mission in e.Missions from route in mission.Routes select route;
-            var mostRecentRoute = allRoutes.Aggregate((r1, r2) => r1.LastModificationTime > r2.LastModificationTime ? r1 : r2);
-            var mostRecentMission = e.Missions.FirstOrDefault(m => m.Id == mostRecentRoute.Mission.Id);
-
-            if (SelectedMission == null || SelectedMission.Id != mostRecentMission.Id)
+            if (e.Missions.Count == 0)
             {
-                SelectedMission = e.Missions.FirstOrDefault(m => m.Id == mostRecentRoute.Mission.Id);
                 DroneController.AlertAllDrones(new AlertEntry(
                     AlertEntry.AlertLevel.Info,
                     AlertEntry.AlertType.UGCSStatus,
-                    $"Selecting mission '{SelectedMission.Name}' with ID {SelectedMission.Id}"));
-
-                if (!UGCSClient.RequestingRoutes)
-                    UGCSClient.RequestRoutes(SelectedMission.Id);
+                    $"No missions were found."));
             }
             else
             {
-                DroneController.AlertAllDrones(new AlertEntry(
-                    AlertEntry.AlertLevel.Info,
-                    AlertEntry.AlertType.UGCSStatus,
-                    $"Mission '{SelectedMission.Name}' with ID {SelectedMission.Id} is still the most recent"));
+                var allRoutes = from mission in e.Missions from route in mission.Routes select route;
+                var mostRecentRoute = allRoutes.Aggregate((r1, r2) => r1.LastModificationTime > r2.LastModificationTime ? r1 : r2);
+                var mostRecentMission = e.Missions.FirstOrDefault(m => m.Id == mostRecentRoute.Mission.Id);
+
+                if (SelectedMission == null || SelectedMission.Id != mostRecentMission.Id)
+                {
+                    SelectedMission = e.Missions.FirstOrDefault(m => m.Id == mostRecentRoute.Mission.Id);
+                    DroneController.AlertAllDrones(new AlertEntry(
+                        AlertEntry.AlertLevel.Info,
+                        AlertEntry.AlertType.UGCSStatus,
+                        $"Selecting mission '{SelectedMission.Name}' with ID {SelectedMission.Id}"));
+
+                    if (!UGCSClient.RequestingRoutes)
+                        UGCSClient.RequestRoutes(SelectedMission.Id);
+                }
+                else
+                {
+                    DroneController.AlertAllDrones(new AlertEntry(
+                        AlertEntry.AlertLevel.Info,
+                        AlertEntry.AlertType.UGCSStatus,
+                        $"Mission '{SelectedMission.Name}' with ID {SelectedMission.Id} is still the most recent"));
+                }
             }
             
             AvailableMissions = e.Missions;
@@ -204,8 +214,8 @@ namespace ACE_Mission_Control.Core.Models
 
             foreach (Route r in e.Routes)
             {
-                if (AreaScanPolygon.IsUGCSRouteAreaScanPolygon(r))
-                    newAreaRoutes.Add(AreaScanPolygon.CreateFromUGCSRoute(r));
+                if (AreaScanPolygon.DoesUGCSRouteHaveAreaScans(r))
+                    newAreaRoutes.AddRange(AreaScanPolygon.CreateFromUGCSRoute(r));
                 else if (WaypointRoute.IsUGCSRouteWaypointRoute(r))
                     newWaypointRoutes.Add(WaypointRoute.CreateFromUGCSRoute(r));
             }
@@ -309,18 +319,6 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             return changes;
-        }
-
-        private static IEnumerable<AreaScanPolygon> RoutesToAreaScans(IEnumerable<Route> routes)
-        {
-            foreach (Route r in routes)
-                yield return AreaScanPolygon.CreateFromUGCSRoute(r);
-        }
-
-        private static IEnumerable<WaypointRoute> RoutesToWaypointRoutes(IEnumerable<Route> routes)
-        {
-            foreach (Route r in routes)
-                yield return WaypointRoute.CreateFromUGCSRoute(r);
         }
 
         private static void NotifyStaticPropertyChanged([CallerMemberName] string propertyName = "")

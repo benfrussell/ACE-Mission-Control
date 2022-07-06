@@ -276,17 +276,14 @@ namespace ACE_Mission_Control.Core.Models
             System.Diagnostics.Debug.WriteLine($"Logs received: {logResponse.VehicleLogEntries.Count}");
         }
 
-        public static async void RequestMissions()
+        public static async void RequestMissionsByID(int maxID)
         {
-            if (RequestingMissions)
-                return;
-            RequestingMissions = true;
-
+            DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Looking for up to {maxID} missions"));
             // Request missions one by one because it's more reliable than requesting all missions at once apparently
             var missionID = 1;
             var allMissions = new List<UGCS.Sdk.Protocol.Encoding.Mission>();
 
-            while (true)
+            while (missionID <= maxID)
             {
                 GetObjectRequest request = new GetObjectRequest
                 {
@@ -304,20 +301,13 @@ namespace ACE_Mission_Control.Core.Models
                     {
                         allMissions.Add(requestTask.Result.Object.Mission);
                         DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Retrieved mission {missionID}"));
-                        missionID++;
-                    }
-                    else
-                    {
-                        break;
                     }
                 }
                 else
                 {
                     DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"Timed out retrieving mission {missionID}, continuing..."));
-                    missionID++;
                 }
-
-                
+                missionID++;
             }
 
             ReceivedMissionsEvent?.Invoke(
@@ -326,6 +316,23 @@ namespace ACE_Mission_Control.Core.Models
             RequestingMissions = false;
         }
 
+        public static void RequestMissions()
+        {
+            if (RequestingMissions)
+                return;
+            RequestingMissions = true;
+
+            int highestID = 1;
+
+            RetrieveAndProcessObjectList(
+                "Mission",
+                (missionObjs) =>
+                {
+                    highestID = (from missionObj in missionObjs select missionObj.Mission.Id).OrderByDescending(mid => mid).FirstOrDefault();
+                    DroneController.AlertAllDrones(new AlertEntry(AlertEntry.AlertLevel.Info, AlertEntry.AlertType.UGCSStatus, $"The highest mission ID is {highestID}"));
+                    RequestMissionsByID(highestID);
+                });
+        }
 
         public static void RequestRoutes(int missionID)
         {

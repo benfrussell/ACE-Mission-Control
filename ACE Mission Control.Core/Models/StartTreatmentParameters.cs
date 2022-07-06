@@ -215,6 +215,9 @@ namespace ACE_Mission_Control.Core.Models
             if (waypointID == BoundWaypointID)
                 return;
 
+            if (nextInstruction == null)
+                return;
+
             BoundWaypointID = waypointID;
             BoundRouteID = nextInstruction.TreatmentRoute.Id;
             if (SelectedMode == Mode.SelectedWaypoint)

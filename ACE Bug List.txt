@@ -11,6 +11,10 @@ A flythrough was interpreted as stop and turn in simulation
 
 When the route ends in the middle of the treatment polygon the exit point isn't placed correctly.
 
+Set duration did not synchronize for Gabe's third flight with the H20 on 2022-04-23
+
+Last position with the H20 does not seem to be working in Gabe's procedure
+
 --- MEDIUM-HIGH
 
 If angle between the route and the exit edge on the area scan is very sharp it seems it can miss the exit point

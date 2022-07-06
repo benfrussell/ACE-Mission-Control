@@ -37,20 +37,35 @@ namespace ACE_Mission_Control.Core.Models
             Parameters = parameters;
         }
 
-        public static AreaScanPolygon CreateFromUGCSRoute(Route route)
+        public static List<AreaScanPolygon> CreateFromUGCSRoute(Route route)
         {
             try
             {
-                // UGCS AreaScan: An area scan is represented by one segment with a series of figure points
-                var coordinates = route.Segments[0].Figure.Points.ConvertAll(
+                var areaScans = new List<AreaScanPolygon>();
+
+                foreach (SegmentDefinition segment in route.Segments)
+                {
+                    if (!IsSegmentAreaScanPolygon(segment))
+                        continue;
+
+                    // UGCS AreaScan: An area scan is represented by one segment with a series of figure points
+                    var coordinates = segment.Figure.Points.ConvertAll(
                     point => new Coordinate(point.Longitude, point.Latitude));
-                LinearRing ring = new LinearRing(coordinates.ToArray());
-                Dictionary<string, string> parameters = new Dictionary<string, string>();
+                    LinearRing ring = new LinearRing(coordinates.ToArray());
+                    Dictionary<string, string> parameters = new Dictionary<string, string>();
 
-                foreach (ParameterValue param in route.Segments[0].ParameterValues)
-                    parameters.Add(param.Name, param.Value);
+                    foreach (ParameterValue param in segment.ParameterValues)
+                        parameters.Add(param.Name, param.Value);
 
-                return new AreaScanPolygon(route.Id, route.Name, route.LastModificationTime, ring, parameters);
+                    // Segments do not have IDs, only routes do, but we need to assign unique IDs to area scans even if they come from multiple segments in a single route
+                    // Combine the route ID and the segment index
+                    
+                    int id = int.Parse(route.Id.ToString() + route.Segments.IndexOf(segment).ToString());
+
+                    areaScans.Add(new AreaScanPolygon(id, route.Name, route.LastModificationTime, ring, parameters));
+                }
+
+                return areaScans;
             } 
             catch (Exception e)
             {
@@ -58,20 +73,29 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
-        public static bool IsUGCSRouteAreaScanPolygon(Route route)
+        public static bool IsSegmentAreaScanPolygon(SegmentDefinition segment)
+        {
+            if (segment.Figure.Type != FigureType.FT_POLYGON ||
+                segment.Figure.Points.Count < 3 ||
+                segment.Figure.Points.First().Longitude != segment.Figure.Points.Last().Longitude ||
+                segment.Figure.Points.First().Latitude != segment.Figure.Points.Last().Latitude)
+                return false;
+
+            return true;
+        }
+
+        public static bool DoesUGCSRouteHaveAreaScans(Route route)
         {
             if (route.Segments == null || route.Segments.Count == 0)
                 return false;
 
-            var firstSegment = route.Segments[0];
+            foreach (SegmentDefinition segment in route.Segments)
+            {
+                if (IsSegmentAreaScanPolygon(segment))
+                    return true;
+            }
 
-            if (firstSegment.Figure.Type != FigureType.FT_POLYGON || 
-                firstSegment.Figure.Points.Count < 3 ||
-                firstSegment.Figure.Points.First().Longitude != firstSegment.Figure.Points.Last().Longitude ||
-                firstSegment.Figure.Points.First().Latitude != firstSegment.Figure.Points.Last().Latitude)
-                return false;
-
-            return true;
+            return false;
         }
 
         public bool IntersectsCoordinate(Coordinate coord)

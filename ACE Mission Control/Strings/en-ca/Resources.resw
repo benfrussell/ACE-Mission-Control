@@ -544,4 +544,7 @@
   <data name="Settings_VoiceTitle.Text" xml:space="preserve">
     <value>Use Voice Alerts</value>
   </data>
+  <data name="Shell_RefreshUGCSMissionsTip.Content" xml:space="preserve">
+    <value>Click to retreive missions again from UgCS. If you are not seeing the mission, Shift+Click to look for all missions in the first 1000 IDs.</value>
+  </data>
 </root>

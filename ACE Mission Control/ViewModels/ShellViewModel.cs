@@ -189,7 +189,10 @@ namespace ACE_Mission_Control.ViewModels
         public RelayCommand RefreshUGCSMissionsCommand => new RelayCommand(() => refreshUGCSMissionsCommand());
         private void refreshUGCSMissionsCommand()
         {
-            UGCSClient.RequestMissions();
+            if (Window.Current.CoreWindow.GetKeyState(VirtualKey.LeftShift).HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down))
+                UGCSClient.RequestMissionsByID(1000);
+            else
+                UGCSClient.RequestMissions();
         }
 
         private void OnBackRequested(WinUI.NavigationView sender, WinUI.NavigationViewBackRequestedEventArgs args)

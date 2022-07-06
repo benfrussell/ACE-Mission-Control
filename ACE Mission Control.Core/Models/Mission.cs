@@ -226,7 +226,10 @@ namespace ACE_Mission_Control.Core.Models
 
         private void StartParameters_StartParametersChanged(object sender, StartParametersChangedArgs e)
         {
-            InstructionSyncedPropertyUpdated?.Invoke(this, new InstructionSyncedPropertyUpdatedArgs(GetNextInstruction().ID, e.ParameterNames));
+            var nextInstruction = GetNextInstruction();
+            if (nextInstruction == null)
+                return;
+            InstructionSyncedPropertyUpdated?.Invoke(this, new InstructionSyncedPropertyUpdatedArgs(nextInstruction.ID, e.ParameterNames));
         }
 
         public void Returned(double lastLongitudeDeg, double lastLatitudeDeg)

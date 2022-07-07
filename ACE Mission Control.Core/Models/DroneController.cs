@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using System.Linq;
 using UGCS.Sdk.Protocol.Encoding;
+using System.Globalization;
 
 namespace ACE_Mission_Control.Core.Models
 {

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Pbdrone;
 using NetTopologySuite.Geometries;
+using System.Globalization;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -187,19 +188,20 @@ namespace ACE_Mission_Control.Core.Models
         // A single InstructionUpdated event will already be sent out after updating instructions
         private bool updatingInstructions;
 
-        // StartParameters is kept private because updating it incorrectly can cause unexpected behaviour
-        private StartTreatmentParameters startParameters;
+        // startParameters is kept private because updating it incorrectly can cause unexpected behaviour
+        private IStartTreatmentParameters startParameters;
+
 
         public ObservableCollection<ITreatmentInstruction> TreatmentInstructions { get; set; }
 
-        public Mission()
+        public Mission(IStartTreatmentParameters startParams = null)
         {
             TreatmentInstructions = new ObservableCollection<ITreatmentInstruction>();
 
             MissionRetriever.AreaScanPolygonsUpdated += MissionRetriever_AreaScanPolygonsUpdated;
-            startParameters = new StartTreatmentParameters();
-            startParameters.SelectedModeChangedEvent += StartParameters_SelectedModeChangedEvent;
-            startParameters.StartParametersChanged += StartParameters_StartParametersChanged;
+            startParameters = startParams ?? new StartTreatmentParameters();
+            startParameters.SelectedModeChangedEvent += startParameters_SelectedModeChangedEvent;
+            startParameters.StartParametersChanged += startParameters_StartParametersChanged;
 
             MissionHasProgress = false;
             CanBeReset = false;
@@ -219,12 +221,12 @@ namespace ACE_Mission_Control.Core.Models
             UpdateCanBeReset();
         }
 
-        private void StartParameters_SelectedModeChangedEvent(object sender, EventArgs e)
+        private void startParameters_SelectedModeChangedEvent(object sender, EventArgs e)
         {
             NotifyPropertyChanged("StartMode");
         }
 
-        private void StartParameters_StartParametersChanged(object sender, StartParametersChangedArgs e)
+        private void startParameters_StartParametersChanged(object sender, StartParametersChangedArgs e)
         {
             var nextInstruction = GetNextInstruction();
             if (nextInstruction == null)
@@ -290,7 +292,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             var instruction = TreatmentInstructions.FirstOrDefault(i => i.ID == instructionID);
             if (instruction == null)
-                return null;
+                return new Coordinate();
 
             if (instruction.FirstInstruction)
                 return startParameters.StartCoordinate;
@@ -307,7 +309,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             var instruction = TreatmentInstructions.FirstOrDefault(i => i.ID == instructionID);
             if (instruction == null)
-                return null;
+                return new Coordinate();
 
             return instruction.AreaEntryExitCoordinates.Item2;
         }
@@ -316,10 +318,10 @@ namespace ACE_Mission_Control.Core.Models
         {
             var coordinate = GetStartCoordinate(instructionID);
             if (coordinate == null)
-                return null;
+                return "0,0";
 
             // Returns in radians - latitude,longitude
-            string startString = string.Format(
+            string startString = string.Format(CultureInfo.InvariantCulture,
                 "{0},{1}",
                 coordinate.Y,
                 coordinate.X);
@@ -329,11 +331,9 @@ namespace ACE_Mission_Control.Core.Models
         public string GetStopCoordinateString(int instructionID)
         {
             var coordinate = GetStopCoordinate(instructionID);
-            if (coordinate == null)
-                return null;
 
             // Returns in radians - latitude,longitude
-            string stopString = string.Format(
+            string stopString = string.Format(CultureInfo.InvariantCulture,
                 "{0},{1}",
                 coordinate.Y,
                 coordinate.X);
@@ -432,7 +432,7 @@ namespace ACE_Mission_Control.Core.Models
             {
                 startParameters.UpdateParameters(newFirstInstruction, LastPosition, false);
                 // If the first instruction has changed, we need to notify that the former first instruction has changed parameters
-                // This is because the first instruction has these parameters overriden by the StartParameters
+                // This is because the first instruction has these parameters overriden by the startParameters
                 if (previousFirstInstruction != null)
                 {
                     var updatedParams = new List<string>() { "AreaEntryExitCoordinates", "StartingTurnType" };
@@ -581,8 +581,8 @@ namespace ACE_Mission_Control.Core.Models
 
         private void Instruction_SyncedPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Entry and Exit coordinates for the first instruction will fire InstructionSyncedPropertyUpdated via an update to StartParameters
-            // An update is propagated to the StartParameters by changes to Enabled or TreatmentRoute
+            // Entry and Exit coordinates for the first instruction will fire InstructionSyncedPropertyUpdated via an update to startParameters
+            // An update is propagated to the startParameters by changes to Enabled or TreatmentRoute
             // So we shouldn't trigger it here
             if (e.PropertyName == "AreaEntryExitCoordinates" && (sender as ITreatmentInstruction).FirstInstruction)
                 return;

@@ -12,7 +12,7 @@ namespace ACE_Mission_Control.Core.Models
         public List<string> ParameterNames { get; set; }
     }
 
-    public class StartTreatmentParameters
+    public class StartTreatmentParameters : IStartTreatmentParameters
     {
         public enum Mode
         {
@@ -62,7 +62,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             get => startingTurnType;
             protected set
-            {                
+            {
                 startingTurnType = value;
             }
         }
@@ -166,7 +166,7 @@ namespace ACE_Mission_Control.Core.Models
                             {
                                 StartCoordinate = boundWaypoint.Coordinate;
                                 StartingTurnType = boundWaypoint.Turn;
-                            } 
+                            }
                             else
                             {
                                 CreateWaypointAndSetStartCoord(nextInstruction, lastPosition);
@@ -205,7 +205,7 @@ namespace ACE_Mission_Control.Core.Models
                 var changedParametersList = new List<string> { "AreaEntryExitCoordinates", "StartingTurnType" };
                 StartParametersChanged?.Invoke(this, new StartParametersChangedArgs { ParameterNames = changedParametersList });
             }
-                
+
 
             return anyChanges;
         }
@@ -259,7 +259,7 @@ namespace ACE_Mission_Control.Core.Models
             BoundWaypointID = newWaypoint.ID;
             BoundRouteID = instruction.TreatmentRoute.Id;
 
-            StartCoordinate = newWaypoint.Coordinate; 
+            StartCoordinate = newWaypoint.Coordinate;
             StartingTurnType = newWaypoint.Turn;
         }
 

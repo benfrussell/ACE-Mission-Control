@@ -540,7 +540,7 @@
                                         </i:Interaction.Behaviors>
                                     </ComboBoxItem>
 
-                                    <!--<ComboBoxItem x:Name="Planner_StartModeItem_InsertWaypoint"
+                                    <ComboBoxItem x:Name="Planner_StartModeItem_InsertWaypoint"
                                         IsEnabled="False">
                                         <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"/>
                                         <ToolTipService.ToolTip>
@@ -561,7 +561,8 @@
                                     </ComboBoxItem>
 
                                     <ComboBoxItem x:Name="Planner_StartModeItem_ContinueMission"
-                                        IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
+                                                  IsEnabled="False">
+                                        <!--IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">-->
                                         <TextBlock x:Uid="Planner_StartModeItem_ContinueMission"/>
                                         <ToolTipService.ToolTip>
                                             <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
@@ -578,7 +579,7 @@
                                                                 CommandParameter="{x:Bind Planner_StartModeItem_ContinueMission}"/>
                                             </core:EventTriggerBehavior>
                                         </i:Interaction.Behaviors>
-                                    </ComboBoxItem>-->
+                                    </ComboBoxItem>
 
                                     <ComboBoxItem x:Name="Planner_StartModeItem_Flythrough"
                                         IsEnabled="{x:Bind ViewModel.AttachedDrone.Mission.MissionHasProgress, Mode=OneWay}">
@@ -629,7 +630,7 @@
                                                     Style="{StaticResource CaptionTextBlockStyle}"
                                                     MaxWidth="350"/>
 
-                                                    <!--<TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"
+                                                    <TextBlock x:Uid="Planner_StartModeItem_InsertWaypoint"
                                                     FontWeight="Bold"
                                                     Style="{StaticResource CaptionTextBlockStyle}"
                                                     Margin="0,8,0,0"/>
@@ -645,7 +646,7 @@
                                                     <TextBlock x:Uid="Planner_StartModeItem_ContinueMissionTooltip"
                                                     TextWrapping="Wrap"
                                                     Style="{StaticResource CaptionTextBlockStyle}"
-                                                    MaxWidth="350"/>-->
+                                                    MaxWidth="350"/>
 
                                                     <TextBlock x:Uid="Planner_StartModeItem_Flythrough"
                                                     FontWeight="Bold"

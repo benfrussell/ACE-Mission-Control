@@ -547,4 +547,46 @@
   <data name="Shell_RefreshUGCSMissionsTip.Content" xml:space="preserve">
     <value>Cliquez pour récupérer à nouveau les missions depuis UgCS. Si vous ne voyez pas la mission, Maj + Clic pour rechercher toutes les missions dans les 1000 premiers ID.</value>
   </data>
+  <data name="Shell_FlightTimeItem" xml:space="preserve">
+    <value>Temps de vol</value>
+  </data>
+  <data name="Time_MachineViewButton.Label" xml:space="preserve">
+    <value>Vue machine</value>
+  </data>
+  <data name="Time_PilotViewButton.Label" xml:space="preserve">
+    <value>Vue pilote</value>
+  </data>
+  <data name="Time_LoadLogsButton.Content" xml:space="preserve">
+    <value>Charger les journaux</value>
+  </data>
+  <data name="Time_DateColumn.Header" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Time_MachineColumn.Header" xml:space="preserve">
+    <value>Machine</value>
+  </data>
+  <data name="Time_PilotColumn.Header" xml:space="preserve">
+    <value>Pilote</value>
+  </data>
+  <data name="Time_FlightHoursColumn.Header" xml:space="preserve">
+    <value>Heures de vol</value>
+  </data>
+  <data name="Time_ManualHoursColumn.Header" xml:space="preserve">
+    <value>Heures de vol manuelles</value>
+  </data>
+  <data name="Time_MachineHoursColumn.Header" xml:space="preserve">
+    <value>Heures de vol de la machine à ce jour</value>
+  </data>
+  <data name="Time_PilotHoursThisMachineColumn.Header" xml:space="preserve">
+    <value>Heures de vol du pilote sur cette machine</value>
+  </data>
+  <data name="Time_PilotManualHoursThisMachineColumn.Header" xml:space="preserve">
+    <value>Heures de vol manuelles du pilote cette machine</value>
+  </data>
+  <data name="Time_PilotHoursAllMachinesColumn.Header" xml:space="preserve">
+    <value>Heures de vol du pilote sur toutes les machines</value>
+  </data>
+  <data name="Time_PilotManualHoursAllMachinesColumn.Header" xml:space="preserve">
+    <value>Heures de vol manuelles du pilote toutes les machines</value>
+  </data>
 </root>

@@ -63,9 +63,19 @@
             </winui:NavigationViewItem>
         </DataTemplate>
 
+        <DataTemplate x:Key="NavigationItemFlightTimeTemplate" x:DataType="vm:FlightTimeViewModel">
+            <winui:NavigationViewItem Icon="Clock" Tag="ACE_Mission_Control.ViewModels.FlightTimeViewModel">
+                <TextBlock x:Name="FlightTimeName"
+                           Text="{x:Bind FlightTimeTitle, Mode=OneWay}"
+                           Style="{ThemeResource NavigationViewItemHeaderTextStyle}"
+                           Margin="0,0,0,0"/>
+            </winui:NavigationViewItem>
+        </DataTemplate>
+
         <helper:NavigationViewItemTemplateSelector x:Key="NavigationViewTemplateSelector"
                                                    WelcomePageTemplate="{StaticResource NavigationItemWelcomeTemplate}"
-                                                   DroneTemplate="{StaticResource NavigationItemDroneTemplate}" />
+                                                   DroneTemplate="{StaticResource NavigationItemDroneTemplate}"
+                                                   FlightTimeTemplate="{StaticResource NavigationItemFlightTimeTemplate}"/>
 
     </Page.Resources>
 

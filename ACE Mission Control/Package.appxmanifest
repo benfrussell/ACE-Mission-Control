@@ -7,6 +7,7 @@
   xmlns:genTemplate="http://schemas.microsoft.com/appx/developer/windowsTemplateStudio"
   xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4"
   xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+
   IgnorableNamespaces="uap mp genTemplate uap4 uap3">
 
   <Identity

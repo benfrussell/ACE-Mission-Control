@@ -547,4 +547,46 @@
   <data name="Shell_RefreshUGCSMissionsTip.Content" xml:space="preserve">
     <value>Click to retreive missions again from UgCS. If you are not seeing the mission, Shift+Click to look for all missions in the first 1000 IDs.</value>
   </data>
+  <data name="Shell_FlightTimeItem" xml:space="preserve">
+    <value>Flight Time</value>
+  </data>
+  <data name="Time_MachineViewButton.Label" xml:space="preserve">
+    <value>Machine View</value>
+  </data>
+  <data name="Time_PilotViewButton.Label" xml:space="preserve">
+    <value>Pilot View</value>
+  </data>
+  <data name="Time_LoadLogsButton.Content" xml:space="preserve">
+    <value>Load Logs</value>
+  </data>
+  <data name="Time_DateColumn.Header" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Time_MachineColumn.Header" xml:space="preserve">
+    <value>Machine</value>
+  </data>
+  <data name="Time_PilotColumn.Header" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="Time_FlightHoursColumn.Header" xml:space="preserve">
+    <value>Flight Hours</value>
+  </data>
+  <data name="Time_ManualHoursColumn.Header" xml:space="preserve">
+    <value>Manual Flight Hours</value>
+  </data>
+  <data name="Time_MachineHoursColumn.Header" xml:space="preserve">
+    <value>Machine Flight Hours To Date</value>
+  </data>
+  <data name="Time_PilotHoursThisMachineColumn.Header" xml:space="preserve">
+    <value>Pilot Flying Hours This Machine</value>
+  </data>
+  <data name="Time_PilotManualHoursThisMachineColumn.Header" xml:space="preserve">
+    <value>Pilot Manual Flying Hours This Machine</value>
+  </data>
+  <data name="Time_PilotHoursAllMachinesColumn.Header" xml:space="preserve">
+    <value>Pilot Flying Hours All Machines</value>
+  </data>
+  <data name="Time_PilotManualHoursAllMachinesColumn.Header" xml:space="preserve">
+    <value>Pilot Manual Flying Hours All Machines</value>
+  </data>
 </root>

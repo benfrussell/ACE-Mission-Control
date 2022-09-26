@@ -155,6 +155,7 @@
     <Compile Include="Behaviors\FlyoutBehaviors.cs" />
     <Compile Include="Helpers\AlertLevelToColour.cs" />
     <Compile Include="Helpers\BooleanHelpers.cs" />
+    <Compile Include="Helpers\DateTimeHelpers.cs" />
     <Compile Include="Helpers\EnumHelpers.cs" />
     <Compile Include="Helpers\MapHelpers.cs" />
     <Compile Include="Helpers\MissionActivatedHelpers.cs" />
@@ -170,6 +171,7 @@
     <Compile Include="ViewModels\ConsoleViewModel.cs" />
     <Compile Include="ViewModels\ConfigViewModel.cs" />
     <Compile Include="ViewModels\DroneViewModelBase.cs" />
+    <Compile Include="ViewModels\FlightTimeViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\MissionViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
@@ -184,6 +186,9 @@
     </Compile>
     <Compile Include="Views\DroneBasePage.xaml.cs">
       <DependentUpon>DroneBasePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FlightTimePage.xaml.cs">
+      <DependentUpon>FlightTimePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -265,6 +270,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\DroneBasePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\FlightTimePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -152,6 +152,8 @@ namespace ACE_Mission_Control.ViewModels
             {
                 yield return d;
             }
+
+            yield return ViewModelLocator.Current.FlightTimeViewModel;
         }
 
         private async void OnLoaded()

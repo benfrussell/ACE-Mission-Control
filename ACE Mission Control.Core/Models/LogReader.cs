@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
+using Windows.Storage;
+using Windows.Storage.Search;
 
 namespace ACE_Mission_Control.Core.Models
 {
     public class LogReader
     {
+        public event EventHandler<EventArgs> LogsDirectoryLoaded;
+        
         List<IFlightTimeEntry> entries;
         FlightTimeParser timeParser;
 
@@ -19,42 +23,27 @@ namespace ACE_Mission_Control.Core.Models
 
         public IEnumerable<IFlightTimeEntry> Entries { get => entries.AsEnumerable(); }
 
-        public void ReadFromDirectory(string directory)
+        public static string GetMachineNameFromFilename(string filename)
         {
-            string[] topLevelCSVs = Directory.GetFiles(directory, "*.csv", SearchOption.TopDirectoryOnly);
-            string[] subdirectories = Directory.GetDirectories(directory, "*", SearchOption.TopDirectoryOnly);
-
-            foreach (string topLevelCSV in topLevelCSVs)
-                ReadFromFilepath("Unnamed", topLevelCSV);
-
-            foreach (string subdirectory in subdirectories)
-            {
-                string[] filepaths = Directory.GetFiles(subdirectory, "*.csv", SearchOption.AllDirectories);
-                string pilotName = Path.GetDirectoryName(subdirectory);
-
-                foreach (string filepath in filepaths)
-                    ReadFromFilepath(pilotName, filepath);
-            }
-
-            SortAndRecalculateEntries();
+            string[] splitFilename = filename.Split(' ');
+            return splitFilename[0];
         }
 
-        public void ReadFromFilepath(string pilot, string filepath)
+        public static DateTime GetDateFromFilename(string filename)
         {
-            string[] splitFilename = Path.GetFileNameWithoutExtension(filepath).Split(' ');
+            string[] splitFilename = filename.Split(' ');
             if (splitFilename.Length < 2)
-                return;
+                return DateTime.MinValue;
 
             string[] splitDate = splitFilename[1].Split('_');
             DateTime date;
             try
             {
                 date = new DateTime(int.Parse(splitDate[2]), int.Parse(splitDate[0]), int.Parse(splitDate[1]));
+                return date;
             }
-            catch (FormatException) { return; }
-            catch (IndexOutOfRangeException) { return; }
-
-            Read(date, pilot, splitFilename[0], new StreamReader(filepath));
+            catch (FormatException) { return DateTime.MinValue; }
+            catch (IndexOutOfRangeException) { return DateTime.MinValue; }
         }
 
         public void Read(DateTime date, string pilot, string machine, TextReader input)

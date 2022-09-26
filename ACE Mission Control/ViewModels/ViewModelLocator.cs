@@ -25,6 +25,7 @@ namespace ACE_Mission_Control.ViewModels
             Register<ConfigViewModel, ConfigPage>();
             Register<ConsoleViewModel, ConsolePage>();
             Register<WelcomeViewModel, WelcomePage>();
+            Register<FlightTimeViewModel, FlightTimePage>();
         }
 
         public SettingsViewModel SettingsViewModel => SimpleIoc.Default.GetInstance<SettingsViewModel>();
@@ -42,6 +43,8 @@ namespace ACE_Mission_Control.ViewModels
         public ConsoleViewModel ConsoleViewModel => SimpleIoc.Default.GetInstance<ConsoleViewModel>();
 
         public WelcomeViewModel WelcomeViewModel => SimpleIoc.Default.GetInstance<WelcomeViewModel>();
+
+        public FlightTimeViewModel FlightTimeViewModel => SimpleIoc.Default.GetInstance<FlightTimeViewModel>();
 
         public void Register<VM, V>()
             where VM : class

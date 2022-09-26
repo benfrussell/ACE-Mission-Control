@@ -14,6 +14,7 @@ namespace ACE_Mission_Control.Helpers
     {
         public DataTemplate WelcomePageTemplate { get; set; }
         public DataTemplate DroneTemplate { get; set; }
+        public DataTemplate FlightTimeTemplate { get; set; }
 
         protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
         {
@@ -24,6 +25,7 @@ namespace ACE_Mission_Control.Helpers
         {
             if (item is WelcomeViewModel) return WelcomePageTemplate;
             if (item is Drone) return DroneTemplate;
+            if (item is FlightTimeViewModel) return FlightTimeTemplate;
 
             return base.SelectTemplateCore(item);
         }

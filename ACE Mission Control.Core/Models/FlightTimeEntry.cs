@@ -7,7 +7,7 @@ namespace ACE_Mission_Control.Core
 {
     public class FlightTimeEntry : IFlightTimeEntry
     {
-        public DateTime Date => throw new NotImplementedException();
+        public DateTime Date { get; private set; }
 
         public string Machine { get; private set; }
 
@@ -17,8 +17,19 @@ namespace ACE_Mission_Control.Core
 
         public double ManualHours { get; private set; }
 
-        public FlightTimeEntry(string pilot, string machine)
+        public double MachineFlightHoursToDate { get; private set; }
+
+        public double PilotFlightHoursThisMachineToDate { get; private set; }
+
+        public double PilotFlightHoursAllMachinesToDate { get; private set; }
+
+        public double PilotManualHoursThisMachineToDate { get; private set; }
+
+        public double PilotManualHoursAllMachinesToDate { get; private set; }
+
+        public FlightTimeEntry(DateTime date, string pilot, string machine)
         {
+            Date = date;
             Pilot = pilot;
             Machine = machine;
         }
@@ -33,5 +44,23 @@ namespace ACE_Mission_Control.Core
             ManualHours += hours;
         }
 
+        public int CompareTo(IFlightTimeEntry other)
+        {
+            if (Date > other.Date)
+                return -1;
+            else if (Date == other.Date)
+                return 0;
+            else
+                return 1;
+        }
+
+        public void SetCalculatedValues(double machineHours, double pilotFlightHoursThis, double pilotManualHoursThis, double pilotFlightHoursAll, double pilotManualHoursAll)
+        {
+            MachineFlightHoursToDate = machineHours;
+            PilotFlightHoursThisMachineToDate = pilotFlightHoursThis;
+            PilotManualHoursThisMachineToDate = pilotManualHoursThis;
+            PilotFlightHoursAllMachinesToDate = pilotFlightHoursAll;
+            PilotManualHoursAllMachinesToDate = pilotManualHoursAll;
+        }
     }
 }

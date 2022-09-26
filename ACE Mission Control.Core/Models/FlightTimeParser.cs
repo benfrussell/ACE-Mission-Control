@@ -7,11 +7,13 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class FlightTimeParser
     {
-        DateTime? manualStartTime;
-        DateTime? armedStartTime;
+        DateTime? manualFlightStartTime;
+        DateTime? flyingStartTime;
         
-        public double TotalManualHours { get; private set; }
-        public double TotalArmedHours { get; private set; }
+        public double ManualFlightHours { get; private set; }
+        public double TotalFlightHours { get; private set; }
+        public bool HeaderInvalid { get; private set; }
+        public bool InputEmpty { get; private set; }
 
         public FlightTimeParser() 
         {
@@ -20,28 +22,28 @@ namespace ACE_Mission_Control.Core.Models
 
         private void ResetParser()
         {
-            manualStartTime = null;
-            armedStartTime = null;
-            TotalManualHours = 0;
-            TotalArmedHours = 0;
+            manualFlightStartTime = null;
+            flyingStartTime = null;
+            ManualFlightHours = 0;
+            TotalFlightHours = 0;
+            InputEmpty = false;
+            HeaderInvalid = false;
         }
 
-        private void EndManualTime(DateTime? endTime)
+        private void EndManualTime(DateTime endTime)
         {
-            if (manualStartTime == null)
+            if (manualFlightStartTime == null)
                 return;
-            if (endTime != null)
-                TotalManualHours += endTime.Value.Subtract(manualStartTime.Value).TotalHours;
-            manualStartTime = null;
+            ManualFlightHours += endTime.Subtract(manualFlightStartTime.Value).TotalHours;
+            manualFlightStartTime = null;
         }
 
-        private void EndArmedTime(DateTime? endTime)
+        private void EndFlyingTime(DateTime endTime)
         {
-            if (armedStartTime == null || endTime == null)
+            if (flyingStartTime == null || endTime == null)
                 return;
-            if (endTime != null)
-                TotalArmedHours += endTime.Value.Subtract(armedStartTime.Value).TotalHours;
-            armedStartTime = null;
+            TotalFlightHours += endTime.Subtract(flyingStartTime.Value).TotalHours;
+            flyingStartTime = null;
         }
 
         public void Parse(TextReader input)
@@ -50,17 +52,26 @@ namespace ACE_Mission_Control.Core.Models
 
             string headerLine = input.ReadLine();
             if (headerLine == null)
+            {
+                InputEmpty = true;
                 return;
+            }
+                
 
             List<string> header = new List<string>(headerLine.Split(','));
             int dateIndex = header.IndexOf("time");
-            int autoIndex = header.IndexOf("autopilot_status");
+            int controlIndex = header.IndexOf("control_mode");
             int armedIndex = header.IndexOf("is_armed");
+            int altitudeIndex = header.IndexOf("altitude_raw");
 
-            if (dateIndex == -1 || autoIndex == -1 || armedIndex == -1)
+            if (dateIndex == -1 || controlIndex == -1 || altitudeIndex == -1 || armedIndex == -1)
+            {
+                HeaderInvalid = true;
                 return;
+            }
 
-            DateTime? time = null;
+            DateTime time = DateTime.MinValue;
+            double? groundAltitude = null;
 
             while (true)
             {
@@ -68,28 +79,56 @@ namespace ACE_Mission_Control.Core.Models
                 if (line == null)
                     break;
                 var lineSplit = line.Split(',');
-                time = DateTime.Parse(lineSplit[dateIndex]);
 
-                if (armedStartTime == null && lineSplit[armedIndex] == "TRUE")
-                    armedStartTime = time;
-
-                if (armedStartTime != null)
+                try
                 {
-                    if (lineSplit[armedIndex] == "FALSE")
+                    // Set the ground altitude every time the machine is armed, in ArduPilot logs the altitude does not seem reliable until just before flight
+                    if (groundAltitude == null && lineSplit[armedIndex] == "TRUE")
+                        groundAltitude = double.Parse(lineSplit[altitudeIndex]);
+                    else if (groundAltitude != null && lineSplit[armedIndex] == "FALSE")
+                        groundAltitude = null;
+
+                    if (!DateTime.TryParse(lineSplit[dateIndex], out time))
+                        continue;
+
+                    double altitude = double.NaN;
+
+                    // Flight time is not recording and armed (groundAltitude non nulled)
+                    if (flyingStartTime == null && groundAltitude != null)
                     {
-                        EndManualTime(time);
-                        EndArmedTime(time);
+                        if (!double.TryParse(lineSplit[altitudeIndex], out altitude))
+                            continue;
+                        if (altitude > groundAltitude + 1)
+                            flyingStartTime = time;
                     }
 
-                    if (manualStartTime == null && lineSplit[autoIndex] == "0")
-                        manualStartTime = time;
-                    else if (manualStartTime != null && lineSplit[autoIndex] == "1")
-                        EndManualTime(time);
+                    if (flyingStartTime != null)
+                    {
+                        if (double.IsNaN(altitude) && !double.TryParse(lineSplit[altitudeIndex], out altitude))
+                            continue;
+                        // If unarmed (groundAltitude nulled) or landed
+                        if (groundAltitude == null || altitude < groundAltitude + 1)
+                        {
+                            EndManualTime(time);
+                            EndFlyingTime(time);
+                        }
+                        // If still flying
+                        else
+                        {
+                            if (manualFlightStartTime == null && lineSplit[controlIndex] == "0")
+                                manualFlightStartTime = time;
+                            else if (manualFlightStartTime != null && lineSplit[controlIndex] == "1")
+                                EndManualTime(time);
+                        }
+                    }
                 }
+                catch (IndexOutOfRangeException) { continue; }
             }
 
-            EndManualTime(time);
-            EndArmedTime(time);
+            if (manualFlightStartTime != null)
+                EndManualTime(time);
+            if (flyingStartTime != null)
+                EndFlyingTime(time);
         }
     }
 }

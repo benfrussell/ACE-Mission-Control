@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:helper="using:ACE_Mission_Control.Helpers"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -41,6 +42,15 @@
             <AppBarButton x:Uid="Time_PilotViewButton"
                           Icon="Contact"
                           Command="{x:Bind ViewModel.PilotViewButtonClickedCommand}"/>
+
+            <muxc:ProgressRing IsActive="{x:Bind ViewModel.ShowProgressRing, Mode=OneWay}"
+                               Margin="8,0,0,0"
+                               IsIndeterminate="False"
+                               Maximum="{x:Bind ViewModel.ProgressMax, Mode=OneWay}"
+                               Value="{x:Bind ViewModel.Progress, Mode=OneWay}"/>
+
+            <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"
+                       Margin="8,22,0,0"/>
         </StackPanel>
 
         <controls:DataGrid Grid.Row="2"
@@ -52,12 +62,14 @@
                            AlternatingRowBackground="{StaticResource SystemControlBackgroundChromeMediumLowBrush}"
                            GridLinesVisibility="Horizontal"
                            LoadingRowGroup="DataGrid_LoadingRowGroup"
-                           ItemsSource="{x:Bind ViewModel.FlightTimeCollection, Mode=OneWay}">
+                           ItemsSource="{x:Bind ViewModel.FlightTimeCollection, Mode=OneWay}"
+                           RowForeground="{ThemeResource SystemControlForegroundBaseMediumHighBrush}">
             <controls:DataGrid.Columns>
                 <controls:DataGridTemplateColumn x:Uid="Time_DateColumn">
                     <controls:DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Date, Converter={StaticResource ShortenDateTime}}"
+                                       Foreground="{ThemeResource SystemControlForegroundBaseMediumHighBrush}"
                                        Margin="0,6,0,0"/>
                         </DataTemplate>
                     </controls:DataGridTemplateColumn.CellTemplate>

@@ -13,6 +13,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage;
 using Windows.Storage.Search;
 using System.IO;
+using Windows.UI.Xaml.Controls;
 
 namespace ACE_Mission_Control.ViewModels
 {
@@ -56,6 +57,62 @@ namespace ACE_Mission_Control.ViewModels
             }
         }
 
+        private bool showProgressRing = false;
+        public bool ShowProgressRing
+        {
+            get { return showProgressRing; }
+            set
+            {
+                if (showProgressRing != value)
+                {
+                    showProgressRing = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        private int progress = 0;
+        public int Progress
+        {
+            get { return progress; }
+            set
+            {
+                if (progress != value)
+                {
+                    progress = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        private int progressMax = 0;
+        public int ProgressMax
+        {
+            get { return progressMax; }
+            set
+            {
+                if (progressMax != value)
+                {
+                    progressMax = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        private string progressText = "0/0";
+        public string ProgressText
+        {
+            get { return progressText; }
+            set
+            {
+                if (progressText != value)
+                {
+                    progressText = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
         public ICollectionView FlightTimeCollection { get => flightTimeSource.View; }
 
         public FlightTimeViewModel()
@@ -64,12 +121,6 @@ namespace ACE_Mission_Control.ViewModels
             flightTimeSource = new CollectionViewSource();
             flightTimeSource.IsSourceGrouped = true;
             logReader = new LogReader();
-            logReader.LogsDirectoryLoaded += LogReader_LogsDirectoryLoaded;
-        }
-
-        private void LogReader_LogsDirectoryLoaded(object sender, EventArgs e)
-        {
-            GroupFlightTimeByMachine();
         }
 
         public RelayCommand MachineViewButtonClickedCommand => new RelayCommand(() => GroupFlightTimeByMachine());
@@ -106,46 +157,94 @@ namespace ACE_Mission_Control.ViewModels
 
         private async void loadLogsButtonClicked()
         {
+            // Test broad file access
+            try
+            {
+                StorageFolder testFolder = await StorageFolder.GetFolderFromPathAsync(@"C:\");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                showNoAccessDialog();
+                return;
+            }
+
+            logReader.ClearEntries();
+
             var folderPicker = new FolderPicker();
             folderPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
             folderPicker.FileTypeFilter.Add("*");
-
             var folder = await folderPicker.PickSingleFolderAsync();
-            getLogsFromDirectory(folder);
+
+            if (folder != null)
+                getLogsFromDirectory(folder);
+        }
+
+        private async void showNoAccessDialog()
+        {
+            ContentDialog dialog = new ContentDialog
+            {
+                Title = "Time_NoAccessTitle".GetLocalized(),
+                Content = "Time_NoAccessContent".GetLocalized(),
+                CloseButtonText = "OK"
+            };
+
+            ContentDialogResult result = await dialog.ShowAsync();
+
+            await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:privacy-broadfilesystemaccess"));
         }
 
         private async void getLogsFromDirectory(StorageFolder directory)
         {
+            var allFilesQuery = directory.CreateFileQueryWithOptions(new QueryOptions(CommonFileQuery.OrderByName, new List<string>() { ".csv" }));
+            var allFilesCount = (await allFilesQuery.GetFilesAsync()).Count;
+
+            ShowProgressRing = true;
+            Progress = 0;
+            ProgressMax = allFilesCount;
+            ProgressText = $"{Progress}/{allFilesCount}";
+
             var csvShallowQuery = directory.CreateFileQueryWithOptions(new QueryOptions(CommonFileQuery.DefaultQuery, new List<string>() { ".csv" }));
             var csvShallowQueryResult = await csvShallowQuery.GetFilesAsync();
             foreach (StorageFile csvResult in csvShallowQueryResult)
-                logReader.Read(
+            {
+                await logReader.ReadAsync(
                     LogReader.GetDateFromFilename(csvResult.DisplayName),
                     "Unnamed",
                     LogReader.GetMachineNameFromFilename(csvResult.DisplayName),
                     new StreamReader(await csvResult.OpenStreamForReadAsync()));
+                Progress += 1;
+                ProgressText = $"{Progress}/{allFilesCount}";
+            }
+                
 
             var subdirectories = await directory.GetFoldersAsync();
 
             foreach (StorageFolder subdirectory in subdirectories)
             {
-                var csvDeepQuery = subdirectory.CreateFileQueryWithOptions(new QueryOptions(CommonFileQuery.OrderByDate, new List<string>() { ".csv" }));
+                var csvDeepQuery = subdirectory.CreateFileQueryWithOptions(new QueryOptions(CommonFileQuery.OrderByName, new List<string>() { ".csv" }));
                 var csvDeepQueryResult = await csvDeepQuery.GetFilesAsync();
 
                 var resultList = csvDeepQueryResult.ToList();
                 string pilotName = subdirectory.Name;
 
                 foreach (StorageFile csvResult in csvDeepQueryResult)
-                    logReader.Read(
-                    LogReader.GetDateFromFilename(csvResult.DisplayName),
-                    pilotName,
-                    LogReader.GetMachineNameFromFilename(csvResult.DisplayName),
-                    new StreamReader(await csvResult.OpenStreamForReadAsync()));
+                {
+                    await logReader.ReadAsync(
+                        LogReader.GetDateFromFilename(csvResult.DisplayName),
+                        pilotName,
+                        LogReader.GetMachineNameFromFilename(csvResult.DisplayName),
+                        new StreamReader(await csvResult.OpenStreamForReadAsync()));
+                    Progress += 1;
+                    ProgressText = $"{Progress}/{allFilesCount}";
+                }
+                    
             }
 
             logReader.SortAndRecalculateEntries();
 
             GroupFlightTimeByMachine();
+
+            ShowProgressRing = false;
         }
     }
 }

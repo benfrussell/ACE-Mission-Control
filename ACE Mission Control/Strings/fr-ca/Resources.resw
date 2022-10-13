@@ -589,4 +589,10 @@
   <data name="Time_PilotManualHoursAllMachinesColumn.Header" xml:space="preserve">
     <value>Heures de vol manuelles du pilote toutes les machines</value>
   </data>
+  <data name="Time_NoAccessContent" xml:space="preserve">
+    <value>ACE peut ne pas être en mesure d'accéder à tous les fichiers du dossier que vous sélectionnez car Windows restreint sa capacité à accéder aux fichiers. Cliquer sur OK vous amènera à la page Paramètres Windows pour activer l'accès complet aux fichiers.</value>
+  </data>
+  <data name="Time_NoAccessTitle" xml:space="preserve">
+    <value>Accès aux fichiers restreint</value>
+  </data>
 </root>

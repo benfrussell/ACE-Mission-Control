@@ -589,4 +589,10 @@
   <data name="Time_PilotManualHoursAllMachinesColumn.Header" xml:space="preserve">
     <value>Pilot Manual Flying Hours All Machines</value>
   </data>
+  <data name="Time_NoAccessTitle" xml:space="preserve">
+    <value>File Access Restricted</value>
+  </data>
+  <data name="Time_NoAccessContent" xml:space="preserve">
+    <value>ACE may not be able to access all of the files in the folder you select because Windows is restricting it's ability to access files. Clicking OK will bring you to the Windows Settings page to enable full file access.</value>
+  </data>
 </root>

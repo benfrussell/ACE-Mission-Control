@@ -5,13 +5,12 @@ using System.IO;
 using System.Linq;
 using Windows.Storage;
 using Windows.Storage.Search;
+using System.Threading.Tasks;
 
 namespace ACE_Mission_Control.Core.Models
 {
     public class LogReader
     {
-        public event EventHandler<EventArgs> LogsDirectoryLoaded;
-        
         List<IFlightTimeEntry> entries;
         FlightTimeParser timeParser;
 
@@ -44,6 +43,16 @@ namespace ACE_Mission_Control.Core.Models
             }
             catch (FormatException) { return DateTime.MinValue; }
             catch (IndexOutOfRangeException) { return DateTime.MinValue; }
+        }
+
+        public void ClearEntries()
+        {
+            entries.Clear();
+        }
+
+        public Task ReadAsync(DateTime date, string pilot, string machine, TextReader input)
+        {
+            return Task.Run(() => Read(date, pilot, machine, input));
         }
 
         public void Read(DateTime date, string pilot, string machine, TextReader input)

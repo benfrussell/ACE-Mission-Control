@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ACE_Mission_Control.Core.Models
 {
@@ -70,6 +72,8 @@ namespace ACE_Mission_Control.Core.Models
                 return;
             }
 
+            var maxIndex = new[] { dateIndex, controlIndex, armedIndex, altitudeIndex }.Max();
+
             DateTime time = DateTime.MinValue;
             double groundAltitude = double.NaN;
 
@@ -80,41 +84,44 @@ namespace ACE_Mission_Control.Core.Models
                     break;
                 var lineSplit = line.Split(',');
 
-                try
-                {
-                    // Set the ground altitude every time the machine is armed, in ArduPilot logs the altitude does not seem reliable until just before flight
-                    if (double.IsNaN(groundAltitude) && lineSplit[armedIndex].ToLower() == "true")
-                        if (!double.TryParse(lineSplit[altitudeIndex], out groundAltitude))
-                            continue;
-                    else if (!double.IsNaN(groundAltitude) && lineSplit[armedIndex].ToLower() == "false")
-                        groundAltitude = double.NaN;
+                if (lineSplit.Length - 1 < maxIndex)
+                    continue;
 
-                    if (!DateTime.TryParse(lineSplit[dateIndex], out time))
+                // Set the ground altitude every time the machine is armed, in ArduPilot logs the altitude does not seem reliable until just before flight
+                if (double.IsNaN(groundAltitude) && lineSplit[armedIndex].ToLower() == "true")
+                    if (!double.TryParse(lineSplit[altitudeIndex], out groundAltitude))
                         continue;
+                else if (!double.IsNaN(groundAltitude) && lineSplit[armedIndex].ToLower() == "false")
+                    groundAltitude = double.NaN;
 
-                    double altitude = double.NaN;
+                if (!DateTime.TryParse(lineSplit[dateIndex], out time))
+                    continue;
 
-                    // Flight time is not recording and armed (groundAltitude is a number)
-                    if (flyingStartTime == null && !double.IsNaN(groundAltitude))
+                double altitude = double.NaN;
+
+                // Flight time is not recording and armed (groundAltitude is a number)
+                if (flyingStartTime == null && !double.IsNaN(groundAltitude))
+                {
+                    if (!double.TryParse(lineSplit[altitudeIndex], out altitude))
+                        continue;
+                    if (altitude > groundAltitude + 1)
+                        flyingStartTime = time;
+                }
+
+                if (flyingStartTime != null)
+                {
+                    if (double.IsNaN(altitude) && !double.TryParse(lineSplit[altitudeIndex], out altitude))
+                        continue;
+                    // If unarmed (groundAltitude is NAN) or landed
+                    if (double.IsNaN(groundAltitude) || altitude < groundAltitude + 1)
                     {
-                        if (!double.TryParse(lineSplit[altitudeIndex], out altitude))
-                            continue;
-                        if (altitude > groundAltitude + 1)
-                            flyingStartTime = time;
+                        EndManualTime(time);
+                        EndFlyingTime(time);
                     }
-
-                    if (flyingStartTime != null)
+                    // If still flying
+                    else
                     {
-                        if (double.IsNaN(altitude) && !double.TryParse(lineSplit[altitudeIndex], out altitude))
-                            continue;
-                        // If unarmed (groundAltitude is NAN) or landed
-                        if (double.IsNaN(groundAltitude) || altitude < groundAltitude + 1)
-                        {
-                            EndManualTime(time);
-                            EndFlyingTime(time);
-                        }
-                        // If still flying
-                        else
+                        if (lineSplit[controlIndex].Length != 0)
                         {
                             if (manualFlightStartTime == null && lineSplit[controlIndex][0] == '0')
                                 manualFlightStartTime = time;
@@ -123,7 +130,6 @@ namespace ACE_Mission_Control.Core.Models
                         }
                     }
                 }
-                catch (IndexOutOfRangeException) { continue; }
             }
 
             if (manualFlightStartTime != null)

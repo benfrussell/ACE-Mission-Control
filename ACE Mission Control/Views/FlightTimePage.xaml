@@ -80,6 +80,9 @@
                 
                 <controls:DataGridTextColumn Binding="{Binding Pilot}"
                                              x:Uid="Time_PilotColumn"/>
+
+                <controls:DataGridTextColumn Binding="{Binding TotalFlights}"
+                                             x:Uid="Time_TotalFlightsColumn"/>
                 
                 <controls:DataGridTextColumn Binding="{Binding FlightHours}"
                                              x:Uid="Time_FlightHoursColumn"/>
@@ -93,11 +96,11 @@
                 
                 <controls:DataGridTextColumn Binding="{Binding PilotFlightHoursThisMachineToDate}"
                                              x:Uid="Time_PilotHoursThisMachineColumn"
-                                             Visibility="{x:Bind ViewModel.PilotColumnsVisible, Mode=OneWay}"/>
+                                             Visibility="{x:Bind ViewModel.MachineColumnsVisible, Mode=OneWay}"/>
                 
                 <controls:DataGridTextColumn Binding="{Binding PilotManualHoursThisMachineToDate}"
                                              x:Uid="Time_PilotManualHoursThisMachineColumn"
-                                             Visibility="{x:Bind ViewModel.PilotColumnsVisible, Mode=OneWay}"/>
+                                             Visibility="{x:Bind ViewModel.MachineColumnsVisible, Mode=OneWay}"/>
                 
                 <controls:DataGridTextColumn Binding="{Binding PilotFlightHoursAllMachinesToDate}"
                                              x:Uid="Time_PilotHoursAllMachinesColumn"

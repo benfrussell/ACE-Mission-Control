@@ -595,4 +595,7 @@
   <data name="Time_NoAccessTitle" xml:space="preserve">
     <value>Accès aux fichiers restreint</value>
   </data>
+  <data name="Time_TotalFlightsColumn.Header" xml:space="preserve">
+    <value>Vols</value>
+  </data>
 </root>

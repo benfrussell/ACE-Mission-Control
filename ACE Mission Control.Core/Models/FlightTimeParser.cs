@@ -12,6 +12,7 @@ namespace ACE_Mission_Control.Core.Models
         DateTime? manualFlightStartTime;
         DateTime? flyingStartTime;
         
+        public int TotalFlights { get; private set; }
         public double ManualFlightHours { get; private set; }
         public double TotalFlightHours { get; private set; }
         public bool HeaderInvalid { get; private set; }
@@ -26,6 +27,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             manualFlightStartTime = null;
             flyingStartTime = null;
+            TotalFlights = 0;
             ManualFlightHours = 0;
             TotalFlightHours = 0;
             InputEmpty = false;
@@ -44,6 +46,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             if (flyingStartTime == null || endTime == null)
                 return;
+            TotalFlights += 1;
             TotalFlightHours += endTime.Subtract(flyingStartTime.Value).TotalHours;
             flyingStartTime = null;
         }

@@ -65,6 +65,7 @@ namespace ACE_Mission_Control.Core.Models
             }
 
             timeParser.Parse(input);
+            entry.AddFlights(timeParser.TotalFlights);
             entry.AddFlightHours(timeParser.TotalFlightHours);
             entry.AddManualHours(timeParser.ManualFlightHours);
         }

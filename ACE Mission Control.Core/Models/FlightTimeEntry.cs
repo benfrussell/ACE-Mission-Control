@@ -13,6 +13,8 @@ namespace ACE_Mission_Control.Core
 
         public string Pilot { get; private set; }
 
+        public int TotalFlights { get; private set; }
+
         public double FlightHours { get; private set; }
 
         public double ManualHours { get; private set; }
@@ -32,6 +34,11 @@ namespace ACE_Mission_Control.Core
             Date = date;
             Pilot = pilot;
             Machine = machine;
+        }
+
+        public void AddFlights(int flights)
+        {
+            TotalFlights += flights;
         }
 
         public void AddFlightHours(double hours)

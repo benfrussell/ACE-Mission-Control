@@ -595,4 +595,7 @@
   <data name="Time_NoAccessContent" xml:space="preserve">
     <value>ACE may not be able to access all of the files in the folder you select because Windows is restricting it's ability to access files. Clicking OK will bring you to the Windows Settings page to enable full file access.</value>
   </data>
+  <data name="Time_TotalFlightsColumn.Header" xml:space="preserve">
+    <value>Flights</value>
+  </data>
 </root>

@@ -9,6 +9,7 @@ namespace ACE_Mission_Control.Core.Models
         DateTime Date { get; }
         string Machine { get; }
         string Pilot { get; }
+        int TotalFlights { get; }
         double FlightHours { get; }
         double ManualHours { get; }
         double MachineFlightHoursToDate { get; }
@@ -17,7 +18,7 @@ namespace ACE_Mission_Control.Core.Models
         double PilotFlightHoursAllMachinesToDate { get; }
         double PilotManualHoursAllMachinesToDate { get; }
 
-
+        void AddFlights(int flights);
         void AddFlightHours(double hours);
 
         void AddManualHours(double hours);

@@ -598,4 +598,7 @@
   <data name="Time_TotalFlightsColumn.Header" xml:space="preserve">
     <value>Vols</value>
   </data>
+  <data name="Time_ExportLogsButton.Content" xml:space="preserve">
+    <value>Exporter</value>
+  </data>
 </root>

@@ -179,6 +179,20 @@ namespace ACE_Mission_Control.ViewModels
                 getLogsFromDirectory(folder);
         }
 
+        public RelayCommand ExportLogsButtonClickedCommand => new RelayCommand(() => exportLogsButtonClicked());
+
+        private async void exportLogsButtonClicked()
+        {
+            var savePicker = new FileSavePicker();
+            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            savePicker.FileTypeChoices.Add("Comma Separated Values", new List<string>() { ".csv" });
+            savePicker.SuggestedFileName = $"{DateTime.Today.ToShortDateString()} Flight Log Export";
+            var file = await savePicker.PickSaveFileAsync();
+
+            if (file != null)
+                logReader.ExportEntries(new StreamWriter(await file.OpenStreamForWriteAsync()));
+        }
+
         private async void showNoAccessDialog()
         {
             ContentDialog dialog = new ContentDialog

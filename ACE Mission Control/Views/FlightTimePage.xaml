@@ -32,6 +32,11 @@
                     Style="{ThemeResource ACEButton}"
                     Command="{x:Bind ViewModel.LoadLogsButtonClickedCommand}"/>
 
+            <Button x:Uid="Time_ExportLogsButton"
+                    Style="{ThemeResource ACEButton}"
+                    Command="{x:Bind ViewModel.ExportLogsButtonClickedCommand}"
+                    Margin="16,0,0,0"/>
+
             <AppBarSeparator Height="40"
                              Margin="16,0,0,0"/>
 

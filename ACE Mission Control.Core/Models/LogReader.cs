@@ -105,5 +105,33 @@ namespace ACE_Mission_Control.Core.Models
                     SetOrAdd(manualHoursByPilot, entry.Pilot, entry.ManualHours, (x, y) => x + y));
             }
         }
+
+        public void ExportEntries(TextWriter output)
+        {
+            output.WriteLineAsync("Date,Machine,Pilot,Flights,Flight Hours,Manual Flight Hours,Machine Flight Hours to Date,Pilot Flying Hours To Date This Machine,Pilot Manual Flying Hours To Date This Machine,Pilot Flying Hours To Date All Machines,Pilot Manual Flying Hours To Date All Machines");
+            var entriesList = Entries.ToList();
+            for (int i = 0; i < entriesList.Count(); i++)
+            {
+                var entry = entriesList[i];
+                var rowString = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
+                    entry.Date.ToString("yyyy-MM-dd"),
+                    entry.Machine,
+                    entry.Pilot,
+                    entry.TotalFlights,
+                    entry.FlightHours,
+                    entry.ManualHours,
+                    entry.MachineFlightHoursToDate,
+                    entry.PilotFlightHoursThisMachineToDate,
+                    entry.PilotManualHoursThisMachineToDate,
+                    entry.PilotFlightHoursAllMachinesToDate,
+                    entry.PilotManualHoursAllMachinesToDate);
+
+                // On the last line don't include a line terminator
+                if (i == entriesList.Count() - 1)
+                    output.WriteAsync(rowString);
+                else
+                    output.WriteLineAsync(rowString);
+            }
+        }
     }
 }

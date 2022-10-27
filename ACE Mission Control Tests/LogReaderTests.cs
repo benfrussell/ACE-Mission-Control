@@ -177,6 +177,39 @@ namespace ACE_Mission_Control_Tests
             return logReader;
         }
 
+        private string GetLogReaderExportString(LogReader reader)
+        {
+            reader.SortAndRecalculateEntries();
+            var writer = new StringWriter();
+            reader.ExportEntries(writer);
+            return writer.ToString();
+        }
+
+        [Fact]
+        public void LogReader_Export_Creates_11_Column_Header()
+        {
+            var export = GetLogReaderExportString(CreateLogReader());
+            var header = export.Split('\n')[0].Split(',');
+            Assert.Equal(11, header.Length);
+        }
+
+        [Fact]
+        public void LogReader_Export_Formats_Date_Correctly()
+        {
+            var export = GetLogReaderExportString(CreateLogReader());
+            var date = export.Split('\n')[1].Split(',')[0];
+            Assert.Equal("2022-09-", date.Substring(0,8));
+        }
+
+        [Fact]
+        public void LogReader_Export_Includes_All_Entries()
+        {
+            var reader = CreateLogReader();
+            var export = GetLogReaderExportString(reader);
+            var rows = export.Split('\n');
+            Assert.Equal(reader.Entries.Count(), rows.Length - 1);
+        }
+
         [Fact]
         public void LogReader_Top_Entry_Sums_All_Machine_Flight_Hours()
         {

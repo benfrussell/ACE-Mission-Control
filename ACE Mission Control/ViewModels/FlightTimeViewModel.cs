@@ -190,7 +190,17 @@ namespace ACE_Mission_Control.ViewModels
             var file = await savePicker.PickSaveFileAsync();
 
             if (file != null)
-                logReader.ExportEntries(new StreamWriter(await file.OpenStreamForWriteAsync()));
+                using (var stream = new StreamWriter(await file.OpenStreamForWriteAsync()))
+                    logReader.ExportEntries(stream);
+
+            ContentDialog dialog = new ContentDialog
+            {
+                Title = "Time_ExportFinishedTitle".GetLocalized(),
+                Content = "Time_ExportFinishedContent".GetLocalized(),
+                CloseButtonText = "OK"
+            };
+
+            ContentDialogResult result = await dialog.ShowAsync();
         }
 
         private async void showNoAccessDialog()

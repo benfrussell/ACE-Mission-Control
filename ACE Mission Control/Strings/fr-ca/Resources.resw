@@ -601,4 +601,10 @@
   <data name="Time_ExportLogsButton.Content" xml:space="preserve">
     <value>Exporter</value>
   </data>
+  <data name="Time_ExportFinishedTitle" xml:space="preserve">
+    <value>Exportation de journaux</value>
+  </data>
+  <data name="Time_ExportFinishedContent" xml:space="preserve">
+    <value>Exportation terminée !</value>
+  </data>
 </root>

@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-ACE_SQL_Bridge-E2805131-C25A-4B5D-9B4D-535FED5626FE</UserSecretsId>
-    <RootNamespace>ACE_SQL_Bridge</RootNamespace>
+    <UserSecretsId>dotnet-ACE_Drone_Dashboard_Service-A9EA0645-C4DC-4F6C-BA9B-234FBE017205</UserSecretsId>
+    <RootNamespace>ACE_Drone_Dashboard_Service</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>

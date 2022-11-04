@@ -5,20 +5,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ACE_Mission_Control.Core.Models
+namespace ACE_Mission_Control.Core.Helpers
 {
     public class FlightTimeParser
     {
         DateTime? manualFlightStartTime;
         DateTime? flyingStartTime;
-        
+
         public int TotalFlights { get; private set; }
         public double ManualFlightHours { get; private set; }
         public double TotalFlightHours { get; private set; }
         public bool HeaderInvalid { get; private set; }
         public bool InputEmpty { get; private set; }
 
-        public FlightTimeParser() 
+        public FlightTimeParser()
         {
             ResetParser();
         }
@@ -61,7 +61,7 @@ namespace ACE_Mission_Control.Core.Models
                 InputEmpty = true;
                 return;
             }
-                
+
 
             List<string> header = new List<string>(headerLine.Split(','));
             int dateIndex = header.IndexOf("time");
@@ -94,8 +94,8 @@ namespace ACE_Mission_Control.Core.Models
                 if (double.IsNaN(groundAltitude) && lineSplit[armedIndex].ToLower() == "true")
                     if (!double.TryParse(lineSplit[altitudeIndex], out groundAltitude))
                         continue;
-                else if (!double.IsNaN(groundAltitude) && lineSplit[armedIndex].ToLower() == "false")
-                    groundAltitude = double.NaN;
+                    else if (!double.IsNaN(groundAltitude) && lineSplit[armedIndex].ToLower() == "false")
+                        groundAltitude = double.NaN;
 
                 if (!DateTime.TryParse(lineSplit[dateIndex], out time))
                     continue;

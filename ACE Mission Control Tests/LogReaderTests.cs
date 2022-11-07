@@ -6,6 +6,7 @@ using System.Linq;
 using Xunit;
 using Moq;
 using ACE_Mission_Control.Core.Models;
+using ACE_Mission_Control.Core.Helpers;
 
 namespace ACE_Mission_Control_Tests
 {

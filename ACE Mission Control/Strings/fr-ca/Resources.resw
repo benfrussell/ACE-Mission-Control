@@ -607,4 +607,22 @@
   <data name="Time_ExportFinishedContent" xml:space="preserve">
     <value>Exportation terminée !</value>
   </data>
+  <data name="ServiceStatus_NotRunning" xml:space="preserve">
+    <value>Ne pas fonctionne</value>
+  </data>
+  <data name="ServiceStatus_RunningDatabaseNotReachable" xml:space="preserve">
+    <value>La base de données n’est pas accessible</value>
+  </data>
+  <data name="ServiceStatus_RunningNoUgCSConnection" xml:space="preserve">
+    <value>Impossible de se connecter à UgCS</value>
+  </data>
+  <data name="ServiceStatus_RunningDatabaseWontAuthenticate" xml:space="preserve">
+    <value>L’utilisateur n’a pas accès à la base de données</value>
+  </data>
+  <data name="ServiceStatus_Running" xml:space="preserve">
+    <value>Fonctionne</value>
+  </data>
+  <data name="Main_DashServiceHeader.Text" xml:space="preserve">
+    <value>Service dashboard</value>
+  </data>
 </root>

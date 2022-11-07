@@ -103,7 +103,8 @@
                 <RelativePanel Margin="16,0,16,4">
                     <TextBlock x:Uid="Main_UGCSHeader"
                                x:Name="UGCSHeader"
-                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               Style="{ThemeResource NavigationViewItemHeaderTextStyle}"
+                               FontSize="16"
                                TextWrapping="NoWrap"
                                Margin="0,0,0,0"/>
                     <TextBlock x:Name="UGCSMissionRetrieveTextBlock"
@@ -112,11 +113,26 @@
                                Text="{x:Bind ViewModel.UGCSConnectText, Mode=OneWay}"
                                Style="{StaticResource CaptionTextBlockStyle}"
                                Height="20"/>
+                    <TextBlock x:Uid="Main_DashServiceHeader"
+                               x:Name="DashServiceHeader"
+                               RelativePanel.Below="UGCSMissionRetrieveTextBlock"
+                               Style="{ThemeResource NavigationViewItemHeaderTextStyle}"
+                               FontSize="16"
+                               TextWrapping="NoWrap"
+                               Margin="0,8,0,0"/>
+                    <TextBlock x:Uid="Main_DashServiceTextBlock"
+                               x:Name="DashServiceTextBlock"
+                               RelativePanel.Below="DashServiceHeader"
+                               VerticalAlignment="Center"
+                               Text="{x:Bind ViewModel.DashboardStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               TextWrapping="NoWrap"
+                               Height="20"/>
                     <Rectangle Height="1"
                                Stretch="UniformToFill"
                                Fill="{ThemeResource SystemBaseLowColor}"
                                HorizontalAlignment="Stretch"
-                               RelativePanel.Below="UGCSMissionRetrieveTextBlock"
+                               RelativePanel.Below="DashServiceTextBlock"
                                Margin="0,8,0,0"/>
                 </RelativePanel>
                 <Border Margin="2,0,4,0">

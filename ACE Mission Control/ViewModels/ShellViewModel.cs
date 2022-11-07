@@ -57,6 +57,21 @@ namespace ACE_Mission_Control.ViewModels
             set { Set(ref _isUgCSRefreshEnabled, value); }
         }
 
+        private ServiceStatus dashboardStatus;
+        public ServiceStatus DashboardStatus
+        {
+            get { return dashboardStatus; }
+            set
+            {
+                if (dashboardStatus == value)
+                    return;
+                dashboardStatus = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public DashboardServiceMonitor DashboardServiceMonitor { get; set; }
+
         // Generated Code
 
         private readonly KeyboardAccelerator _altLeftKeyboardAccelerator = BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu);
@@ -68,6 +83,7 @@ namespace ACE_Mission_Control.ViewModels
         private object _selected;
         private ICommand _loadedCommand;
         private ICommand _itemInvokedCommand;
+
 
         public bool IsBackEnabled
         {
@@ -109,6 +125,19 @@ namespace ACE_Mission_Control.ViewModels
             UGCSConnectText = UGCSClient.ConnectionMessage;
 
             MenuItems = GetMenuItems().ToList();
+
+            DashboardServiceMonitor = new DashboardServiceMonitor();
+            DashboardServiceMonitor.StartConnectionAttempts();
+            DashboardServiceMonitor.PropertyChanged += DashboardServiceMonitor_PropertyChanged;
+        }
+
+        private async void DashboardServiceMonitor_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (e.PropertyName == "Status")
+                    DashboardStatus = DashboardServiceMonitor.Status;
+            });
         }
 
         private void SettingsViewModel_LanguageChangedEvent(object sender, EventArgs e)

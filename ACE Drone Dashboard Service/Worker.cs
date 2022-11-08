@@ -33,16 +33,7 @@ namespace ACE_Drone_Dashboard_Service
                 if (!service.IsConnectionUp())
                     service.Connect(stoppingToken);
 
-                // If it's not running then the connection failed. Loop and try again
-                if (service.Status != ServiceStatus.Running)
-                {
-                    await Task.Delay(3000, stoppingToken);
-                    continue;
-                }
-
-
-
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(3000, stoppingToken);
             }
         }
 

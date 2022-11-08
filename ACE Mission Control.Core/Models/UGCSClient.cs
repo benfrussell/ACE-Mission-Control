@@ -51,6 +51,7 @@ namespace ACE_Mission_Control.Core.Models
         private static MessageSender messageSender;
         private static MessageReceiver messageReceiver;
         private static MessageExecutor messageExecutor;
+        private static NotificationListener notificationListener;
         private static int clientID;
         private static SynchronizationContext syncContext;
 
@@ -119,6 +120,19 @@ namespace ACE_Mission_Control.Core.Models
             }
         }
 
+        private static bool subscribedToTelemetry;
+        public static bool SubscribedToTelemetry
+        {
+            get { return subscribedToTelemetry; }
+            private set
+            {
+                if (value == subscribedToTelemetry)
+                    return;
+                subscribedToTelemetry = value;
+                NotifyStaticPropertyChanged();
+            }
+        }
+
         static UGCSClient()
         {
             IsConnected = false;
@@ -174,6 +188,8 @@ namespace ACE_Mission_Control.Core.Models
 
             messageSender = new MessageSender(tcpClient.Session);
             messageReceiver = new MessageReceiver(tcpClient.Session);
+            notificationListener = new NotificationListener();
+            messageReceiver.AddListener(-1, notificationListener);
             messageExecutor = new MessageExecutor(messageSender, messageReceiver, new InstantTaskScheduler());
             messageExecutor.Configuration.DefaultTimeout = 5000;
 
@@ -254,11 +270,11 @@ namespace ACE_Mission_Control.Core.Models
 
         public static void RequestVehicleList()
         {
-            RetrieveAndProcessObjectList("Vehicle", (objects) => ReceivedVehicleListEvent(
-                    null,
-                    new ReceivedVehicleListEventArgs() { Vehicles = new List<Vehicle>(from obj in objects select obj.Vehicle) }
-                )
-            );
+            RetrieveAndProcessObjectList("Vehicle", (objects) =>
+                ReceivedVehicleListEvent(
+                        null,
+                        new ReceivedVehicleListEventArgs() { Vehicles = new List<Vehicle>(from obj in objects select obj.Vehicle) })
+                );
         }
 
         public static void GetLogs()
@@ -350,6 +366,22 @@ namespace ACE_Mission_Control.Core.Models
                         new ReceivedRoutesEventArgs() { Routes = missionObj.Mission.Routes });
                     RequestingRoutes = false;
                 });
+        }
+
+        public static async void StartTelemetrySubscription(NotificationHandler eventHandler)
+        {
+            var telemetrySubscriptionWrapper = new EventSubscriptionWrapper();
+            telemetrySubscriptionWrapper.TelemetrySubscription = new TelemetrySubscription();
+
+            SubscribeEventRequest requestTelemetryEvent = new SubscribeEventRequest();
+            requestTelemetryEvent.ClientId = clientID;
+            requestTelemetryEvent.Subscription = telemetrySubscriptionWrapper;
+
+            var subscribeEventResponseTelemetry = await Task.Run(() => RequestAndWait<SubscribeEventResponse>(requestTelemetryEvent));
+
+            SubscriptionToken stTelemetry = new SubscriptionToken(subscribeEventResponseTelemetry.SubscriptionId, eventHandler, telemetrySubscriptionWrapper);
+            notificationListener.AddSubscription(stTelemetry);
+            SubscribedToTelemetry = true;
         }
 
         private static async void RetrieveAndProcessObjectList(string objectType, Action<List<DomainObjectWrapper>> processCallback)

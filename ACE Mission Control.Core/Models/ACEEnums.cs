@@ -6,6 +6,16 @@ using Google.Protobuf;
 
 namespace ACE_Mission_Control.Core.Models
 {
+    public enum ServiceStatus : int
+    {
+        NotRunning,
+        Starting,
+        RunningDatabaseNotReachable,
+        RunningNoUgCSConnection,
+        RunningDatabaseConnectionRefused,
+        Running
+    }
+
     public class ACEEnums
     {
         public enum MessageType : int

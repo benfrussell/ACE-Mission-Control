@@ -616,13 +616,13 @@
   <data name="ServiceStatus_RunningNoUgCSConnection" xml:space="preserve">
     <value>Impossible de se connecter à UgCS</value>
   </data>
-  <data name="ServiceStatus_RunningDatabaseWontAuthenticate" xml:space="preserve">
-    <value>L’utilisateur n’a pas accès à la base de données</value>
-  </data>
   <data name="ServiceStatus_Running" xml:space="preserve">
     <value>Fonctionne</value>
   </data>
   <data name="Main_DashServiceHeader.Text" xml:space="preserve">
     <value>Service dashboard</value>
+  </data>
+  <data name="ServiceStatus_RunningDatabaseConnectionRefused" xml:space="preserve">
+    <value>Connexion refusée</value>
   </data>
 </root>

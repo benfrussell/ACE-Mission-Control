@@ -43,6 +43,9 @@ namespace ACE_Mission_Control.Core.Models
 
         public Task StartAsync(string connectionString, Func<string, string> requestHandler, Action<Exception> startFailureHandler = null)
         {
+            if (Status == ServerStatus.Running)
+                return Task.CompletedTask;
+
             this.requestHandler = requestHandler;
             this.startFailureHandler = startFailureHandler;
             Status = ServerStatus.Starting;

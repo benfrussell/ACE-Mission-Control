@@ -12,9 +12,10 @@ namespace ACE_Mission_Control.Core.Models
     public enum ServiceStatus : int
     {
         NotRunning,
+        Starting,
         RunningDatabaseNotReachable,
         RunningNoUgCSConnection,
-        RunningDatabaseWontAuthenticate,
+        RunningDatabaseConnectionRefused,
         Running
     }
 

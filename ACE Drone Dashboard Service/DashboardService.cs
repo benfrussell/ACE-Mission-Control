@@ -16,6 +16,8 @@ namespace ACE_Drone_Dashboard_Service
     public class VehicleTelemetry
     {
         public string Name { get; set; }
+        public string Model { get; private set; }
+        public bool IsReal { get; private set; }
         public int ID { get; set; }
         // Latitude and longitude in degrees
         public double Longitude { get; set; }
@@ -30,10 +32,10 @@ namespace ACE_Drone_Dashboard_Service
             get
             {
                 if (IsArmed && Altitude > ArmedAltitude + 1)
-                    return "InAir";
+                    return "IN_AIR";
                 else if (IsArmed)
-                    return "OnGround";
-                return "Stopped";
+                    return "ON_GROUND";
+                return "STOPPED";
             }
         }
 
@@ -66,10 +68,12 @@ namespace ACE_Drone_Dashboard_Service
 
         private bool resetArmedAltitude = false;
 
-        public VehicleTelemetry(string name, int id)
+        public VehicleTelemetry(string name, int id, bool isReal)
         {
             Name = name;
+            Model = name.Split(' ', '-')[0];
             ID = id;
+            IsReal = isReal;
         }
     }
 
@@ -127,7 +131,7 @@ namespace ACE_Drone_Dashboard_Service
                 if (telemetry.ContainsKey(vehicle.Id))
                     telemetry[vehicle.Id].Name = vehicle.Name;
                 else
-                    telemetry[vehicle.Id] = new VehicleTelemetry(vehicle.Name, vehicle.Id);
+                    telemetry[vehicle.Id] = new VehicleTelemetry(vehicle.Name, vehicle.Id, vehicle.IsReal);
             }
         }
 

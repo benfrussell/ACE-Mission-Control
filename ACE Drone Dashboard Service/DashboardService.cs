@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using UGCS.Sdk.Protocol.Merging;
 using System.Timers;
 using UGCS.Sdk.Protocol.Encoding;
+using System.Reflection.Metadata.Ecma335;
+using System.Collections;
 
 namespace ACE_Drone_Dashboard_Service
 {
@@ -129,9 +131,15 @@ namespace ACE_Drone_Dashboard_Service
             foreach (var vehicle in e.Vehicles)
             {
                 if (telemetry.ContainsKey(vehicle.Id))
+                {
                     telemetry[vehicle.Id].Name = vehicle.Name;
+                }
                 else
+                {
                     telemetry[vehicle.Id] = new VehicleTelemetry(vehicle.Name, vehicle.Id, vehicle.IsReal);
+                    if (vehicle.IsReal && IsDBConnectionUp())
+                        EnsureTableHasDroneRows(new[] { telemetry[vehicle.Id] });
+                }
             }
         }
 
@@ -143,11 +151,16 @@ namespace ACE_Drone_Dashboard_Service
 
         public bool IsConnectionUp()
         {
-            if (!UGCSClient.IsConnected || sqlCxn == null || sqlCxn.State != System.Data.ConnectionState.Open)
+            if (!UGCSClient.IsConnected || !IsDBConnectionUp())
                 return false;
             if (Status != ServiceStatus.Running)
                 SetStatus(ServiceStatus.Running);
             return true;
+        }
+
+        private bool IsDBConnectionUp()
+        {
+            return sqlCxn != null && sqlCxn.State == System.Data.ConnectionState.Open;
         }
 
         public async void Connect(CancellationToken stoppingToken)
@@ -181,7 +194,42 @@ namespace ACE_Drone_Dashboard_Service
                 return;
             }
 
-            SetStatus(ServiceStatus.Running);
+            var realVehicles = telemetry.Where((entry) => entry.Value.IsReal == true).Select((entry) => entry.Value);
+            if (realVehicles.Count() > 0)
+                EnsureTableHasDroneRows(realVehicles);
+
+            if (Status != ServiceStatus.RunningDatabasePermissionDenied)
+                SetStatus(ServiceStatus.Running);
+        }
+
+        private void EnsureTableHasDroneRows(IEnumerable<VehicleTelemetry> vehicles)
+        {
+            foreach (var vehicle in vehicles)
+            {
+                var command = new SqlCommand(
+$@"BEGIN
+    IF NOT EXISTS (SELECT * FROM sde.DRONE WHERE Name = '{vehicle.Name}')
+    BEGIN
+        INSERT INTO sde.DRONE (OBJECTID, Name, Drone_model, GlobalID)
+        VALUES ((SELECT COUNT(1) + 1 FROM sde.DRONE), '{vehicle.Name}', '{vehicle.Model}', NEWID())
+    END
+END", sqlCxn);
+                try
+                {
+                    var result = command.ExecuteReader();
+                }
+                catch (SqlException e)
+                {
+                    // Permission error
+                    if (e.Number == 229)
+                    {
+                        SetStatus(ServiceStatus.RunningDatabasePermissionDenied);
+                        sqlCxn.Close();
+                        break;
+                    }
+                    throw;
+                }
+            }
         }
 
         private void TelemetryNotificationHandler(Notification notification)

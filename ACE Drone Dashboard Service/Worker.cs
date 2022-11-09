@@ -31,7 +31,8 @@ namespace ACE_Drone_Dashboard_Service
             while (!stoppingToken.IsCancellationRequested)
             {
                 // Try to start the service connection if it's not running
-                if (!service.IsConnectionUp())
+                // If we had permission denied then don't try starting again
+                if (!service.IsConnectionUp() && service.Status != ServiceStatus.RunningDatabasePermissionDenied)
                     service.Connect(stoppingToken);
 
                 await Task.Delay(3000, stoppingToken);

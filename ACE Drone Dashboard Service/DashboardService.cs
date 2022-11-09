@@ -17,14 +17,60 @@ namespace ACE_Drone_Dashboard_Service
     {
         public string Name { get; set; }
         public int ID { get; set; }
-        public string FlightState { get; set; }
-        public string MissionStage { get; set; }
-        public long Longitude { get; set; }
-        public long Latitude { get; set; }
-        public long Altitude { get; set; }
-        public long VelX { get; set; }
-        public long VelY { get; set; }
-        public long VelZ { get; set; }
+        // Latitude and longitude in degrees
+        public double Longitude { get; set; }
+        public double Latitude { get; set; }
+        public float GroundSpeed { get; set; }
+        // Course in degrees
+        public float Course { get; set; }
+        public float ArmedAltitude { get; private set; }
+
+        public string FlightState
+        {
+            get
+            {
+                if (IsArmed && Altitude > ArmedAltitude + 1)
+                    return "InAir";
+                else if (IsArmed)
+                    return "OnGround";
+                return "Stopped";
+            }
+        }
+
+        private float altitude;
+        public float Altitude
+        {
+            get { return altitude; }
+            set 
+            {
+                altitude = value;
+                if (resetArmedAltitude)
+                {
+                    ArmedAltitude = value;
+                    resetArmedAltitude = false;
+                }
+            }
+        }
+
+        private bool isArmed;
+        public bool IsArmed
+        {
+            get { return isArmed; }
+            set
+            {
+                isArmed = value;
+                if (isArmed == false && value == true)
+                    resetArmedAltitude = true;
+            }
+        }
+
+        private bool resetArmedAltitude = false;
+
+        public VehicleTelemetry(string name, int id)
+        {
+            Name = name;
+            ID = id;
+        }
     }
 
     public class DashboardService
@@ -53,6 +99,7 @@ namespace ACE_Drone_Dashboard_Service
             this.logger = logger;
 
             UGCSClient.ReceivedVehicleListEvent += UGCSClient_ReceivedVehicleListEvent;
+            UGCSClient.StaticPropertyChanged += UGCSClient_StaticPropertyChanged;
 
             sqlUpdateTimer = new System.Timers.Timer();
             sqlUpdateTimer.AutoReset = false;
@@ -63,20 +110,24 @@ namespace ACE_Drone_Dashboard_Service
             requestedVehicleListUpdate = false;
         }
 
+        private void UGCSClient_StaticPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "IsConnected" && UGCSClient.IsConnected)
+            {
+                if (!UGCSClient.SubscribedToTelemetry)
+                    UGCSClient.StartTelemetrySubscription(TelemetryNotificationHandler);
+                RequestVehicleListUpdate();
+            }
+        }
+
         private void UGCSClient_ReceivedVehicleListEvent(object? sender, ReceivedVehicleListEventArgs e)
         {
             foreach (var vehicle in e.Vehicles)
             {
                 if (telemetry.ContainsKey(vehicle.Id))
-                {
                     telemetry[vehicle.Id].Name = vehicle.Name;
-                }
                 else
-                {
-                    telemetry[vehicle.Id] = new VehicleTelemetry();
-                    telemetry[vehicle.Id].Name = vehicle.Name;
-                    telemetry[vehicle.Id].ID = vehicle.Id;
-                }
+                    telemetry[vehicle.Id] = new VehicleTelemetry(vehicle.Name, vehicle.Id);
             }
         }
 
@@ -90,6 +141,8 @@ namespace ACE_Drone_Dashboard_Service
         {
             if (!UGCSClient.IsConnected || sqlCxn == null || sqlCxn.State != System.Data.ConnectionState.Open)
                 return false;
+            if (Status != ServiceStatus.Running)
+                SetStatus(ServiceStatus.Running);
             return true;
         }
 
@@ -124,10 +177,6 @@ namespace ACE_Drone_Dashboard_Service
                 return;
             }
 
-            if (!UGCSClient.SubscribedToTelemetry)
-                UGCSClient.StartTelemetrySubscription(TelemetryNotificationHandler);
-            RequestVehicleListUpdate();
-
             SetStatus(ServiceStatus.Running);
         }
 
@@ -142,28 +191,30 @@ namespace ACE_Drone_Dashboard_Service
                     continue;
                 }
 
+                if (t.Value == null)
+                    continue;
+
                 switch (t.TelemetryField.Code)
                 {
                     case "longitude":
-                        telemetry[vehicleID].Longitude = t.Value.LongValue;
+                        telemetry[vehicleID].Longitude = t.Value.DoubleValue * (180/Math.PI);
                         break;
                     case "latitude":
-                        telemetry[vehicleID].Latitude = t.Value.LongValue;
+                        telemetry[vehicleID].Latitude = t.Value.DoubleValue * (180 / Math.PI);
                         break;
                     case "altitude_raw":
-                        telemetry[vehicleID].Altitude = t.Value.LongValue;
+                        telemetry[vehicleID].Altitude = t.Value.FloatValue;
                         break;
-                    case "ground_speed_x":
-                        telemetry[vehicleID].VelX = t.Value.LongValue;
+                    case "is_armed":
+                        telemetry[vehicleID].IsArmed = t.Value.BoolValue;
                         break;
-                    case "ground_speed_y":
-                        telemetry[vehicleID].VelY = t.Value.LongValue;
+                    case "course":
+                        telemetry[vehicleID].Course = (float)(t.Value.FloatValue * (180 / Math.PI));
                         break;
-                    case "vertical_speed":
-                        telemetry[vehicleID].VelZ = t.Value.LongValue;
+                    case "ground_speed":
+                        telemetry[vehicleID].GroundSpeed = t.Value.FloatValue;
                         break;
                     default:
-                        logger.LogInformation("Vehicle id: {0} Code: {1} Semantic {2} Subsystem {3}", notification.Event.TelemetryEvent.Vehicle.Id, t.TelemetryField.Code, t.TelemetryField.Semantic, t.TelemetryField.Subsystem);
                         break;
                 }
             }

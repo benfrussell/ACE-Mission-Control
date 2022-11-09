@@ -17,12 +17,13 @@ namespace ACE_Drone_Dashboard_Service
         public Worker(ILogger<Worker> logger)
         {
             this.logger = logger;
-            server = new ResponseServer();
-            service = new DashboardService(logger);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            server = new ResponseServer();
+            service = new DashboardService(logger);
+
             await server.StartAsync("tcp://localhost:5538", HandleServerRequest, HandleServerFailure);
             if (server.Status == ServerStatus.Failed)
                 return;

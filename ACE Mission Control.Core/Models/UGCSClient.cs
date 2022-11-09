@@ -140,7 +140,10 @@ namespace ACE_Mission_Control.Core.Models
             RequestingRoutes = false;
             RequestingMissions = false;
             ConnectionMessage = "Not connected to UGCS";
-            syncContext = SynchronizationContext.Current;
+            if (SynchronizationContext.Current == null)
+                syncContext = new SynchronizationContext();
+            else
+                syncContext = SynchronizationContext.Current;
         }
 
         public static void StartTryingConnections()

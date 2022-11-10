@@ -88,9 +88,17 @@ namespace ACE_Mission_Control.Core.Models
 
         private void RequestClient_ResponseReceivedEvent(object sender, ResponseReceivedEventArgs e)
         {
-            int parsedStatusInt;
-            if (int.TryParse(e.Line, out parsedStatusInt))
-                StatusUpdateReceived((ServiceStatus)parsedStatusInt);
+            switch (e.Command)
+            {
+                case "status":
+                    int parsedStatusInt;
+                    if (int.TryParse(e.Response, out parsedStatusInt))
+                        StatusUpdateReceived((ServiceStatus)parsedStatusInt);
+                    break;
+                default:
+                    break;
+            }
+            
         }
 
         private void StatusUpdateReceived(ServiceStatus newStatus)
@@ -123,6 +131,16 @@ namespace ACE_Mission_Control.Core.Models
         {
             attemptConnection = true;
             _ = StartAsync();
+        }
+
+        public void RequestResume()
+        {
+            requestClient.SendCommand("resume");
+        }
+
+        public void RequestHalt()
+        {
+            requestClient.SendCommand("halt");
         }
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")

@@ -15,6 +15,7 @@ namespace ACE_Mission_Control.Core.Models
         HaltedDatabaseConnectionRefused,
         HaltedDatabasePermissionDenied,
         HaltedDatabaseSevereError,
+        HaltedByRequest,
         Running
     }
 

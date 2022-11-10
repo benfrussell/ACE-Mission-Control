@@ -29,6 +29,13 @@ namespace ACE_Mission_Control.ViewModels
 {
     public class ShellViewModel : ViewModelBase
     {
+        public enum DashServiceRequest
+        {
+            None,
+            Halt,
+            Resume
+        }
+
         private List<object> _menuItems;
         public List<object> MenuItems
         {
@@ -57,15 +64,28 @@ namespace ACE_Mission_Control.ViewModels
             set { Set(ref _isUgCSRefreshEnabled, value); }
         }
 
-        private ServiceStatus dashboardStatus;
-        public ServiceStatus DashboardStatus
+        private string dashboardStatusText;
+        public string DashboardStatusText
         {
-            get { return dashboardStatus; }
+            get { return dashboardStatusText; }
             set
             {
-                if (dashboardStatus == value)
+                if (dashboardStatusText == value)
                     return;
-                dashboardStatus = value;
+                dashboardStatusText = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string dashServiceTooltip;
+        public string DashServiceTooltip
+        {
+            get { return dashServiceTooltip; }
+            set
+            {
+                if (dashServiceTooltip == value)
+                    return;
+                dashServiceTooltip = value;
                 RaisePropertyChanged();
             }
         }
@@ -83,6 +103,7 @@ namespace ACE_Mission_Control.ViewModels
         private object _selected;
         private ICommand _loadedCommand;
         private ICommand _itemInvokedCommand;
+        private DashServiceRequest dashServiceRequest;
 
 
         public bool IsBackEnabled
@@ -129,6 +150,9 @@ namespace ACE_Mission_Control.ViewModels
             DashboardServiceMonitor = new DashboardServiceMonitor();
             DashboardServiceMonitor.StartConnectionAttempts();
             DashboardServiceMonitor.PropertyChanged += DashboardServiceMonitor_PropertyChanged;
+
+            dashServiceRequest = DashServiceRequest.None;
+            SetDashboardStatus();
         }
 
         private async void DashboardServiceMonitor_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -136,8 +160,24 @@ namespace ACE_Mission_Control.ViewModels
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
                 if (e.PropertyName == "Status")
-                    DashboardStatus = DashboardServiceMonitor.Status;
+                {
+                    // If the status changed and a request was underway, we can assume the change was a result of the request
+                    if (dashServiceRequest != DashServiceRequest.None)
+                        dashServiceRequest = DashServiceRequest.None;
+                    SetDashboardStatus();
+                }
+                    
             });
+        }
+
+        private void SetDashboardStatus()
+        {
+            if (dashServiceRequest != DashServiceRequest.None)
+                DashboardStatusText = $"ServiceStatus_{dashServiceRequest}".GetLocalized();
+            else
+                DashboardStatusText = $"ServiceStatus_{DashboardServiceMonitor.Status}".GetLocalized();
+
+            DashServiceTooltip = $"ServiceStatus_{DashboardServiceMonitor.Status}_Tip".GetLocalized();
         }
 
         private void SettingsViewModel_LanguageChangedEvent(object sender, EventArgs e)
@@ -224,6 +264,34 @@ namespace ACE_Mission_Control.ViewModels
                 UGCSClient.RequestMissionsByID(1000);
             else
                 UGCSClient.RequestMissions();
+        }
+
+        public RelayCommand DashServiceDoubleClickedCommand => new RelayCommand(() => dashServiceDoubleClicked());
+        private void dashServiceDoubleClicked()
+        {
+            switch (DashboardServiceMonitor.Status)
+            {
+                case ServiceStatus.NotRunning:
+                case ServiceStatus.Starting:
+                    break;
+                case ServiceStatus.RunningDatabaseNotReachable:
+                case ServiceStatus.RunningNoUgCSConnection:
+                case ServiceStatus.Running:
+                    dashServiceRequest = DashServiceRequest.Halt;
+                    SetDashboardStatus();
+                    DashboardServiceMonitor.RequestHalt();
+                    break;
+                case ServiceStatus.HaltedDatabaseConnectionRefused:
+                case ServiceStatus.HaltedDatabasePermissionDenied:
+                case ServiceStatus.HaltedDatabaseSevereError:
+                case ServiceStatus.HaltedByRequest:
+                    dashServiceRequest = DashServiceRequest.Resume;
+                    SetDashboardStatus();
+                    DashboardServiceMonitor.RequestResume();
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OnBackRequested(WinUI.NavigationView sender, WinUI.NavigationViewBackRequestedEventArgs args)

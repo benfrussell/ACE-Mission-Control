@@ -48,7 +48,7 @@ namespace ACE_Drone_Dashboard_Service
                 case "halt":
                     if (service.Halted)
                         return "Service is already halted";
-                    service.Halt();
+                    service.Halt(ServiceStatus.HaltedByRequest);
                     return "Halting service";
                 case "resume":
                     if (!service.Halted)

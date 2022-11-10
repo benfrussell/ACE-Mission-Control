@@ -134,7 +134,7 @@ namespace ACE_Mission_Control.ViewModels
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
-                CMDResponseText += e.Line;
+                CMDResponseText += e.Response;
             });
         }
 

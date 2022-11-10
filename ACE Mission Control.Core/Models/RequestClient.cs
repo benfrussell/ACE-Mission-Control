@@ -8,7 +8,8 @@ namespace ACE_Mission_Control.Core.Models
 {
     public class ResponseReceivedEventArgs : EventArgs
     {
-        public string Line { get; set; }
+        public string Response { get; set; }
+        public string Command { get; set; }
     }
 
     public interface IRequestClient : IACENetMQClient
@@ -61,9 +62,11 @@ namespace ACE_Mission_Control.Core.Models
 
             while (true)
             {
+                string command = "";
                 if (!Connected)
                 {
-                    Socket.SendFrame("ping");
+                    command = "ping";
+                    Socket.SendFrame(command);
                 }
                 else
                 {
@@ -71,7 +74,7 @@ namespace ACE_Mission_Control.Core.Models
                     ReadyForCommand = true;
                     try
                     {
-                        string command = await nextCommand.Task;
+                        command = await nextCommand.Task;
                         Socket.SendFrame(command);
                     }
                     catch (OperationCanceledException)
@@ -116,7 +119,8 @@ namespace ACE_Mission_Control.Core.Models
                 }
 
                 ResponseReceivedEventArgs response_e = new ResponseReceivedEventArgs();
-                response_e.Line = response;
+                response_e.Response = response;
+                response_e.Command = command;
                 ResponseReceivedEvent?.Invoke(this, response_e);
             }
         }

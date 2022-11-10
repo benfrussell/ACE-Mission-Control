@@ -622,7 +622,55 @@
   <data name="ServiceStatus_Running" xml:space="preserve">
     <value>Running</value>
   </data>
-  <data name="ServiceStatus_RunningDatabaseConnectionRefused" xml:space="preserve">
+  <data name="ServiceStatus_HaltedDatabaseConnectionRefused" xml:space="preserve">
     <value>Database refused connection</value>
+  </data>
+  <data name="ServiceStatus_Starting" xml:space="preserve">
+    <value>Starting up</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabasePermissionDenied" xml:space="preserve">
+    <value>Database permission denied</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabaseSevereError" xml:space="preserve">
+    <value>Database error</value>
+  </data>
+  <data name="ServiceStatus_Halt" xml:space="preserve">
+    <value>Requesting halt...</value>
+  </data>
+  <data name="ServiceStatus_Resume" xml:space="preserve">
+    <value>Requesting resume...</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabaseConnectionRefused_Tip" xml:space="preserve">
+    <value>The database actively refused the connection. Your user account may not have permission to connect or the service may not be configured correctly. Double-click to re-attempt connection.</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabaseSevereError_Tip" xml:space="preserve">
+    <value>After querying the database, the database reported a severe error (severity &gt;=20), forcing the connection to close. Double-click to re-attempt connection.</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabasePermissionDenied_Tip" xml:space="preserve">
+    <value>The database denied permission to execute a query. Your user account must have permission to SELECT, INSERT, and UPDATE on the relevant tables. Double-click to re-attempt connection.</value>
+  </data>
+  <data name="ServiceStatus_NotRunning_Tip" xml:space="preserve">
+    <value>The drone dashboard service is not running. The service may not be installed correctly or it may have crashed. Try restarting your computer or reinstalling ACE.</value>
+  </data>
+  <data name="ServiceStatus_Running_Tip" xml:space="preserve">
+    <value>The drone dashboard service is connected to UgCS and the database. Double-click to halt the service.</value>
+  </data>
+  <data name="ServiceStatus_RunningDatabaseNotReachable_Tip" xml:space="preserve">
+    <value>The database is not reachable. Make you have an internet connection and your VPN is running. Double-click to halt the service.</value>
+  </data>
+  <data name="ServiceStatus_RunningNoUgCSConnection_Tip" xml:space="preserve">
+    <value>The drone dashboard service could not connect to UgCS. Make sure UgCS is running. Double-click to halt the service.</value>
+  </data>
+  <data name="ServiceStatus_Starting_Tip" xml:space="preserve">
+    <value>The drone dashboard service is starting up.</value>
+  </data>
+  <data name="Main_DashServiceTooltip.Text" xml:space="preserve">
+    <value>The drone dashboard service provides real-time drone positions to the online dashboard using a connection to the database. Requires both UgCS and the VPN to be running, as well as an internet connection.</value>
+  </data>
+  <data name="ServiceStatus_HaltedByRequest" xml:space="preserve">
+    <value>Halted</value>
+  </data>
+  <data name="ServiceStatus_HaltedByRequest_Tip" xml:space="preserve">
+    <value>Halted by request. Double-click to resume.</value>
   </data>
 </root>

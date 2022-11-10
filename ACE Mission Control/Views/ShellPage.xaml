@@ -113,21 +113,38 @@
                                Text="{x:Bind ViewModel.UGCSConnectText, Mode=OneWay}"
                                Style="{StaticResource CaptionTextBlockStyle}"
                                Height="20"/>
+
                     <TextBlock x:Uid="Main_DashServiceHeader"
                                x:Name="DashServiceHeader"
                                RelativePanel.Below="UGCSMissionRetrieveTextBlock"
                                Style="{ThemeResource NavigationViewItemHeaderTextStyle}"
                                FontSize="16"
                                TextWrapping="NoWrap"
-                               Margin="0,8,0,0"/>
+                               Margin="0,8,0,0">
+                        <ToolTipService.ToolTip>
+                            <TextBlock x:Uid="Main_DashServiceTooltip"
+                                       TextWrapping="Wrap"/>
+                        </ToolTipService.ToolTip>
+                    </TextBlock>
                     <TextBlock x:Uid="Main_DashServiceTextBlock"
                                x:Name="DashServiceTextBlock"
                                RelativePanel.Below="DashServiceHeader"
                                VerticalAlignment="Center"
-                               Text="{x:Bind ViewModel.DashboardStatus, Mode=OneWay, Converter={StaticResource EnumToResourceString}}"
+                               Text="{x:Bind ViewModel.DashboardStatusText, Mode=OneWay}"
                                Style="{StaticResource CaptionTextBlockStyle}"
                                TextWrapping="NoWrap"
-                               Height="20"/>
+                               Height="20">
+                        <i:Interaction.Behaviors>
+                            <ic:EventTriggerBehavior EventName="DoubleTapped">
+                                <ic:InvokeCommandAction Command="{x:Bind ViewModel.DashServiceDoubleClickedCommand}"/>
+                            </ic:EventTriggerBehavior>
+                        </i:Interaction.Behaviors>
+                        <ToolTipService.ToolTip>
+                            <TextBlock Text="{x:Bind ViewModel.DashServiceTooltip, Mode=OneWay}"
+                                       TextWrapping="Wrap"/>
+                        </ToolTipService.ToolTip>
+                    </TextBlock>
+
                     <Rectangle Height="1"
                                Stretch="UniformToFill"
                                Fill="{ThemeResource SystemBaseLowColor}"

@@ -791,17 +791,17 @@ namespace ACE_Mission_Control.Core.Models
             {
                 case Command.TriggerType.Synchronize:
                     syncCommandsSent--;
-                    if (e.Line.Contains("(FAILURE)"))
+                    if (e.Response.Contains("(FAILURE)"))
                         HandleUpdateOrSyncFailure();
-                    else if (e.Line.Contains("(SUCCESS)"))
+                    else if (e.Response.Contains("(SUCCESS)"))
                         CheckIfSyncComplete();
 
                     break;
                 case Command.TriggerType.Update:
                     updateCommandsSent--;
-                    if (e.Line.Contains("(FAILURE)"))
+                    if (e.Response.Contains("(FAILURE)"))
                         HandleUpdateOrSyncFailure();
-                    else if (e.Line.Contains("(SUCCESS)"))
+                    else if (e.Response.Contains("(SUCCESS)"))
                         CheckIfUpdateComplete();
 
                     break;
@@ -812,12 +812,12 @@ namespace ACE_Mission_Control.Core.Models
             if (lastCommandSent.Name == "set_mission" || lastCommandSent.Name == "add_area" ||
                (lastCommandSent.Name == "set_route" && lastCommandSent.Parameters.Contains("area")))
             {
-                if (e.Line.Contains("(SUCCESS)"))
+                if (e.Response.Contains("(SUCCESS)"))
                     Mission.SetInstructionUploadStatus((int)lastCommandSent.Tag, TreatmentInstruction.UploadStatus.Uploaded);
             }
             else if (lastCommandSent.Name == "set_config_entry")
             {
-                if (e.Line.Contains("(SUCCESS)"))
+                if (e.Response.Contains("(SUCCESS)"))
                 {
                     var updated_entry = (ConfigEntry)lastCommandSent.Tag;
                     var entry_index = ConfigEntries.IndexOf(ConfigEntries.FirstOrDefault(c => c.Id == updated_entry.Id));

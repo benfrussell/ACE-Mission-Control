@@ -622,7 +622,55 @@
   <data name="Main_DashServiceHeader.Text" xml:space="preserve">
     <value>Service dashboard</value>
   </data>
-  <data name="ServiceStatus_RunningDatabaseConnectionRefused" xml:space="preserve">
+  <data name="ServiceStatus_HaltedDatabaseConnectionRefused" xml:space="preserve">
     <value>Connexion refusée</value>
+  </data>
+  <data name="ServiceStatus_Starting" xml:space="preserve">
+    <value>Commencer</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabasePermissionDenied" xml:space="preserve">
+    <value>Autorisation de base de données refusée</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabaseSevereError" xml:space="preserve">
+    <value>Erreur de base de données</value>
+  </data>
+  <data name="ServiceStatus_Halt" xml:space="preserve">
+    <value>Demande d'arrêt...</value>
+  </data>
+  <data name="ServiceStatus_Resume" xml:space="preserve">
+    <value>Demande de reprise...</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabaseConnectionRefused_Tip" xml:space="preserve">
+    <value>La base de données a activement refusé la connexion. Il se peut que votre compte utilisateur ne soit pas autorisé à se connecter ou que le service ne soit pas configuré correctement. Double-cliquez pour réessayer la connexion.</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabaseSevereError_Tip" xml:space="preserve">
+    <value>Après avoir interrogé la base de données, la base de données a signalé une grave erreur (gravité &gt;=20), forçant la connexion à se fermer. Double-cliquez pour réessayer la connexion.</value>
+  </data>
+  <data name="ServiceStatus_HaltedDatabasePermissionDenied_Tip" xml:space="preserve">
+    <value>La base de données a refusé l'autorisation d'exécuter une requête. Votre compte utilisateur doit avoir l'autorisation de SELECT, INSERT et UPDATE les tableaux pertinents. Double-cliquez pour réessayer la connexion.</value>
+  </data>
+  <data name="ServiceStatus_NotRunning_Tip" xml:space="preserve">
+    <value>Le service du tableau de bord du drone n'est pas en cours d'exécution. Il se peut que le service ne soit pas installé correctement ou qu'il se soit écrasé. Essayez de redémarrer votre ordinateur ou de réinstaller ACE.</value>
+  </data>
+  <data name="ServiceStatus_Running_Tip" xml:space="preserve">
+    <value>Le service de tableau de bord du drone est connecté à UgCS et à la base de données. Double-cliquez pour arrêter le service.</value>
+  </data>
+  <data name="ServiceStatus_RunningDatabaseNotReachable_Tip" xml:space="preserve">
+    <value>La base de données n'est pas accessible. Vous devez avoir une connexion Internet et votre VPN est en cours d'exécution. Double-cliquez pour arrêter le service.</value>
+  </data>
+  <data name="ServiceStatus_RunningNoUgCSConnection_Tip" xml:space="preserve">
+    <value>Le service de tableau de bord du drone n'a pas pu se connecter à UgCS. Assurez-vous que UgCS est en cours d'exécution. Double-cliquez pour arrêter le service.</value>
+  </data>
+  <data name="ServiceStatus_Starting_Tip" xml:space="preserve">
+    <value>Le service de tableau de bord du drone démarre.</value>
+  </data>
+  <data name="Main_DashServiceTooltip.Text" xml:space="preserve">
+    <value>Le service de tableau de bord de drone fournit des positions de drone en temps réel au tableau de bord en ligne à l'aide d'une connexion à la base de données. Nécessite à la fois UgCS et le VPN pour être en cours d'exécution, ainsi qu'une connexion Internet.</value>
+  </data>
+  <data name="ServiceStatus_HaltedByRequest" xml:space="preserve">
+    <value>Arrêté</value>
+  </data>
+  <data name="ServiceStatus_HaltedByRequest_Tip" xml:space="preserve">
+    <value>Arrêté sur demande. Double-cliquez pour reprendre.</value>
   </data>
 </root>

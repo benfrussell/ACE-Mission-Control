@@ -189,8 +189,10 @@ namespace ACE_Drone_Dashboard_Service
             return true;
         }
 
-        public void Halt()
+        public void Halt(ServiceStatus haltedStatus)
         {
+            SetStatus(haltedStatus);
+
             if (Halted)
                 return;
 
@@ -234,7 +236,12 @@ namespace ACE_Drone_Dashboard_Service
                 return;
             }
 
-            if (!await DatabaseReachable(stoppingToken))
+            var dbReachable = await DatabaseReachable(stoppingToken);
+            // We have to check after awaiting to see if the service was halted while we were gone
+            if (Halted)
+                return;
+            
+            if (!dbReachable)
             {
                 SetStatus(ServiceStatus.RunningDatabaseNotReachable);
                 return;
@@ -248,10 +255,13 @@ namespace ACE_Drone_Dashboard_Service
                 
 
             sqlCxn = await EstablishDBConnection(stoppingToken);
+            if (Halted)
+                return;
+
             if (sqlCxn == null)
             {
-                SetStatus(ServiceStatus.HaltedDatabaseConnectionRefused);
-                Halt();
+                if (!Halted)
+                    Halt(ServiceStatus.HaltedDatabaseConnectionRefused);
                 return;
             }
 
@@ -334,6 +344,8 @@ WHERE Name = '{vehicle.Name}'");
 
                 if (!success)
                     break;
+
+                lastSQLUpdate = DateTime.Now;
             }
         }
 
@@ -366,16 +378,14 @@ END");
                 // Permission error
                 if (e.Number == 229)
                 {
-                    SetStatus(ServiceStatus.HaltedDatabasePermissionDenied);
-                    Halt();
+                    Halt(ServiceStatus.HaltedDatabasePermissionDenied);
                     return false;
                 }
 
-                if (e.Class > 20)
+                if (e.Class >= 20)
                 {
-                    SetStatus(ServiceStatus.HaltedDatabaseSevereError);
                     logger.LogInformation("SQL Connection closed due to a severe error: {e}", e.Message);
-                    Halt();
+                    Halt(ServiceStatus.HaltedDatabaseSevereError);
                     return false;
                 }
                 throw;

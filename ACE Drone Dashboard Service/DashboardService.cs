@@ -21,14 +21,58 @@ namespace ACE_Drone_Dashboard_Service
         public string Model { get; private set; }
         public bool IsReal { get; private set; }
         public int ID { get; set; }
-        // Latitude and longitude in degrees
-        public double Longitude { get; set; }
-        public double Latitude { get; set; }
-        public float GroundSpeed { get; set; }
-        // Course in degrees
-        public float Course { get; set; }
         public float ArmedAltitude { get; private set; }
-
+        public DateTime LastTelemetryUpdate { get; private set; }
+        // Latitude and longitude in degrees
+        public double Longitude 
+        { 
+            get => longitude;
+            set 
+            {
+                if (longitude != value)
+                {
+                    longitude = value;
+                    LastTelemetryUpdate = DateTime.Now;
+                }
+            }
+        }
+        public double Latitude
+        {
+            get => latitude;
+            set
+            {
+                if (latitude != value)
+                {
+                    latitude = value;
+                    LastTelemetryUpdate = DateTime.Now;
+                }
+            }
+        }
+        public float GroundSpeed
+        {
+            get => groundSpeed;
+            set
+            {
+                if (groundSpeed != value)
+                {
+                    groundSpeed = value;
+                    LastTelemetryUpdate = DateTime.Now;
+                }
+            }
+        }
+        // Course in degrees
+        public float Course
+        {
+            get => course;
+            set
+            {
+                if (course != value)
+                {
+                    course = value;
+                    LastTelemetryUpdate = DateTime.Now;
+                }
+            }
+        }
         public string FlightState
         {
             get
@@ -40,14 +84,17 @@ namespace ACE_Drone_Dashboard_Service
                 return "STOPPED";
             }
         }
-
-        private float altitude;
         public float Altitude
         {
             get { return altitude; }
-            set 
+            set
             {
-                altitude = value;
+                if (altitude != value)
+                {
+                    altitude = value;
+                    LastTelemetryUpdate = DateTime.Now;
+                }
+
                 if (resetArmedAltitude)
                 {
                     ArmedAltitude = value;
@@ -55,20 +102,29 @@ namespace ACE_Drone_Dashboard_Service
                 }
             }
         }
-
-        private bool isArmed;
         public bool IsArmed
         {
             get { return isArmed; }
             set
             {
-                isArmed = value;
+                if (isArmed != value)
+                {
+                    isArmed = value;
+                    LastTelemetryUpdate = DateTime.Now;
+                }
+
                 if (isArmed == false && value == true)
                     resetArmedAltitude = true;
             }
         }
 
         private bool resetArmedAltitude = false;
+        private double longitude;
+        private double latitude;
+        private float groundSpeed;
+        private float course;
+        private float altitude;
+        private bool isArmed;
 
         public VehicleTelemetry(string name, int id, bool isReal)
         {
@@ -89,6 +145,7 @@ namespace ACE_Drone_Dashboard_Service
         SqlConnectionStringBuilder cxnBuilder;
         SqlConnection? sqlCxn;
         System.Timers.Timer sqlUpdateTimer;
+        DateTime? lastSQLUpdate;
         bool requestedVehicleListUpdate;
 
         public DashboardService(ILogger<Worker> logger)
@@ -149,6 +206,18 @@ namespace ACE_Drone_Dashboard_Service
                 sqlUpdateTimer.Start();
         }
 
+        private void SQLUpdateTimer_Elapsed(object? sender, ElapsedEventArgs e)
+        {
+            if (!IsDBConnectionUp())
+            {
+                SetStatus(ServiceStatus.RunningDatabaseNotReachable);
+                return;
+            }
+
+            UpdateDroneTable();
+            sqlUpdateTimer.Start();
+        }
+
         public bool IsConnectionUp()
         {
             if (!UGCSClient.IsConnected || !IsDBConnectionUp())
@@ -198,38 +267,87 @@ namespace ACE_Drone_Dashboard_Service
             if (realVehicles.Count() > 0)
                 EnsureTableHasDroneRows(realVehicles);
 
-            if (Status != ServiceStatus.RunningDatabasePermissionDenied)
+            if (sqlCxn.State == System.Data.ConnectionState.Open)
+            {
+                StartSQLUpdates();
                 SetStatus(ServiceStatus.Running);
+            }
+        }
+
+        private void UpdateDroneTable()
+        {
+            foreach (var vehicle in telemetry.Values)
+            {
+                // Skip updating this vehicle if the drone isn't real 
+                if (!vehicle.IsReal)
+                    continue;
+                // or if the last telemetry received is older than the last time we updated
+                if (lastSQLUpdate != null && vehicle.LastTelemetryUpdate < lastSQLUpdate)
+                    continue;
+
+                bool success = ExecuteSQLQuery(
+$@"UPDATE sde.DRONE
+    SET
+    FlightState = '{vehicle.FlightState}',
+    Symbology = '{vehicle.Model}_{vehicle.FlightState}',
+    Longitude = {vehicle.Longitude},
+    Latitude = {vehicle.Latitude},
+    Altitude = {vehicle.Altitude},
+    Course = {vehicle.Course},
+    GroundSpeed = {vehicle.GroundSpeed},
+    Shape = geometry::STGeomFromText('POINT({vehicle.Longitude} {vehicle.Latitude})', 4326)),
+    ladate = SYSDATETIME()
+WHERE Name = '{vehicle.Name}'");
+
+                if (!success)
+                    break;
+            }
         }
 
         private void EnsureTableHasDroneRows(IEnumerable<VehicleTelemetry> vehicles)
         {
             foreach (var vehicle in vehicles)
             {
-                var command = new SqlCommand(
+                bool success = ExecuteSQLQuery(
 $@"BEGIN
     IF NOT EXISTS (SELECT * FROM sde.DRONE WHERE Name = '{vehicle.Name}')
     BEGIN
         INSERT INTO sde.DRONE (OBJECTID, Name, Drone_model, GlobalID)
         VALUES ((SELECT COUNT(1) + 1 FROM sde.DRONE), '{vehicle.Name}', '{vehicle.Model}', NEWID())
     END
-END", sqlCxn);
-                try
-                {
-                    var result = command.ExecuteReader();
-                }
-                catch (SqlException e)
-                {
-                    // Permission error
-                    if (e.Number == 229)
-                    {
-                        SetStatus(ServiceStatus.RunningDatabasePermissionDenied);
-                        sqlCxn.Close();
-                        break;
-                    }
-                    throw;
-                }
+END");
+                if (!success)
+                    break;
             }
+        }
+
+        private bool ExecuteSQLQuery(string query)
+        {
+            try
+            {
+                var command = new SqlCommand(query, sqlCxn);
+                command.ExecuteReader();
+            }
+            catch (SqlException e)
+            {
+                // Permission error
+                if (e.Number == 229)
+                {
+                    SetStatus(ServiceStatus.StoppedDatabasePermissionDenied);
+                    sqlCxn?.Close();
+                    return false;
+                }
+
+                if (e.Class > 20)
+                {
+                    SetStatus(ServiceStatus.StoppedDatabaseSevereError);
+                    logger.LogInformation("SQL Connection closed due to a severe error: {e}", e.Message);
+                    sqlCxn?.Close();
+                    return false;
+                }
+                throw;
+            }
+            return true;
         }
 
         private void TelemetryNotificationHandler(Notification notification)
@@ -278,11 +396,6 @@ END", sqlCxn);
                 return;
             requestedVehicleListUpdate = true;
             UGCSClient.RequestVehicleList();
-        }
-
-        private void SQLUpdateTimer_Elapsed(object? sender, ElapsedEventArgs e)
-        {
-            
         }
 
         private Task<bool> DatabaseReachable(CancellationToken stoppingToken)

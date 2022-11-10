@@ -13,7 +13,8 @@ namespace ACE_Mission_Control.Core.Models
         RunningDatabaseNotReachable,
         RunningNoUgCSConnection,
         RunningDatabaseConnectionRefused,
-        RunningDatabasePermissionDenied,
+        StoppedDatabasePermissionDenied,
+        StoppedDatabaseSevereError,
         Running
     }
 

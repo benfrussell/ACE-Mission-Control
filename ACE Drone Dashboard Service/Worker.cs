@@ -13,7 +13,6 @@ namespace ACE_Drone_Dashboard_Service
         ResponseServer server;
         DashboardService service;
 
-
         public Worker(ILogger<Worker> logger)
         {
             this.logger = logger;
@@ -31,10 +30,13 @@ namespace ACE_Drone_Dashboard_Service
             while (!stoppingToken.IsCancellationRequested)
             {
                 // Try to start the service connection if it's not running
-                // If we had permission denied then don't try starting again
-                if (!service.IsConnectionUp() && service.Status != ServiceStatus.RunningDatabasePermissionDenied)
-                    service.Connect(stoppingToken);
-
+                // If we had permission denied or severe error then don't try connecting again
+                if (!service.IsConnectionUp())
+                {
+                    if (service.Status != ServiceStatus.StoppedDatabasePermissionDenied && service.Status != ServiceStatus.StoppedDatabaseSevereError)
+                        service.Connect(stoppingToken);
+                }
+                    
                 await Task.Delay(3000, stoppingToken);
             }
         }

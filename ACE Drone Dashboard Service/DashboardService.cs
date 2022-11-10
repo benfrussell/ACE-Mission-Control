@@ -138,6 +138,7 @@ namespace ACE_Drone_Dashboard_Service
     public class DashboardService
     {
         public ServiceStatus Status { get; private set; }
+        public bool Halted { get; private set; }
 
         Dictionary<int, VehicleTelemetry> telemetry;
 
@@ -173,6 +174,112 @@ namespace ACE_Drone_Dashboard_Service
             requestedVehicleListUpdate = false;
         }
 
+        public void StartSQLUpdates()
+        {
+            if (!sqlUpdateTimer.Enabled)
+                sqlUpdateTimer.Start();
+        }
+
+        public bool IsConnectionUp()
+        {
+            if (!UGCSClient.IsConnected || !IsDBConnectionUp())
+                return false;
+            if (Status != ServiceStatus.Running)
+                SetStatus(ServiceStatus.Running);
+            return true;
+        }
+
+        public void Halt()
+        {
+            if (Halted)
+                return;
+
+            Halted = true;
+            if (sqlCxn != null && sqlCxn.State == System.Data.ConnectionState.Open)
+            {
+                sqlCxn.Close();
+                sqlCxn.Dispose();
+            }
+                
+            if (UGCSClient.IsConnected)
+                UGCSClient.Disconnect();
+
+            logger.LogInformation("Service halted");
+        }
+
+        public void Resume()
+        {
+            if (!Halted)
+                return;
+
+            Halted = false;
+            logger.LogInformation("Service resumed");
+        }
+
+        public async void Connect(CancellationToken stoppingToken)
+        {
+            if (Halted)
+                throw new InvalidOperationException("Attempting to connect while the service is halted is an invalid operation.");
+
+            if (!UGCSClient.TryingConnections)
+            {
+                UGCSClient.StartTryingConnections();
+                SetStatus(ServiceStatus.Starting);
+                return;
+            }
+                
+            if (!UGCSClient.IsConnected)
+            {
+                SetStatus(ServiceStatus.RunningNoUgCSConnection);
+                return;
+            }
+
+            if (!await DatabaseReachable(stoppingToken))
+            {
+                SetStatus(ServiceStatus.RunningDatabaseNotReachable);
+                return;
+            }
+
+            if (sqlCxn != null)
+            {
+                sqlCxn.Close();
+                sqlCxn.Dispose();
+            }
+                
+
+            sqlCxn = await EstablishDBConnection(stoppingToken);
+            if (sqlCxn == null)
+            {
+                SetStatus(ServiceStatus.HaltedDatabaseConnectionRefused);
+                Halt();
+                return;
+            }
+
+            var realVehicles = telemetry.Where((entry) => entry.Value.IsReal == true).Select((entry) => entry.Value);
+            if (realVehicles.Count() > 0)
+                EnsureTableHasDroneRows(realVehicles);
+
+            if (sqlCxn.State == System.Data.ConnectionState.Open)
+            {
+                StartSQLUpdates();
+                SetStatus(ServiceStatus.Running);
+            }
+        }
+
+        private bool IsDBConnectionUp()
+        {
+            return sqlCxn != null && sqlCxn.State == System.Data.ConnectionState.Open;
+        }
+
+        private void SQLUpdateTimer_Elapsed(object? sender, ElapsedEventArgs e)
+        {
+            if (!IsDBConnectionUp())
+                return;
+
+            UpdateDroneTable();
+            sqlUpdateTimer.Start();
+        }
+
         private void UGCSClient_StaticPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "IsConnected" && UGCSClient.IsConnected)
@@ -197,80 +304,6 @@ namespace ACE_Drone_Dashboard_Service
                     if (vehicle.IsReal && IsDBConnectionUp())
                         EnsureTableHasDroneRows(new[] { telemetry[vehicle.Id] });
                 }
-            }
-        }
-
-        public void StartSQLUpdates()
-        {
-            if (!sqlUpdateTimer.Enabled)
-                sqlUpdateTimer.Start();
-        }
-
-        private void SQLUpdateTimer_Elapsed(object? sender, ElapsedEventArgs e)
-        {
-            if (!IsDBConnectionUp())
-            {
-                SetStatus(ServiceStatus.RunningDatabaseNotReachable);
-                return;
-            }
-
-            UpdateDroneTable();
-            sqlUpdateTimer.Start();
-        }
-
-        public bool IsConnectionUp()
-        {
-            if (!UGCSClient.IsConnected || !IsDBConnectionUp())
-                return false;
-            if (Status != ServiceStatus.Running)
-                SetStatus(ServiceStatus.Running);
-            return true;
-        }
-
-        private bool IsDBConnectionUp()
-        {
-            return sqlCxn != null && sqlCxn.State == System.Data.ConnectionState.Open;
-        }
-
-        public async void Connect(CancellationToken stoppingToken)
-        {
-            if (!UGCSClient.TryingConnections)
-            {
-                UGCSClient.StartTryingConnections();
-                SetStatus(ServiceStatus.Starting);
-                return;
-            }
-                
-            if (!UGCSClient.IsConnected)
-            {
-                SetStatus(ServiceStatus.RunningNoUgCSConnection);
-                return;
-            }
-
-            if (!await DatabaseReachable(stoppingToken))
-            {
-                SetStatus(ServiceStatus.RunningDatabaseNotReachable);
-                return;
-            }
-
-            if (sqlCxn != null)
-                sqlCxn.Dispose();
-
-            sqlCxn = await EstablishDBConnection(stoppingToken);
-            if (sqlCxn == null)
-            {
-                SetStatus(ServiceStatus.RunningDatabaseConnectionRefused);
-                return;
-            }
-
-            var realVehicles = telemetry.Where((entry) => entry.Value.IsReal == true).Select((entry) => entry.Value);
-            if (realVehicles.Count() > 0)
-                EnsureTableHasDroneRows(realVehicles);
-
-            if (sqlCxn.State == System.Data.ConnectionState.Open)
-            {
-                StartSQLUpdates();
-                SetStatus(ServiceStatus.Running);
             }
         }
 
@@ -333,16 +366,16 @@ END");
                 // Permission error
                 if (e.Number == 229)
                 {
-                    SetStatus(ServiceStatus.StoppedDatabasePermissionDenied);
-                    sqlCxn?.Close();
+                    SetStatus(ServiceStatus.HaltedDatabasePermissionDenied);
+                    Halt();
                     return false;
                 }
 
                 if (e.Class > 20)
                 {
-                    SetStatus(ServiceStatus.StoppedDatabaseSevereError);
+                    SetStatus(ServiceStatus.HaltedDatabaseSevereError);
                     logger.LogInformation("SQL Connection closed due to a severe error: {e}", e.Message);
-                    sqlCxn?.Close();
+                    Halt();
                     return false;
                 }
                 throw;

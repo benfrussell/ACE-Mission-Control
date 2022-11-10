@@ -16,13 +16,12 @@ namespace ACE_Drone_Dashboard_Service
         public Worker(ILogger<Worker> logger)
         {
             this.logger = logger;
+            server = new ResponseServer();
+            service = new DashboardService(logger);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            server = new ResponseServer();
-            service = new DashboardService(logger);
-
             await server.StartAsync("tcp://localhost:5538", HandleServerRequest, HandleServerFailure);
             if (server.Status == ServerStatus.Failed)
                 return;
@@ -31,11 +30,8 @@ namespace ACE_Drone_Dashboard_Service
             {
                 // Try to start the service connection if it's not running
                 // If we had permission denied or severe error then don't try connecting again
-                if (!service.IsConnectionUp())
-                {
-                    if (service.Status != ServiceStatus.StoppedDatabasePermissionDenied && service.Status != ServiceStatus.StoppedDatabaseSevereError)
-                        service.Connect(stoppingToken);
-                }
+                if (!service.IsConnectionUp() && !service.Halted)
+                    service.Connect(stoppingToken);
                     
                 await Task.Delay(3000, stoppingToken);
             }
@@ -49,6 +45,16 @@ namespace ACE_Drone_Dashboard_Service
                     return "pong";
                 case "status":
                     return ((int)service.Status).ToString();
+                case "halt":
+                    if (service.Halted)
+                        return "Service is already halted";
+                    service.Halt();
+                    return "Halting service";
+                case "resume":
+                    if (!service.Halted)
+                        return "Service is already running";
+                    service.Resume();
+                    return "Resuming service";
                 default:
                     return "Unknown request";
             }

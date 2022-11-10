@@ -226,6 +226,25 @@ namespace ACE_Mission_Control.Core.Models
             return new ConnectionResult() { Success = true, Message = "Connected to UGCS" };
         }
 
+        public static void Disconnect()
+        {
+            if (IsConnected)
+            {
+                LogoutRequest logout = new LogoutRequest();
+                logout.ClientId = clientID;
+                var logoutResponse = messageExecutor.Submit<LogoutRequest>(logout);
+                logoutResponse.Wait();
+
+                messageReceiver.RemoveListener(-1);
+                messageExecutor.Close();
+                tcpClient.Close();
+                tcpClient.Dispose();
+            }
+
+            IsConnected = false;
+            TryingConnections = false;
+        }
+
         public static async Task<Waypoint> InsertWaypointAlongRoute(int routeID, string preceedingSegmentUuid, double longitude, double latitude)
         {
             // First get the route & preceeding segment

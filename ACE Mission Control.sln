@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE Mission Control.Core", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE Mission Control Tests", "ACE Mission Control Tests\ACE Mission Control Tests.csproj", "{381F03AA-EB8E-43BF-83A9-98D65BE08861}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE Drone Dashboard Service", "ACE Drone Dashboard Service\ACE Drone Dashboard Service.csproj", "{EF44AE86-0C30-4DD3-9D41-490C7A20F812}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE Drone Dashboard Service", "ACE Drone Dashboard Service\ACE Drone Dashboard Service.csproj", "{EF44AE86-0C30-4DD3-9D41-490C7A20F812}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -367,6 +367,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
+    <None Include="Install.ps1" />
+    <None Include="PostPublishScript.ps1" />
     <PRIResource Include="Strings\fr-ca\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
@@ -392,4 +394,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="PostPublishSetup" AfterTargets="FileSystemPublish">
+    <Exec Command="echo BEGIN After-publish CUSTOM PUBLISH SCRIPT RUNNING PublishDir=$(PublishDir) echo END After-publish" />
+  </Target>
 </Project>

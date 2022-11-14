@@ -14,5 +14,6 @@ $ModifiedScript = $AppDevPackageScript.Replace('$NeedDeveloperLicense = CheckIfN
 # Copy in service exe
 Copy-Item $ACEServiceExe -Destination $NewestPackagePath
 
-# Copy in new install script
+# Copy in new install scripts
 Copy-Item (Join-Path $PSScriptRoot 'Install.ps1') -Destination $NewestPackagePath
+Copy-Item (Join-Path $PSScriptRoot 'Add-ElevatedServices.ps1') -Destination $NewestPackagePath

@@ -142,14 +142,14 @@ namespace ACE_Drone_Dashboard_Service
 
         Dictionary<int, VehicleTelemetry> telemetry;
 
-        readonly ILogger<Worker> logger;
+        readonly ILogger<WindowsBackgroundService> logger;
         SqlConnectionStringBuilder cxnBuilder;
         SqlConnection? sqlCxn;
         System.Timers.Timer sqlUpdateTimer;
         DateTime? lastSQLUpdate;
         bool requestedVehicleListUpdate;
 
-        public DashboardService(ILogger<Worker> logger)
+        public DashboardService(ILogger<WindowsBackgroundService> logger)
         {
             Status = ServiceStatus.NotRunning;
 

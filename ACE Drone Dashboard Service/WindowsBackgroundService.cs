@@ -6,34 +6,42 @@ using Windows.Foundation.Collections;
 
 namespace ACE_Drone_Dashboard_Service
 {
-    public class Worker : BackgroundService
+    public class WindowsBackgroundService : BackgroundService
     {
-        private readonly ILogger<Worker> logger;
+        private readonly ILogger<WindowsBackgroundService> logger;
 
-        ResponseServer server;
-        DashboardService service;
+        private readonly ResponseServer server;
+        private readonly DashboardService service;
 
-        public Worker(ILogger<Worker> logger)
+        public WindowsBackgroundService(ResponseServer server, DashboardService service, ILogger<WindowsBackgroundService> logger)
         {
             this.logger = logger;
-            server = new ResponseServer();
-            service = new DashboardService(logger);
+            this.server = new ResponseServer();
+            this.service = new DashboardService(logger);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await server.StartAsync("tcp://localhost:5538", HandleServerRequest, HandleServerFailure);
-            if (server.Status == ServerStatus.Failed)
-                return;
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                // Try to start the service connection if it's not running
-                // If we had permission denied or severe error then don't try connecting again
-                if (!service.IsConnectionUp() && !service.Halted)
-                    service.Connect(stoppingToken);
-                    
-                await Task.Delay(3000, stoppingToken);
+                await server.StartAsync("tcp://localhost:5538", HandleServerRequest, HandleServerFailure);
+                if (server.Status == ServerStatus.Failed)
+                    return;
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    // Try to start the service connection if it's not running
+                    // If we had permission denied or severe error then don't try connecting again
+                    if (!service.IsConnectionUp() && !service.Halted)
+                        service.Connect(stoppingToken);
+
+                    await Task.Delay(3000, stoppingToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "{Message}", ex.Message);
+                Environment.Exit(1);
             }
         }
 

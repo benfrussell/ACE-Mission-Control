@@ -7,14 +7,14 @@
     <UserSecretsId>dotnet-ACE_Drone_Dashboard_Service-A9EA0645-C4DC-4F6C-BA9B-234FBE017205</UserSecretsId>
     <RootNamespace>ACE_Drone_Dashboard_Service</RootNamespace>
     <OutputType>exe</OutputType>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>

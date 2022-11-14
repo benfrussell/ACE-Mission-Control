@@ -367,6 +367,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
+    <None Include="Add-ElevatedServices.ps1" />
     <None Include="Install.ps1" />
     <None Include="PostPublishScript.ps1" />
     <PRIResource Include="Strings\fr-ca\Resources.resw" />

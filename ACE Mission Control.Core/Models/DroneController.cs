@@ -77,7 +77,7 @@ namespace ACE_Mission_Control.Core.Models
         {
             foreach (Vehicle v in e.Vehicles)
             {
-                var matchedDrone = Drones.Where(drone => drone.ID == v.Id).FirstOrDefault();
+                var matchedDrone = Drones.Where(drone => drone != null && drone.ID == v.Id).FirstOrDefault();
                 if (matchedDrone == null)
                 {
                     if (v.NameSpecified)

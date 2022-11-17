@@ -265,7 +265,7 @@ namespace ACE_Drone_Dashboard_Service
                 return;
             }
 
-            var realVehicles = telemetry.Where((entry) => entry.Value.IsReal == true).Select((entry) => entry.Value);
+            var realVehicles = telemetry.Where((entry) => entry.Value != null && entry.Value.IsReal == true).Select((entry) => entry.Value);
             if (realVehicles.Count() > 0)
                 EnsureTableHasDroneRows(realVehicles);
 
